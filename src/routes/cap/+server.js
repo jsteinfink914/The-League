@@ -8,7 +8,7 @@ export async function GET({ url }) {
     const year = url.searchParams.get('year') || new Date().getFullYear().toString();
     const csvFilePath = '/Player_Values.txt'; // Ensure path is correct
     const csvFile = await readFile(csvFilePath, 'utf8');
-    const parsedData = Papa.parse(csvFile, { header: true }).data;
+    const parsedData = Papa.parse(text, { header: true }).data;
 
     const years = [...new Set(parsedData.map(d => d.Year))];
     const selectedYear = year;
