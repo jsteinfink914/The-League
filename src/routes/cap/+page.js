@@ -1,5 +1,5 @@
 export async function load({ fetch, url }) {
-    const year = url.searchParams.get('year') || '2024'; // Default year
+    const year = url.searchParams.get('year') || '2024';
   
     const res = await fetch(`/cap?year=${year}`);
     if (!res.ok) {
@@ -9,12 +9,10 @@ export async function load({ fetch, url }) {
     const { salaryData, differenceData, years } = await res.json();
   
     return {
-      props: {
-        salaryData,
-        differenceData,
-        years,
-        year
-      }
+      salaryData,
+      differenceData,
+      years,
+      year
     };
   }
   
