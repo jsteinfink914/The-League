@@ -14,7 +14,7 @@
     }
 </script>
 <iframe
-    src="/constitution.pdf"
+    src="constitution.pdf"
     width="100%"
     height="600px"
     style="border: none;"
