@@ -7,7 +7,7 @@ export const enableBlog = false; // requires VITE_CONTENTFUL_ACCESS_TOKEN and VI
 
 /*   STEP 2   */
 export const homepageText = `
-  <p>This is the best league ever created amongst a confederation of lovely individuals - la familia. <p>
+  <p>Intro... <p>
 `;
 
 /*   STEP 3   */
