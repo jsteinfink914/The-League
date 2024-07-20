@@ -9,7 +9,7 @@ export async function GET({ url }) {
       return json({ error: 'Year parameter is required' }, { status: 400 });
     }
 
-    const csvFile = './static/Player_Values.csv';
+    const csvFile = '/Player_Values.csv';
     const csvData = await readFile(csvFile, 'utf8');
     const parsedData = Papa.parse(csvData, { header: true }).data;
 
