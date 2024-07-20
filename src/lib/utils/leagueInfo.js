@@ -19,7 +19,7 @@ https://github.com/nmelhado/league-page/blob/master/TRAINING_WHEELS.md#ii-adding
 
 // To omit an optional field, set it's value to null
 
-// export const managers = [
+export const managers = [
   //   {
   //     "roster": 1,  // ID of the roster that the manager manages (look at the order of the power rankings graph)
   //     "name": "Sween",
@@ -84,7 +84,7 @@ https://github.com/nmelhado/league-page/blob/master/TRAINING_WHEELS.md#ii-adding
   //     "tradingScale": 10, // 1 - 10
   //     "preferredContact": "Text", // 'Text', 'WhatsApp', 'Sleeper', 'Email', 'Phone', 'Discord', and 'Carrier Pigeon' are currently supplied in the template
   //   },
-  // ]
+  ]
   
   
   /*   !!  !!  IMPORTANT  !!  !! */
