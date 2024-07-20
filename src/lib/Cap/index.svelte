@@ -18,7 +18,7 @@
   </select>
 
   <label for="search-input">Search Player:</label>
-  <input id="search-input" type="text" bind:value={searchQuery} placeholder="Type player name..." />
+  <input id="search-input" type="text" bind:value={searchQuery} placeholder="Type player name (optional)" />
 
   <h2>Cap Values for {year}</h2>
   <table>

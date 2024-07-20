@@ -1,5 +1,5 @@
-export async function load({ fetch, params }) {
-    const year = params.year || '2024'; // Default year
+export async function load({ fetch, url }) {
+    const year = url.searchParams.get('year') || '2024'; // Default year
   
     const res = await fetch(`/cap?year=${year}`);
     if (!res.ok) {
