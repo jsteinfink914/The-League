@@ -1,7 +1,6 @@
 <script>
   import { onMount } from 'svelte';
   import Papa from 'papaparse';
-  import { writable } from 'svelte/store';
 
   let years = [];
   let selectedYear = "2024";
@@ -10,17 +9,24 @@
   let previousYearData = [];
   let differenceData = [];
 
+  // Function to load and parse CSV data
   const loadCSV = async () => {
-    const response = await fetch('/Player_Values.csv'); // Update the path to your CSV file
-    const csv = await response.text();
-    const parsedData = Papa.parse(csv, { header: true }).data;
+    try {
+      const response = await fetch('/Player_Values.csv'); // Ensure this path is correct
+      const csv = await response.text();
+      const parsedData = Papa.parse(csv, { header: true }).data;
 
-    years = [...new Set(parsedData.map(d => d.Year))];
-    data = parsedData;
-    selectedYear = years[0];
-    filterData();
+      // Populate years from parsed data
+      years = [...new Set(parsedData.map(d => d.Year))].sort();
+      data = parsedData;
+      selectedYear = years[0] || "2024";
+      filterData();
+    } catch (error) {
+      console.error("Failed to load CSV data", error);
+    }
   };
 
+  // Function to filter data based on year and search query
   const filterData = () => {
     const currentData = data.filter(d => d.Year == selectedYear);
     previousYearData = data.filter(d => d.Year == (selectedYear - 1));
@@ -32,18 +38,21 @@
     calculateDifferences(currentData);
   };
 
+  // Function to calculate differences between current and previous year data
   const calculateDifferences = (currentData) => {
     differenceData = currentData.map(current => {
-      const previous = previousYearData.find(d => d["Name"] == current["Name"]) || {};
+      const previous = previousYearData.find(d => d["Name"] === current["Name"]) || {};
       return {
         "Name": current["Name"],
-        "Difference": current["value"] - (previous["Value"] || 0),
+        "Difference": current["Value"] - (previous["Value"] || 0),
       };
     });
   };
 
+  // Load data on component mount
   onMount(loadCSV);
 
+  // Reactively filter data when year or search query changes
   $: filterData();
 </script>
 
@@ -68,11 +77,11 @@
       </tr>
     </thead>
     <tbody>
-      {#each data.filter(d => d.Year == selectedYear && (!searchQuery || d["player name"].toLowerCase().includes(searchQuery.toLowerCase()))) as row}
+      {#each data.filter(d => d.Year == selectedYear && (!searchQuery || d["Name"].toLowerCase().includes(searchQuery.toLowerCase()))) as row}
         <tr>
-          <td>{row["player name"]}</td>
-          <td>{row["cap value"]}</td>
-          <td>{row["rookie status"]}</td>
+          <td>{row["Name"]}</td>
+          <td>{row["Value"]}</td>
+          <td>{row["Rookie"]}</td>
         </tr>
       {/each}
     </tbody>
@@ -82,15 +91,15 @@
   <table>
     <thead>
       <tr>
-        <th>Player Name</th>
+        <th>Name</th>
         <th>Cap Value Difference</th>
       </tr>
     </thead>
     <tbody>
       {#each differenceData as row}
         <tr>
-          <td>{row["player name"]}</td>
-          <td>{row["cap value difference"]}</td>
+          <td>{row["Name"]}</td>
+          <td>{row["Difference"]}</td>
         </tr>
       {/each}
     </tbody>
