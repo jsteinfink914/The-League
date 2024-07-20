@@ -1,26 +1,70 @@
 <script>
-  export let salaryData;
-  export let differenceData;
-  export let years;
-  export let year;
+  import { onMount } from 'svelte';
+  import Papa from 'papaparse';
+  import { writable } from 'svelte/store';
 
+  let years = [];
+  let selectedYear = "2024";
   let searchQuery = "";
+  let data = [];
+  let previousYearData = [];
+  let differenceData = [];
 
-  $: filteredSalaryData = salaryData.filter(d => !searchQuery || d.Name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const loadCSV = async () => {
+    try {
+      const response = await fetch(`/Player_Values.csv`); // Path to the static CSV file
+      if (!response.ok) {
+        throw new Error(`Failed to fetch CSV file: ${response.statusText}`);
+      }
+      const csv = await response.text();
+      const parsedData = Papa.parse(csv, { header: true }).data;
+
+      years = [...new Set(parsedData.map(d => d.Year))];
+      data = parsedData;
+      filterData();
+    } catch (error) {
+      console.error('Error loading CSV:', error);
+    }
+  };
+
+  const filterData = () => {
+    let currentData = data.filter(d => d.Year == selectedYear);
+    previousYearData = data.filter(d => d.Year == (parseInt(selectedYear) - 1).toString());
+
+    if (searchQuery) {
+      currentData = currentData.filter(d => d["Name"].toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+
+    calculateDifferences(currentData);
+  };
+
+  const calculateDifferences = (currentData) => {
+    differenceData = currentData.map(current => {
+      const previous = previousYearData.find(d => d["Name"] === current["Name"]) || {};
+      return {
+        "Name": current["Name"],
+        "Difference": current["Value"] - (previous["Value"] || 0),
+      };
+    });
+  };
+
+  onMount(loadCSV);
+
+  $: filterData();
 </script>
 
 <div>
   <label for="year-select">Select Year:</label>
-  <select id="year-select" bind:value={year} on:change="{e => year = e.target.value}">
-    {#each years as yearOption}
-      <option value={yearOption}>{yearOption}</option>
+  <select id="year-select" bind:value={selectedYear}>
+    {#each years as year}
+      <option value={year}>{year}</option>
     {/each}
   </select>
 
   <label for="search-input">Search Player:</label>
   <input id="search-input" type="text" bind:value={searchQuery} placeholder="Type player name..." />
 
-  <h2>Cap Values for {year}</h2>
+  <h2>Cap Values for {selectedYear}</h2>
   <table>
     <thead>
       <tr>
@@ -30,11 +74,11 @@
       </tr>
     </thead>
     <tbody>
-      {#each filteredSalaryData as row}
+      {#each data.filter(d => d.Year == selectedYear && (!searchQuery || d["Name"].toLowerCase().includes(searchQuery.toLowerCase()))) as row}
         <tr>
-          <td>{row.Name}</td>
-          <td>{row.Value}</td>
-          <td>{row.Rookie}</td>
+          <td>{row["Name"]}</td>
+          <td>{row["Value"]}</td>
+          <td>{row["Rookie"]}</td>
         </tr>
       {/each}
     </tbody>
@@ -51,8 +95,8 @@
     <tbody>
       {#each differenceData as row}
         <tr>
-          <td>{row.Name}</td>
-          <td>{row.Difference}</td>
+          <td>{row["Name"]}</td>
+          <td>{row["Difference"]}</td>
         </tr>
       {/each}
     </tbody>

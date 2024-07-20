@@ -1,18 +1,13 @@
+// src/routes/cap/+page.js (if necessary)
 export async function load({ fetch, url }) {
-    const year = url.searchParams.get('year') || '2024';
-  
+    const year = url.searchParams.get('year') || new Date().getFullYear().toString();
     const res = await fetch(`/cap?year=${year}`);
     if (!res.ok) {
-      throw new Error('Failed to fetch salary cap data');
+      throw new Error(`Failed to fetch: ${res.statusText}`);
     }
-  
-    const { salaryData, differenceData, years } = await res.json();
-  
+    const data = await res.json();
     return {
-      salaryData,
-      differenceData,
-      years,
-      year
+      props: data
     };
   }
   

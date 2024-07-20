@@ -1,37 +1,36 @@
+// src/routes/cap/+server.js
 import { readFile } from 'fs/promises';
 import Papa from 'papaparse';
 import { json } from '@sveltejs/kit';
 
 export async function GET({ url }) {
   try {
-    const year = url.searchParams.get('year');
-    if (!year) {
-      return json({ error: 'Year parameter is required' }, { status: 400 });
-    }
+    const year = url.searchParams.get('year') || new Date().getFullYear().toString();
+    const csvFilePath = 'static/Player_Values.csv'; // Ensure path is correct
+    const csvFile = await readFile(csvFilePath, 'utf8');
+    const parsedData = Papa.parse(csvFile, { header: true }).data;
 
-    const csvFile = 'static/Player_Values.csv';
-    const csvData = await readFile(csvFile, 'utf8');
-    const parsedData = Papa.parse(csvData, { header: true }).data;
+    const years = [...new Set(parsedData.map(d => d.Year))];
+    const selectedYear = year;
+    const salaryData = parsedData.filter(d => d.Year === selectedYear);
+    const previousYearData = parsedData.filter(d => d.Year === (parseInt(selectedYear) - 1).toString());
 
-    const data = parsedData.filter(d => d.Year === year);
-    const previousYear = (parseInt(year) - 1).toString();
-    const previousYearData = parsedData.filter(d => d.Year === previousYear);
-
-    const differenceData = data.map(current => {
+    const differenceData = salaryData.map(current => {
       const previous = previousYearData.find(d => d.Name === current.Name) || {};
       return {
         Name: current.Name,
-        Difference: parseFloat(current.Value) - (parseFloat(previous.Value) || 0),
+        Difference: current.Value - (previous.Value || 0),
       };
     });
 
     return json({
-      salaryData: data,
+      salaryData,
       differenceData,
-      years: [...new Set(parsedData.map(d => d.Year))]
+      years,
+      selectedYear
     });
   } catch (error) {
-    console.error('Error fetching salary cap data:', error);
-    return json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Failed to fetch salary cap data:', error);
+    return new Response('Failed to fetch salary cap data', { status: 500 });
   }
 }
