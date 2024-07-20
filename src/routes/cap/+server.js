@@ -6,7 +6,7 @@ import { json } from '@sveltejs/kit';
 export async function GET({ url }) {
   try {
     const year = url.searchParams.get('year') || new Date().getFullYear().toString();
-    const csvFilePath = 'static/Player_Values.csv'; // Ensure path is correct
+    const csvFilePath = '/Player_Values.csv'; // Ensure path is correct
     const csvFile = await readFile(csvFilePath, 'utf8');
     const parsedData = Papa.parse(csvFile, { header: true }).data;
 
