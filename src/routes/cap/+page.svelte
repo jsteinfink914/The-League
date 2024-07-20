@@ -1,17 +1,14 @@
 <script>
-  import Papa from 'papaparse';
   import { onMount } from 'svelte';
-
-  let years = [];
-  let selectedYear = "2024";
-  let searchQuery = "";
   let data = [];
-  let previousYearData = [];
+  let filteredData = [];
   let differenceData = [];
+  let year1 = 2023;
+  let year2 = 2022;
+  let searchQuery = '';
 
   // Sample CSV data
-  const csvData = `
-Year,Name,Value,Rookie
+  const csvData = `Year,Name,Value,Rookie
 2022,Jonathan Taylor,179,0
 2022,Christian McCaffrey,162,0
 2022,Austin Ekeler,157,0
@@ -1140,109 +1137,116 @@ Year,Name,Value,Rookie
 2024,Alec Pierce,3,0
 2024,Michael Gallup,0,0
 2024,Drake Maye,0,1
-2024,Gardner Minshew II,0,0
-  `.trim();
+2024,Gardner Minshew II,0,0`; // Use your full CSV data here
 
-  const parseCSV = () => {
-    const parsedData = Papa.parse(csvData, { header: true }).data;
-    years = [...new Set(parsedData.map(d => d.Year))];
-    data = parsedData;
-    selectedYear = years[0];
-    filterData();
-  };
+  // Parse CSV data
+  function parseCSV(csv) {
+    const rows = csv.trim().split('\n').map(row => row.split(','));
+    const headers = rows.shift();
+    return rows.map(row => {
+      return headers.reduce((acc, header, i) => {
+        acc[header] = row[i];
+        return acc;
+      }, {});
+    });
+  }
 
-  const filterData = () => {
-    let currentData = data.filter(d => d.Year == selectedYear);
-    previousYearData = data.filter(d => d.Year == (selectedYear - 1).toString());
+  function calculateDifferences() {
+    const year1Data = data.filter(item => item.Year === year1.toString());
+    const year2Data = data.filter(item => item.Year === year2.toString());
 
-    if (searchQuery) {
-      currentData = currentData.filter(d => d.Name.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
+    const year1Map = new Map(year1Data.map(item => [item.Name, parseFloat(item.Value)]));
+    const year2Map = new Map(year2Data.map(item => [item.Name, parseFloat(item.Value)]));
 
-    calculateDifferences(currentData);
-  };
-
-  const calculateDifferences = (currentData) => {
-    differenceData = currentData.map(current => {
-      const previous = previousYearData.find(d => d.Name === current.Name) || {};
+    differenceData = Array.from(year1Map.keys()).map(name => {
+      const value1 = year1Map.get(name) || 0;
+      const value2 = year2Map.get(name) || 0;
       return {
-        Name: current.Name,
-        Difference: current.Value - (previous.Value || 0),
+        Name: name,
+        Value1: value1,
+        Value2: value2,
+        Difference: value1 - value2
       };
     });
-  };
+  }
 
-  onMount(parseCSV);
+  function filterData() {
+    const query = searchQuery.toLowerCase();
+    filteredData = data.filter(item =>
+      item.Name.toLowerCase().includes(query)
+    );
+  }
 
-  $: filterData();
+  onMount(() => {
+    data = parseCSV(csvData);
+    calculateDifferences();
+    filterData();
+  });
+
+  $: filteredData = data.filter(item => 
+    item.Name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  $: calculateDifferences();
+
 </script>
 
+<style>
+  /* Add your styles here */
+</style>
+
 <div>
-  <label for="year-select">Select Year:</label>
-  <select id="year-select" bind:value={selectedYear}>
-    {#each years as year}
-      <option value={year}>{year}</option>
-    {/each}
+  <input type="text" bind:value={searchQuery} placeholder="Search players" />
+  <select bind:value={year1} on:change={calculateDifferences}>
+    <option value="2023">2023</option>
+    <option value="2022">2022</option>
+    <!-- Add more options as needed -->
+  </select>
+  <select bind:value={year2} on:change={calculateDifferences}>
+    <option value="2023">2023</option>
+    <option value="2022">2022</option>
+    <!-- Add more options as needed -->
   </select>
 
-  <label for="search-input">Search Player:</label>
-  <input id="search-input" type="text" bind:value={searchQuery} placeholder="Type player name..." />
-
-  <h2>Cap Values for {selectedYear}</h2>
+  <!-- Values Table -->
   <table>
     <thead>
       <tr>
-        <th>Player Name</th>
-        <th>Cap Value</th>
-        <th>Rookie Status</th>
+        <th>Name</th>
+        <th>Year</th>
+        <th>Value</th>
       </tr>
     </thead>
     <tbody>
-      {#each data.filter(d => d.Year == selectedYear && (!searchQuery || d.Name.toLowerCase().includes(searchQuery.toLowerCase()))) as row}
+      {#each filteredData as { Name, Year, Value }}
         <tr>
-          <td>{row.Name}</td>
-          <td>{row.Value}</td>
-          <td>{row.Rookie}</td>
+          <td>{Name}</td>
+          <td>{Year}</td>
+          <td>{Value}</td>
         </tr>
       {/each}
     </tbody>
   </table>
 
-  <h2>Differences from Previous Year</h2>
+  <!-- Differences Table -->
   <table>
     <thead>
       <tr>
         <th>Name</th>
-        <th>Cap Value Difference</th>
+        <th>{year1} Value</th>
+        <th>{year2} Value</th>
+        <th>Difference</th>
       </tr>
     </thead>
     <tbody>
-      {#each differenceData as row}
+      {#each differenceData as { Name, Value1, Value2, Difference }}
         <tr>
-          <td>{row.Name}</td>
-          <td>{row.Difference}</td>
+          <td>{Name}</td>
+          <td>{Value1}</td>
+          <td>{Value2}</td>
+          <td>{Difference}</td>
         </tr>
       {/each}
     </tbody>
   </table>
 </div>
-
-<style>
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-  }
-
-  th {
-    background-color: #f2f2f2;
-  }
-
-  tr:hover {
-    background-color: #f1f1f1;
-  }
-</style>
