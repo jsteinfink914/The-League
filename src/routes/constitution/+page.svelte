@@ -15,7 +15,6 @@
 </script>
 
 <main>
-  <h1>League Constitution</h1>
   <object
     data="/constitution.pdf"
     type="application/pdf"
