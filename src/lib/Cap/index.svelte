@@ -28,7 +28,7 @@
 
   // Function to filter data based on year and search query
   const filterData = () => {
-    const currentData = data.filter(d => d.Year == selectedYear);
+    let currentData = data.filter(d => d.Year == selectedYear);
     previousYearData = data.filter(d => d.Year == (selectedYear - 1));
 
     if (searchQuery) {
