@@ -1,11 +1,13 @@
 <script>
+  import Papa from 'papaparse';
   import { onMount } from 'svelte';
+
+  let years = [];
+  let selectedYear = "2024";
+  let searchQuery = "";
   let data = [];
-  let filteredData = [];
+  let previousYearData = [];
   let differenceData = [];
-  let year1 = 2023;
-  let year2 = 2022;
-  let searchQuery = '';
 
   // Sample CSV data
   const csvData = `Year,Name,Value,Rookie
@@ -1137,116 +1139,134 @@
 2024,Alec Pierce,3,0
 2024,Michael Gallup,0,0
 2024,Drake Maye,0,1
-2024,Gardner Minshew II,0,0`; // Use your full CSV data here
+2024,Gardner Minshew II,0,0`; // Include the full CSV data here
 
-  // Parse CSV data
-  function parseCSV(csv) {
-    const rows = csv.trim().split('\n').map(row => row.split(','));
-    const headers = rows.shift();
-    return rows.map(row => {
-      return headers.reduce((acc, header, i) => {
-        acc[header] = row[i];
-        return acc;
-      }, {});
+  // Parse CSV data on mount
+  onMount(() => {
+    Papa.parse(csvData, {
+      header: true,
+      complete: (results) => {
+        data = results.data;
+        populateYears();
+        calculateDifferenceData();
+      }
     });
+  });
+
+  function populateYears() {
+    years = [...new Set(data.map(item => item.Year))].sort();
   }
 
-  function calculateDifferences() {
-    const year1Data = data.filter(item => item.Year === year1.toString());
-    const year2Data = data.filter(item => item.Year === year2.toString());
-
-    const year1Map = new Map(year1Data.map(item => [item.Name, parseFloat(item.Value)]));
-    const year2Map = new Map(year2Data.map(item => [item.Name, parseFloat(item.Value)]));
-
-    differenceData = Array.from(year1Map.keys()).map(name => {
-      const value1 = year1Map.get(name) || 0;
-      const value2 = year2Map.get(name) || 0;
+  function calculateDifferenceData() {
+    previousYearData = data.filter(item => item.Year === String(Number(selectedYear) - 1));
+    const currentYearData = data.filter(item => item.Year === selectedYear);
+    
+    differenceData = currentYearData.map(current => {
+      const previous = previousYearData.find(p => p.Name === current.Name);
       return {
-        Name: name,
-        Value1: value1,
-        Value2: value2,
-        Difference: value1 - value2
+        Name: current.Name,
+        CurrentValue: parseFloat(current.Value),
+        PreviousValue: previous ? parseFloat(previous.Value) : 0,
+        Difference: previous ? parseFloat(current.Value) - parseFloat(previous.Value) : parseFloat(current.Value)
       };
     });
   }
 
-  function filterData() {
-    const query = searchQuery.toLowerCase();
-    filteredData = data.filter(item =>
-      item.Name.toLowerCase().includes(query)
-    );
+  function handleYearChange(event) {
+    selectedYear = event.target.value;
+    calculateDifferenceData();
   }
 
-  onMount(() => {
-    data = parseCSV(csvData);
-    calculateDifferences();
-    filterData();
-  });
+  function handleSearchInput(event) {
+    searchQuery = event.target.value.toLowerCase();
+  }
 
-  $: filteredData = data.filter(item => 
-    item.Name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  $: calculateDifferences();
-
+  function filterData(item) {
+    const query = searchQuery.trim().toLowerCase();
+    return item.Name.toLowerCase().includes(query);
+  }
 </script>
 
 <style>
-  /* Add your styles here */
+  .container {
+    display: flex;
+    justify-content: space-between;
+  }
+  .table-container {
+    width: 45%;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+  th {
+    background-color: #f4f4f4;
+  }
 </style>
 
 <div>
-  <input type="text" bind:value={searchQuery} placeholder="Search players" />
-  <select bind:value={year1} on:change={calculateDifferences}>
-    <option value="2023">2023</option>
-    <option value="2022">2022</option>
-    <!-- Add more options as needed -->
+  <label for="year-select">Select Year:</label>
+  <select id="year-select" on:change={handleYearChange}>
+    {#each years as year}
+      <option value={year} selected={year === selectedYear}>{year}</option>
+    {/each}
   </select>
-  <select bind:value={year2} on:change={calculateDifferences}>
-    <option value="2023">2023</option>
-    <option value="2022">2022</option>
-    <!-- Add more options as needed -->
-  </select>
+  
+  <label for="search-input">Search:</label>
+  <input id="search-input" type="text" placeholder="Search players..." on:input={handleSearchInput} />
+</div>
 
+<div class="container">
   <!-- Values Table -->
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Year</th>
-        <th>Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each filteredData as { Name, Year, Value }}
+  <div class="table-container">
+    <h3>Values - {selectedYear}</h3>
+    <table>
+      <thead>
         <tr>
-          <td>{Name}</td>
-          <td>{Year}</td>
-          <td>{Value}</td>
+          <th>Name</th>
+          <th>Value</th>
         </tr>
-      {/each}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {#each data.filter(filterData) as item (item.Name)}
+          {#if item.Year === selectedYear}
+            <tr>
+              <td>{item.Name}</td>
+              <td>{item.Value}</td>
+            </tr>
+          {/if}
+        {/each}
+      </tbody>
+    </table>
+  </div>
 
   <!-- Differences Table -->
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>{year1} Value</th>
-        <th>{year2} Value</th>
-        <th>Difference</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each differenceData as { Name, Value1, Value2, Difference }}
+  <div class="table-container">
+    <h3>Difference from {Number(selectedYear) - 1} to {selectedYear}</h3>
+    <table>
+      <thead>
         <tr>
-          <td>{Name}</td>
-          <td>{Value1}</td>
-          <td>{Value2}</td>
-          <td>{Difference}</td>
+          <th>Name</th>
+          <th>Current Value</th>
+          <th>Previous Value</th>
+          <th>Difference</th>
         </tr>
-      {/each}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {#each differenceData.filter(filterData) as item (item.Name)}
+          <tr>
+            <td>{item.Name}</td>
+            <td>{item.CurrentValue}</td>
+            <td>{item.PreviousValue}</td>
+            <td>{item.Difference}</td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 </div>
