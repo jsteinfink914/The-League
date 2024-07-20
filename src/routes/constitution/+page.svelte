@@ -13,12 +13,39 @@
         window.scrollTo({left: 0, top, behavior: 'smooth'});
     }
 </script>
-<iframe
-    src="/constitution.pdf"
+
+<main>
+  <h1>League Constitution</h1>
+  <object
+    data="/constitution.pdf"
+    type="application/pdf"
     width="100%"
     height="600px"
-    style="border: none;"
     style="overflow: auto; display: block;"
   >
     This browser does not support PDFs. Please download the PDF to view it: <a href="/constitution.pdf">Download PDF</a>.
-  </iframe>
+  </object>
+</main>
+
+<style>
+  main {
+    padding: 20px;
+  }
+
+  h1 {
+    margin-bottom: 20px;
+  }
+
+  object {
+    width: 100%;
+    height: 100vh; /* Full viewport height */
+    border: none;
+    overflow: auto;
+  }
+
+  @media (max-width: 600px) {
+    object {
+      height: 100vh; /* Adjust height for mobile */
+    }
+  }
+</style>
