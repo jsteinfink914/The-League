@@ -67,6 +67,11 @@ export const tabs = [
                 dest: '/cap',
             },
             {
+                icon: 'swap_horiz',
+                label: 'Trade Calculator',
+                dest: '/calculator',
+            },
+            {
                 icon: 'history_edu',
                 label: 'Constitution',
                 dest: '/constitution',

@@ -162,7 +162,7 @@
   position: absolute;
   max-height: 200px;
   overflow-y: auto;
-  background-color: blue;
+  background-color: lightblue;
   border: black;
   width: 20%;
   z-index: 1000;
