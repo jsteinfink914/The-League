@@ -32,6 +32,7 @@
  
 
  const updateData = () => {
+    console.log(selectedYear);
     calculateDifferenceData();
     sortValuesData(); // Ensure values table is sorted on data update
     sortDifferenceData(); // Ensure differences table is sorted on data update
@@ -83,7 +84,6 @@
 
   function handleYearChange(event) {
     selectedYear = event.target.value;
-    console.log('Selected Year:', selectedYear); // Add this line
     updateData();
   }
 
