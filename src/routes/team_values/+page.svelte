@@ -1,5 +1,4 @@
 <script>
-  import {leagueID} from '../src/lib/utils/leagueInfo';
   import Papa from 'papaparse';
   import { onMount } from 'svelte';
 
@@ -10,7 +9,7 @@
   const fetchData = async () => {
     try {
       // Fetch rosters
-      const rosterResponse = await fetch('https://api.sleeper.app/v1/league/${leagueID}/rosters');
+      const rosterResponse = await fetch('https://api.sleeper.app/v1/league/1053526624240517120/rosters');
       const rosters = await rosterResponse.json();
 
       // Fetch players
