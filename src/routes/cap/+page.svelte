@@ -32,11 +32,12 @@
  
 
  const updateData = () => {
-    console.log(selectedYear);
     calculateDifferenceData();
     sortValuesData(); // Ensure values table is sorted on data update
     sortDifferenceData(); // Ensure differences table is sorted on data update
   };
+
+
   function calculateDifferenceData() {
     previousYearData = data.filter(item => item.Year === String(Number(selectedYear) - 1));
     const currentYearData = data.filter(item => item.Year === selectedYear);
@@ -62,7 +63,7 @@
   }
 
   function sortValuesData() {
-    data = data.filter(item => item.Year === selectedYear)
+    sortedData = data.filter(item => item.Year === selectedYear)
                 .sort((a, b) => {
                   if (valuesSortOrder === 'asc') {
                     return parseFloat(a.Value) - parseFloat(b.Value);
@@ -166,7 +167,7 @@
         </tr>
       </thead>
       <tbody>
-        {#each data.filter(filterData) as item (item.Name)}
+        {#each sortedData.filter(filterData) as item (item.Name)}
           {#if item.Year === selectedYear}
             <tr>
               <td>{item.Name}</td>
