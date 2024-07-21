@@ -209,7 +209,7 @@
         <div class="team-entry">
           <select on:change={e => handleTeamSelection(index, 1, e.target.value)}>
             <option value="">Select Player</option>
-            {#each filteredNames as name}
+            {#each data.filter(item => item.Year === selectedYear).map(item => item.Name) as name}
               <option value={name}>{name}</option>
             {/each}
           </select>
@@ -228,7 +228,7 @@
         <div class="team-entry">
           <select on:change={e => handleTeamSelection(index, 2, e.target.value)}>
             <option value="">Select Player</option>
-            {#each filteredNames as name}
+            {#each data.filter(item => item.Year === selectedYear).map(item => item.Name) as name}
               <option value={name}>{name}</option>
             {/each}
           </select>
