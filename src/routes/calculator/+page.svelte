@@ -6,6 +6,8 @@
   let selectedYear = "2024";
   let searchQuery = "";
   let data = [];
+  let filteredNames = [];
+  let showDropdown = false;
 
   // For team comparison
   let team1Selections = Array(7).fill('');
@@ -60,6 +62,28 @@
     }
     updateTeamValues();
   }
+  function filterNames() {
+  const query = searchQuery.trim().toLowerCase();
+  filteredNames = data
+    .filter(item => item.Year === selectedYear)
+    .map(item => item.Name)
+    .filter(name => name.toLowerCase().includes(query))
+    .sort();
+}
+function handleSearchInput(event) {
+  searchQuery = event.target.value;
+  filterNames();
+  showDropdown = searchQuery.length > 0;
+}
+function handleNameSelect(name, team, index) {
+  if (team === 1) {
+    team1Selections[index] = name;
+  } else {
+    team2Selections[index] = name;
+  }
+  updateTeamValues();
+  showDropdown = false;
+}
 
   onMount(() => {
     loadData();
@@ -207,12 +231,21 @@
       <h3>Team 1</h3>
       {#each Array(7).fill().map((_, i) => i) as index}
         <div class="team-entry">
-          <select on:change={e => handleTeamSelection(index, 1, e.target.value)}>
-            <option value="">Select Player</option>
-            {#each data.filter(item => item.Year === selectedYear).map(item => item.Name) as name}
-              <option value={name}>{name}</option>
-            {/each}
-          </select>
+          <input
+                type="text"
+                placeholder="Type player name..."
+                on:input={handleSearchInput}
+                bind:value={team1Selections[index]}
+              />
+              {#if showDropdown}
+                <div class="dropdown">
+                  {#each filteredNames as name}
+                    <div class="dropdown-item" on:click={() => handleNameSelect(name, 1, index)}>
+                      {name}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
           <span>Value: {team1Values[index]}</span>
         </div>
       {/each}
@@ -226,12 +259,21 @@
       <h3>Team 2</h3>
       {#each Array(7).fill().map((_, i) => i) as index}
         <div class="team-entry">
-          <select on:change={e => handleTeamSelection(index, 2, e.target.value)}>
-            <option value="">Select Player</option>
-            {#each data.filter(item => item.Year === selectedYear).map(item => item.Name) as name}
-              <option value={name}>{name}</option>
-            {/each}
-          </select>
+          <input
+                type="text"
+                placeholder="Type player name..."
+                on:input={handleSearchInput}
+                bind:value={team1Selections[index]}
+              />
+              {#if showDropdown}
+                <div class="dropdown">
+                  {#each filteredNames as name}
+                    <div class="dropdown-item" on:click={() => handleNameSelect(name, 1, index)}>
+                      {name}
+                    </div>
+                  {/each}
+                </div>
+              {/if}
           <span>Value: {team2Values[index]}</span>
         </div>
       {/each}
