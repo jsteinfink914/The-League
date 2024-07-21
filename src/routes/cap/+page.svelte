@@ -8,7 +8,9 @@
   let data = [];
   let previousYearData = [];
   let differenceData = [];
-  let sortedData = []; // Add this for sorted values
+  let sortedData = [];
+  let sortColumn = 'Value'; // Column to sort by
+  let sortDirection = 'desc'; // Sort direction: 'asc' or 'desc'
 
   onMount(async () => {
     const response = await fetch('/Player_Values.txt');
@@ -36,7 +38,7 @@
 
     updatePreviousYearData();
     updateDifferenceData();
-    updateSortedData(); // Ensure sortedData is updated
+    updateSortedData();
   }
 
   function updatePreviousYearData() {
@@ -51,25 +53,35 @@
         ValueDifference: player.Value - (prevPlayer.Value || 0)
       };
     });
-    // Ensure differenceData is sorted
-    differenceData.sort((a, b) => b.ValueDifference - a.ValueDifference);
+    differenceData.sort((a, b) => sortDirection === 'desc' ? b.ValueDifference - a.ValueDifference : a.ValueDifference - b.ValueDifference);
   }
 
   function updateSortedData() {
     sortedData = data
       .filter(player => player.Year === selectedYear)
-      .sort((a, b) => b.Value - a.Value);
+      .sort((a, b) => sortDirection === 'desc' ? b[sortColumn] - a[sortColumn] : a[sortColumn] - b[sortColumn]);
   }
 
   function handleYearChange(event) {
     selectedYear = event.target.value;
     updatePreviousYearData();
     updateDifferenceData();
-    updateSortedData(); // Call this function to update the sortedData
+    updateSortedData();
   }
 
   function handleSearchChange(event) {
     searchQuery = event.target.value.toLowerCase();
+  }
+
+  function sortTable(column) {
+    if (sortColumn === column) {
+      sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortColumn = column;
+      sortDirection = 'desc'; // Default to descending
+    }
+    updateSortedData();
+    updateDifferenceData(); // Ensure differences are updated accordingly
   }
 </script>
 
@@ -93,13 +105,19 @@
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Value</th>
-            <th>Rookie</th>
+            <th>
+              <button on:click={() => sortTable('Name')}>Name</button>
+            </th>
+            <th>
+              <button on:click={() => sortTable('Value')}>Value {sortColumn === 'Value' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}</button>
+            </th>
+            <th>
+              <button on:click={() => sortTable('Rookie')}>Rookie</button>
+            </th>
           </tr>
         </thead>
         <tbody>
-          {#each sortedData.filter(player => player.Name.toLowerCase().includes(searchQuery)) as player}
+          {#each sortedData.filter(player => player.Year === selectedYear && player.Name.toLowerCase().includes(searchQuery)) as player}
             <tr>
               <td>{player.Name}</td>
               <td>{player.Value}</td>
@@ -115,8 +133,12 @@
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Value Difference</th>
+            <th>
+              <button on:click={() => sortTable('Name')}>Name</button>
+            </th>
+            <th>
+              <button on:click={() => sortTable('ValueDifference')}>Value Difference {sortColumn === 'ValueDifference' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}</button>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -139,5 +161,15 @@
   .table {
     flex: 1;
     margin: 0 1rem;
+  }
+  th button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    text-align: left;
+  }
+  th button:hover {
+    text-decoration: underline;
   }
 </style>
