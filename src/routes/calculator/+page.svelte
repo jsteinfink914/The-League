@@ -214,7 +214,7 @@
             on:input={e => handleSearchInput(index, 1, e)}
             bind:value={team1Selections[index]}
           />
-          {#if team1Dropdowns[index] && team1FilteredNames[index].length > 0}
+          {#if team1Dropdowns[index] && team1Dropdowns[index].filteredNames.length > 0}
             <div class="dropdown">
               {#each team1Dropdowns[index].filteredNames as name}
                 <div class="dropdown-item" on:click={() => handleTeamSelection(index, 1, name)}>
@@ -242,7 +242,7 @@
             on:input={e => handleSearchInput(index, 2, e)}
             bind:value={team2Selections[index]}
           />
-          {#if team2Dropdowns[index] && team2FilteredNames[index].length > 0}
+          {#if team2Dropdowns[index] && team2Dropdowns[index].filteredNames.length > 0}
             <div class="dropdown">
               {#each team2Dropdowns[index].filteredNames as name}
                 <div class="dropdown-item" on:click={() => handleTeamSelection(index, 2, name)}>
