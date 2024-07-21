@@ -144,6 +144,7 @@
           <th on:click={() => sortValuesData()} class={valuesSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
             Value
           </th>
+          <th>Rookie Status</th>
         </tr>
       </thead>
       <tbody>
