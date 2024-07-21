@@ -112,7 +112,6 @@
   .table-container {
     width: 45%;
   }
-  {body}
   table {
     width: 100%;
     border-collapse: collapse;
