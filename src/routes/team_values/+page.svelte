@@ -31,6 +31,7 @@
       let rostersByTeam = {};
       rosters.forEach(roster => {
         let index = roster.roster_id;
+        console.log(roster_id)
         rostersByTeam[index] = roster.players.map(playerId => {
           let player = players[playerId];
           return player ? `${player.first_name} ${player.last_name}` : "";
