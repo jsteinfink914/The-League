@@ -1,0 +1,4 @@
+Updates
+1. Player values file
+2. Years in the cap and trade calculator files to match current year
+3. LeagueID in one described in folder as well as in the rotes/team_values page.

@@ -24,7 +24,7 @@
       // Fetch manager mappings
       const managerMapResponse = await fetch('/Manager_map.txt');
       const managerMapText = await managerMapResponse.text();
-      const managerMappings = Papa.parse(managermapText, { header: true }).data;
+      const managerMappings = Papa.parse(managerMapText, { header: true }).data;
 
       // Organize rosters by team name
       let rostersByTeam = {};
