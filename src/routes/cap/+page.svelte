@@ -83,6 +83,7 @@
 
   function handleYearChange(event) {
     selectedYear = event.target.value;
+    console.log('Selected Year:', selectedYear); // Add this line
     updateData();
   }
 
