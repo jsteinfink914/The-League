@@ -75,6 +75,7 @@
   function handleYearChange(event) {
     selectedYear = event.target.value;
     calculateDifferenceData();
+    sortValuesData();
   }
 
   function handleSearchInput(event) {
