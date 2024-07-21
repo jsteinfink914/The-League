@@ -11,6 +11,8 @@
   let sortedData = [];
   let valuesSortOrder = 'desc'; // 'asc' for ascending, 'desc' for descending
   let differenceSortOrder = 'desc'; // 'asc' for ascending, 'desc' for descending
+  let filteredNames = [];
+  let showDropdown = false;
 
   // Sample CSV data
   const filePath = '/Player_Values.txt'
@@ -88,11 +90,25 @@
     selectedYear = event.target.value;
     updateData();
   }
+  function filterNames() {
+    filteredNames = data
+      .filter(item => item.Year === selectedYear)
+      .map(item => item.Name)
+      .filter(name => name.toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort();
+  }
 
   function handleSearchInput(event) {
     searchQuery = event.target.value.toLowerCase();
+    filterNames();
+    showDropdown = searchQuery.length > 0;
   }
 
+  function handleNameSelect(name) {
+    searchQuery = name;
+    showDropdown = false;
+    updateData(); // Ensure the data updates based on the selected name
+  }
   function filterData(item) {
     const query = searchQuery.trim().toLowerCase();
     return item.Name.toLowerCase().includes(query);
@@ -142,10 +158,33 @@
   td {
     color: black;
   }
+  .dropdown {
+  position: absolute;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
   @media (max-width: 768px) {
   .container {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .table-container {
+    max-width: 90%;
   }
 
   th, td {
@@ -196,8 +235,18 @@
     {/each}
   </select>
   
-  <label for="search-input">Search:</label>
-  <input id="search-input" type="text" placeholder="Search players..." on:input={handleSearchInput} />
+    <div style="position: relative; width: 100%;">
+    <input id="search-input" type="text" placeholder="Search players..." on:input={handleSearchInput} />
+    {#if showDropdown && filteredNames.length > 0}
+      <div class="dropdown">
+        {#each filteredNames as name}
+          <div class="dropdown-item" on:click={() => handleNameSelect(name)}>
+            {name}
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <div class="container">
