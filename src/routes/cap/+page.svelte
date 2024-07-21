@@ -8,6 +8,7 @@
   let data = [];
   let previousYearData = [];
   let differenceData = [];
+  let sortedData = [];
   let valuesSortOrder = 'desc'; // 'asc' for ascending, 'desc' for descending
   let differenceSortOrder = 'desc'; // 'asc' for ascending, 'desc' for descending
 
@@ -138,6 +139,51 @@
   th.sorted-desc::after {
     content: ' ▼';
   }
+  @media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  th, td {
+    font-size: 14px; /* Adjust font size for smaller screens */
+    padding: 8px; /* Reduce padding for smaller screens */
+  }
+
+  /* Stack table headers and data vertically on very small screens */
+  thead, tbody {
+    display: block;
+  }
+
+  tbody {
+    overflow-y: auto;
+    max-height: 300px; /* Limit height for scrolling */
+  }
+
+  tr {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #ddd;
+  }
+
+  td {
+    display: block;
+    text-align: right;
+    border: none; /* Remove borders for stacked rows */
+    padding-left: 50%;
+    position: relative;
+  }
+
+  td::before {
+    content: attr(data-label); /* Show data labels for stacked rows */
+    position: absolute;
+    left: 0;
+    width: 50%;
+    padding-left: 10px;
+    font-weight: bold;
+    text-align: left;
+  }
+}
 </style>
 
 <div>
@@ -170,9 +216,9 @@
         {#each sortedData.filter(filterData) as item (item.Name)}
           {#if item.Year === selectedYear}
             <tr>
-              <td>{item.Name}</td>
-              <td>{item.Value}</td>
-              <td>{item.Rookie}</td>
+              <td data-label="Name">{item.Name}</td>
+              <td data-label="Value">{item.Value}</td>
+              <td data-label="Rookie Status">{item.Rookie}</td>
             </tr>
           {/if}
         {/each}
@@ -197,10 +243,10 @@
       <tbody>
         {#each differenceData.filter(filterData) as item (item.Name)}
           <tr>
-            <td>{item.Name}</td>
-            <td>{item.CurrentValue}</td>
-            <td>{item.PreviousValue}</td>
-            <td>{item.Difference}</td>
+            <td data-label="Name">{item.Name}</td>
+            <td data-label="Current Value">{item.CurrentValue}</td>
+            <td data-label="Previous Value">{item.PreviousValue}</td>
+            <td data-label="Difference">{item.Difference}</td>
           </tr>
         {/each}
       </tbody>
