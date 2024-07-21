@@ -112,6 +112,7 @@
   .table-container {
     width: 45%;
   }
+  {body}
   table {
     width: 100%;
     border-collapse: collapse;
@@ -139,6 +140,9 @@
   th.sorted-desc::after {
     content: ' ▼';
   }
+  td {
+    color: black;
+  }
   @media (max-width: 768px) {
   .container {
     flex-direction: column;
@@ -151,9 +155,7 @@
   }
 
   /* Stack table headers and data vertically on very small screens */
-  thead, tbody {
-    display: block;
-  }
+ 
 
   tbody {
     overflow-y: auto;
@@ -172,6 +174,7 @@
     border: none; /* Remove borders for stacked rows */
     padding-left: 50%;
     position: relative;
+    color: black;
   }
 
   td::before {
