@@ -4,10 +4,7 @@
 
   let years = [];
   let selectedYear = "2024";
-  let searchQuery = "";
   let data = [];
-  let filteredNames = [];
-  let showDropdown = false;
 
   // For team comparison
   let team1Selections = Array(7).fill('');
@@ -21,8 +18,7 @@
 
   let team1Dropdowns = Array(7).fill(false); // Track visibility of team 1 dropdowns
   let team2Dropdowns = Array(7).fill(false); // Track visibility of team 2 dropdowns
-  let team1FilteredNames = Array(7).fill([]); // Filtered names for team 1 dropdowns
-  let team2FilteredNames = Array(7).fill([]); // Filtered names for team 2 dropdowns
+
 
   const filePath = '/Player_Values.txt';
 
@@ -63,35 +59,30 @@
   function handleTeamSelection(index, team, name) {
       if (team === 1) {
       team1Selections[index] = name;
-      team1Dropdowns[index] = false; // Hide dropdown after selection
+      team1Dropdowns[index].show = false; // Hide dropdown after selection
     } else {
       team2Selections[index] = name;
-      team2Dropdowns[index] = false; // Hide dropdown after selection
+      team2Dropdowns[index].show = false; // Hide dropdown after selection
     }
     updateTeamValues();
   }
-  function filterNames() {
-  const query = searchQuery.trim().toLowerCase();
-  filteredNames = data
-    .filter(item => item.Year === selectedYear)
-    .map(item => item.Name)
-    .filter(name => name.toLowerCase().includes(query))
-    .sort();
-}
-function handleSearchInput(event) {
-  searchQuery = event.target.value;
-  filterNames();
-  showDropdown = searchQuery.length > 0;
-}
-function handleNameSelect(name, team, index) {
-  if (team === 1) {
-    team1FilteredNames[index] = filteredNames;
-      team1Dropdowns[index] = query.length > 0;
+  function handleSearchInput(index, team, event) {
+    const query = event.target.value.trim().toLowerCase();
+    const filteredNames = data
+      .filter(item => item.Year === selectedYear)
+      .map(item => item.Name)
+      .filter(name => name.toLowerCase().includes(query))
+      .sort();
+
+    if (team === 1) {
+      team1Dropdowns[index].filteredNames = filteredNames;
+      team1Dropdowns[index].show = query.length > 0;
     } else {
-      team2FilteredNames[index] = filteredNames;
-      team2Dropdowns[index] = query.length > 0;
-}
-}
+      team2Dropdowns[index].filteredNames = filteredNames;
+      team2Dropdowns[index].show = query.length > 0;
+    }
+  }
+
   onMount(() => {
     loadData();
   });
@@ -227,7 +218,7 @@ function handleNameSelect(name, team, index) {
           />
           {#if team1Dropdowns[index] && team1FilteredNames[index].length > 0}
             <div class="dropdown">
-              {#each team1FilteredNames[index] as name}
+              {#each team1Dropdowns[index].filteredNames as name}
                 <div class="dropdown-item" on:click={() => handleTeamSelection(index, 1, name)}>
                   {name}
                 </div>
@@ -255,7 +246,7 @@ function handleNameSelect(name, team, index) {
           />
           {#if team2Dropdowns[index] && team2FilteredNames[index].length > 0}
             <div class="dropdown">
-              {#each team2FilteredNames[index] as name}
+              {#each team2Dropdowns[index].filteredNames as name}
                 <div class="dropdown-item" on:click={() => handleTeamSelection(index, 2, name)}>
                   {name}
                 </div>
