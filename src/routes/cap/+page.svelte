@@ -48,7 +48,7 @@
         ...player,
         ValueDifference: player.Value - (prevPlayer.Value || 0)
       };
-    });
+    }).sort((a, b) => b.ValueDifference - a.ValueDifference);
   }
 
   function handleYearChange(event) {
@@ -60,6 +60,10 @@
   function handleSearchChange(event) {
     searchQuery = event.target.value.toLowerCase();
   }
+
+  $: sortedData = data
+    .filter(player => player.Year === selectedYear && player.Name.toLowerCase().includes(searchQuery))
+    .sort((a, b) => b.Value - a.Value);
 </script>
 
 <main>
@@ -88,7 +92,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each data.filter(player => player.Year === selectedYear && player.Name.toLowerCase().includes(searchQuery)) as player}
+          {#each sortedData as player}
             <tr>
               <td>{player.Name}</td>
               <td>{player.Value}</td>
