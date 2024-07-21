@@ -25,6 +25,7 @@
       const managerMapResponse = await fetch('/Manager_map.txt');
       const managerMapText = await managerMapResponse.text();
       const managerMappings = Papa.parse(managerMapText, { header: true }).data;
+      const managerMap = new Map(managerMappings.map(entry => [entry.index, entry.Name]));
 
       // Organize rosters by team name
       let rostersByTeam = {};
@@ -65,7 +66,7 @@
       // Map manager names
       const rostersWithManagerNames = {};
       for (const [index, roster] of Object.entries(rostersWithValues)) {
-        const managerName = managerMappings.get(index);
+        const managerName = managerMap.get(index);
         rostersWithManagerNames[managerName] = roster;
       }
 
