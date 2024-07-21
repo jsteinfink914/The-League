@@ -19,17 +19,15 @@
   });
 
   function parseCSV(csvText) {
-  Papa.parse(csvText, {
-    header: true,
-    dynamicTyping: true,
-    complete: function(results) {
-      console.log('Parsed Data:', results.data); // Log the parsed data
-      data = results.data;
-      processData();
-    }
-  });
-}
-
+    Papa.parse(csvText, {
+      header: true,
+      dynamicTyping: true,
+      complete: function(results) {
+        data = results.data;
+        processData();
+      }
+    });
+  }
 
   function processData() {
     const yearSet = new Set();
