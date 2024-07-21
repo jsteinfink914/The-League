@@ -179,7 +179,7 @@
 }
   @media (max-width: 768px) {
   .container {
-    flex-direction: row;
+    flex-direction: column;
     gap: 10px;
   }
 

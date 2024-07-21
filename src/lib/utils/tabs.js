@@ -72,6 +72,11 @@ export const tabs = [
                 dest: '/calculator',
             },
             {
+                icon: 'money',
+                label: 'Team Values',
+                dest: '/team_values',
+            },
+            {
                 icon: 'history_edu',
                 label: 'Constitution',
                 dest: '/constitution',
