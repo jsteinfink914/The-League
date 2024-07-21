@@ -13,7 +13,7 @@
   const filePath = '/Player_Values.txt'
 
 
-  const loadData - async () => {
+  const loadData = async () => {
     const response = await fetch(filePath);
     const text = await response.text();
     Papa.parse(text, {
