@@ -162,9 +162,9 @@
   position: absolute;
   max-height: 200px;
   overflow-y: auto;
-  background-color: var(--background-color);
-  border: 1px solid var(--border-color);
-  width: 100%;
+  background-color: blue;
+  border: black;
+  width: 20%;
   z-index: 1000;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -235,8 +235,8 @@
       <option value={year} selected={year === selectedYear}>{year}</option>
     {/each}
   </select>
-     <label for="year-select">Search:</label>
     <div style="position: relative; width: 100%;">
+    <label for="year-select">Search:</label>
     <input id="search-input" type="text" placeholder="Search players..." on:input={handleSearchInput} />
     {#if showDropdown && filteredNames.length > 0}
       <div class="dropdown">
