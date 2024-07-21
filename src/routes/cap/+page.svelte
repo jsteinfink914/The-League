@@ -197,6 +197,7 @@
 
   tbody {
     overflow-y: auto;
+    overflow-x: auto;
     max-height: 300px; /* Limit height for scrolling */
   }
 
@@ -234,7 +235,7 @@
       <option value={year} selected={year === selectedYear}>{year}</option>
     {/each}
   </select>
-  
+     <label for="year-select">Search:</label>
     <div style="position: relative; width: 100%;">
     <input id="search-input" type="text" placeholder="Search players..." on:input={handleSearchInput} />
     {#if showDropdown && filteredNames.length > 0}
