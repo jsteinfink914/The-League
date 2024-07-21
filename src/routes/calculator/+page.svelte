@@ -140,7 +140,7 @@
   overflow-y: auto;
   background-color: lightblue;
   border: 1px solid black;
-  width: 10%; /* Make dropdown take full width */
+  width: 25%; /* Make dropdown take full width */
   z-index: 1000;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -199,6 +199,7 @@
     text-align: left;
   }
 }
+
 </style>
 
 <div class="container">
