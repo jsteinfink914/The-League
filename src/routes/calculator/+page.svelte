@@ -18,6 +18,12 @@
   let team2Total = 0;
   let team1Difference = 0;
 
+
+  let team1Dropdowns = Array(7).fill(false); // Track visibility of team 1 dropdowns
+  let team2Dropdowns = Array(7).fill(false); // Track visibility of team 2 dropdowns
+  let team1FilteredNames = Array(7).fill([]); // Filtered names for team 1 dropdowns
+  let team2FilteredNames = Array(7).fill([]); // Filtered names for team 2 dropdowns
+
   const filePath = '/Player_Values.txt';
 
   const loadData = async () => {
@@ -55,10 +61,12 @@
   }
 
   function handleTeamSelection(index, team, name) {
-    if (team === 1) {
+      if (team === 1) {
       team1Selections[index] = name;
+      team1Dropdowns[index] = false; // Hide dropdown after selection
     } else {
       team2Selections[index] = name;
+      team2Dropdowns[index] = false; // Hide dropdown after selection
     }
     updateTeamValues();
   }
@@ -77,175 +85,155 @@ function handleSearchInput(event) {
 }
 function handleNameSelect(name, team, index) {
   if (team === 1) {
-    team1Selections[index] = name;
-  } else {
-    team2Selections[index] = name;
-  }
-  updateTeamValues();
-  showDropdown = false;
+    team1FilteredNames[index] = filteredNames;
+      team1Dropdowns[index] = query.length > 0;
+    } else {
+      team2FilteredNames[index] = filteredNames;
+      team2Dropdowns[index] = query.length > 0;
 }
-
+}
   onMount(() => {
     loadData();
   });
 </script>
 
 <style>
-  .container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-  }
-  .table-container {
-    width: 45%;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-  }
-  th, td {
-    padding: 10px;
-    border: 1px solid #ddd;
-  }
-  th {
-    background-color: black;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  tr:nth-child(odd) {
-    background-color: white;
-  }
-  td {
-    color: black;
-  }
-  .dropdown {
-    position: absolute;
-    max-height: 200px;
-    overflow-y: auto;
-    background-color: lightblue;
-    border: 1px solid black;
-    width: 20%;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
+  /* Center everything on the screen */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; /* Stack teams vertically */
+  gap: 20px;
+  min-height: 100vh; /* Full viewport height */
+}
 
-  .dropdown-item {
-    padding: 10px;
-    cursor: pointer;
-  }
+/* Add a bounding box around each team */
+.team-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%; /* Ensure container takes full width */
+  max-width: 1200px; /* Optional: limit the maximum width */
+  padding: 20px;
+  box-sizing: border-box; /* Include padding in width */
+}
 
-  .dropdown-item:hover {
-    background-color: #f0f0f0;
-  }
+.team {
+  width: 48%;
+  border: 2px solid #ddd; /* Bounding box */
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px; /* Optional: rounded corners */
+}
 
-  @media (max-width: 768px) {
-    .container {
-      flex-direction: column;
-    }
+.team h3 {
+  margin-top: 0;
+}
 
-    .table-container {
-      width: 100%;
-    }
+.team-entry {
+  margin-bottom: 10px;
+}
 
-    th, td {
-      font-size: 14px;
-      padding: 8px;
-    }
+.team-entry input {
+  margin-right: 10px;
+  width: calc(100% - 130px); /* Adjust width as needed */
+}
 
-    tbody {
-      overflow-y: auto;
-      overflow-x: auto;
-      max-height: 300px;
-    }
+.team-summary {
+  margin-top: 20px;
+  font-weight: bold;
+}
 
-    tr {
-      display: flex;
-      flex-direction: column;
-      border-bottom: 1px solid #ddd;
-    }
+.dropdown {
+  position: absolute;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: lightblue;
+  border: 1px solid black;
+  width: 100%; /* Make dropdown take full width */
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
-    td {
-      display: block;
-      text-align: right;
-      border: none;
-      padding-left: 50%;
-      position: relative;
-      color: black;
-    }
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+}
 
-    td::before {
-      content: attr(data-label);
-      position: absolute;
-      left: 0;
-      width: 50%;
-      padding-left: 10px;
-      font-weight: bold;
-      text-align: left;
-    }
-  }
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
 
+@media (max-width: 768px) {
   .team-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    margin-top: 20px;
+    flex-direction: column;
   }
 
   .team {
-    width: 45%;
+    width: 100%;
   }
 
-  .team-entry {
-    margin-bottom: 10px;
+  th, td {
+    font-size: 14px;
+    padding: 8px;
   }
 
-  .team-entry select {
-    margin-right: 10px;
+  tbody {
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: 300px;
   }
 
-  .team-summary {
-    margin-top: 20px;
+  tr {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #ddd;
+  }
+
+  td {
+    display: block;
+    text-align: right;
+    border: none;
+    padding-left: 50%;
+    position: relative;
+    color: black;
+  }
+
+  td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 50%;
+    padding-left: 10px;
     font-weight: bold;
+    text-align: left;
   }
-
-  @media (max-width: 768px) {
-    .team-container {
-      flex-direction: column;
-    }
-
-    .team {
-      width: 100%;
-    }
-  }
+}
 </style>
 
 <div class="container">
-  <!-- Team 1 -->
   <div class="team-container">
+    <!-- Team 1 -->
     <div class="team">
       <h3>Team 1</h3>
       {#each Array(7).fill().map((_, i) => i) as index}
         <div class="team-entry">
           <input
-                type="text"
-                placeholder="Type player name..."
-                on:input={handleSearchInput}
-                bind:value={team1Selections[index]}
-              />
-              {#if showDropdown}
-                <div class="dropdown">
-                  {#each filteredNames as name}
-                    <div class="dropdown-item" on:click={() => handleNameSelect(name, 1, index)}>
-                      {name}
-                    </div>
-                  {/each}
+            type="text"
+            placeholder="Type player name..."
+            on:input={e => handleSearchInput(index, 1, e)}
+            bind:value={team1Selections[index]}
+          />
+          {#if team1Dropdowns[index] && team1FilteredNames[index].length > 0}
+            <div class="dropdown">
+              {#each team1FilteredNames[index] as name}
+                <div class="dropdown-item" on:click={() => handleTeamSelection(index, 1, name)}>
+                  {name}
                 </div>
-              {/if}
+              {/each}
+            </div>
+          {/if}
           <span>Value: {team1Values[index]}</span>
         </div>
       {/each}
@@ -260,20 +248,20 @@ function handleNameSelect(name, team, index) {
       {#each Array(7).fill().map((_, i) => i) as index}
         <div class="team-entry">
           <input
-                type="text"
-                placeholder="Type player name..."
-                on:input={handleSearchInput}
-                bind:value={team1Selections[index]}
-              />
-              {#if showDropdown}
-                <div class="dropdown">
-                  {#each filteredNames as name}
-                    <div class="dropdown-item" on:click={() => handleNameSelect(name, 1, index)}>
-                      {name}
-                    </div>
-                  {/each}
+            type="text"
+            placeholder="Type player name..."
+            on:input={e => handleSearchInput(index, 2, e)}
+            bind:value={team2Selections[index]}
+          />
+          {#if team2Dropdowns[index] && team2FilteredNames[index].length > 0}
+            <div class="dropdown">
+              {#each team2FilteredNames[index] as name}
+                <div class="dropdown-item" on:click={() => handleTeamSelection(index, 2, name)}>
+                  {name}
                 </div>
-              {/if}
+              {/each}
+            </div>
+          {/if}
           <span>Value: {team2Values[index]}</span>
         </div>
       {/each}
