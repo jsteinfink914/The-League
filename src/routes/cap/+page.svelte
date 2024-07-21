@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
 
   let years = [];
-  let selectedYear = "2024";
+  let selectedYear = "";
   let searchQuery = "";
   let data = [];
   let previousYearData = [];
@@ -119,8 +119,16 @@
     border: 1px solid #ddd;
   }
   th {
-    background-color: #f4f4f4;
+    background-color: black;
+    color: white;
+    font-weight: bold;
     cursor: pointer;
+  }
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  tr:nth-child(odd) {
+    background-color: white;
   }
   th.sorted-asc::after {
     content: ' ▲';
