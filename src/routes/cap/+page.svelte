@@ -8,6 +8,7 @@
   let data = [];
   let previousYearData = [];
   let differenceData = [];
+  let sortedData = [];
 
   onMount(async () => {
     const response = await fetch('/Player_Values.txt');
@@ -35,6 +36,7 @@
 
     updatePreviousYearData();
     updateDifferenceData();
+    updateSortedData();
   }
 
   function updatePreviousYearData() {
@@ -51,19 +53,25 @@
     }).sort((a, b) => b.ValueDifference - a.ValueDifference);
   }
 
+  function updateSortedData() {
+    sortedData = data
+      .filter(player => player.Year === selectedYear)
+      .sort((a, b) => b.Value - a.Value);
+  }
+
   function handleYearChange(event) {
     selectedYear = event.target.value;
     updatePreviousYearData();
     updateDifferenceData();
+    updateSortedData();
   }
 
   function handleSearchChange(event) {
     searchQuery = event.target.value.toLowerCase();
   }
 
-  $: sortedData = data
-    .filter(player => player.Year === selectedYear && player.Name.toLowerCase().includes(searchQuery))
-    .sort((a, b) => b.Value - a.Value);
+  $: filteredSortedData = sortedData.filter(player => player.Name.toLowerCase().includes(searchQuery));
+  $: filteredDifferenceData = differenceData.filter(player => player.Name.toLowerCase().includes(searchQuery));
 </script>
 
 <main>
@@ -92,7 +100,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each sortedData as player}
+          {#each filteredSortedData as player}
             <tr>
               <td>{player.Name}</td>
               <td>{player.Value}</td>
@@ -113,7 +121,7 @@
           </tr>
         </thead>
         <tbody>
-          {#each differenceData.filter(player => player.Name.toLowerCase().includes(searchQuery)) as player}
+          {#each filteredDifferenceData as player}
             <tr>
               <td>{player.Name}</td>
               <td>{player.ValueDifference}</td>
