@@ -16,8 +16,8 @@
   let team1Difference = 0;
 
 
-  let team1Dropdowns = Array(7).fill(false); // Track visibility of team 1 dropdowns
-  let team2Dropdowns = Array(7).fill(false); // Track visibility of team 2 dropdowns
+  let team1Dropdowns = Array(7).fill({ show: false, filteredNames: [] });
+  let team2Dropdowns = Array(7).fill({ show: false, filteredNames: [] });
 
 
   const filePath = '/Player_Values.txt';
@@ -75,11 +75,9 @@
       .sort();
 
     if (team === 1) {
-      team1Dropdowns[index].filteredNames = filteredNames;
-      team1Dropdowns[index].show = query.length > 0;
+      team1Dropdowns[index] = { show: query.length > 0, filteredNames };
     } else {
-      team2Dropdowns[index].filteredNames = filteredNames;
-      team2Dropdowns[index].show = query.length > 0;
+      team2Dropdowns[index] = { show: query.length > 0, filteredNames };
     }
   }
 
