@@ -27,11 +27,11 @@
     });
   };
 
-  // Load data on component mount
-  onMount(() => {
-    loadData();
-  });
+ 
 
+ const updateData = () => {
+    calculateDifferenceData();
+  };
   function calculateDifferenceData() {
     previousYearData = data.filter(item => item.Year === String(Number(selectedYear) - 1));
     const currentYearData = data.filter(item => item.Year === selectedYear);
@@ -60,6 +60,11 @@
     const query = searchQuery.trim().toLowerCase();
     return item.Name.toLowerCase().includes(query);
   }
+
+   // Load data on component mount
+  onMount(() => {
+    loadData();
+  });
 </script>
 
 <style>
