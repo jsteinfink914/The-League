@@ -59,10 +59,10 @@
   function handleTeamSelection(index, team, name) {
       if (team === 1) {
       team1Selections[index] = name;
-      team1Dropdowns[index].show = false; // Hide dropdown after selection
+      team1Dropdowns[index] = { show: false, filteredNames: [] }; // Hide dropdown after selection
     } else {
       team2Selections[index] = name;
-      team2Dropdowns[index].show = false; // Hide dropdown after selection
+      team2Dropdowns[index] = { show: false, filteredNames: [] }; // Hide dropdown after selection
     }
     updateTeamValues();
   }
@@ -140,7 +140,7 @@
   overflow-y: auto;
   background-color: lightblue;
   border: 1px solid black;
-  width: 100%; /* Make dropdown take full width */
+  width: 10%; /* Make dropdown take full width */
   z-index: 1000;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -214,7 +214,7 @@
             on:input={e => handleSearchInput(index, 1, e)}
             bind:value={team1Selections[index]}
           />
-          {#if team1Dropdowns[index] && team1Dropdowns[index].filteredNames.length > 0}
+          {#if team1Dropdowns[index].show && team1Dropdowns[index].filteredNames.length > 0}
             <div class="dropdown">
               {#each team1Dropdowns[index].filteredNames as name}
                 <div class="dropdown-item" on:click={() => handleTeamSelection(index, 1, name)}>
@@ -242,7 +242,7 @@
             on:input={e => handleSearchInput(index, 2, e)}
             bind:value={team2Selections[index]}
           />
-          {#if team2Dropdowns[index] && team2Dropdowns[index].filteredNames.length > 0}
+          {#if team2Dropdowns[index].show && team2Dropdowns[index].filteredNames.length > 0}
             <div class="dropdown">
               {#each team2Dropdowns[index].filteredNames as name}
                 <div class="dropdown-item" on:click={() => handleTeamSelection(index, 2, name)}>
