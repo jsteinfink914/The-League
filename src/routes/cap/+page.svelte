@@ -50,26 +50,35 @@
       };
     });
   }
+  function toggleValuesSortOrder() {
+  valuesSortOrder = valuesSortOrder === 'asc' ? 'desc' : 'asc';
+  sortValuesData();
+}
+
+  function toggleDifferenceSortOrder() {
+    differenceSortOrder = differenceSortOrder === 'asc' ? 'desc' : 'asc';
+    sortDifferenceData();
+  }
+
   function sortValuesData() {
-  data = data.filter(item => item.Year === selectedYear)
-              .sort((a, b) => {
-                if (valuesSortOrder === 'asc') {
-                  return parseFloat(a.Value) - parseFloat(b.Value);
-                } else {
-                  return parseFloat(b.Value) - parseFloat(a.Value);
-                }
-              });
+    data = data.filter(item => item.Year === selectedYear)
+                .sort((a, b) => {
+                  if (valuesSortOrder === 'asc') {
+                    return parseFloat(a.Value) - parseFloat(b.Value);
+                  } else {
+                    return parseFloat(b.Value) - parseFloat(a.Value);
+                  }
+                });
   }
 
   function sortDifferenceData() {
-    differenceData = differenceData
-                    .sort((a, b) => {
-                      if (differenceSortOrder === 'asc') {
-                        return a.Difference - b.Difference;
-                      } else {
-                        return b.Difference - a.Difference;
-                      }
-                    });
+    differenceData = differenceData.sort((a, b) => {
+      if (differenceSortOrder === 'asc') {
+        return a.Difference - b.Difference;
+      } else {
+        return b.Difference - a.Difference;
+      }
+    });
   }
 
   function handleYearChange(event) {
@@ -142,7 +151,7 @@
       <thead>
         <tr>
           <th>Name</th>
-          <th on:click={() => sortValuesData()} class={valuesSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
+          <th on:click={toggleValuesSortOrder} class={valuesSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
             Value
           </th>
           <th>Rookie Status</th>
@@ -171,7 +180,7 @@
           <th>Name</th>
           <th>Current Value</th>
           <th>Previous Value</th>
-          <th on:click={() => sortDifferenceData()} class={differenceSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
+          <th on:click={toggleDifferenceSortOrder} class={differenceSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
             Difference
           </th>
         </tr>
