@@ -150,9 +150,7 @@
   th.sorted-desc::after {
     content: ' ▼';
   }
-  td {
-    color: black;
-  }
+
   .dropdown {
   position: absolute;
   max-height: 200px;
@@ -179,7 +177,7 @@
   }
 
   .table-container {
-    max-width: 90%;
+    width: 90%;
   }
 
   th, td {

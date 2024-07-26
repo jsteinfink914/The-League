@@ -110,9 +110,6 @@
     text-align: left;
   }
 
-  th {
-    background-color: #f2f2f2;
-  }
 
   .total-value {
     font-weight: bold;
@@ -134,7 +131,7 @@
 </style>
 
 <div class="container">
-  <h2>Fantasy Football Team Roster</h2>
+  <h4>Fantasy Football Team Roster</h4>
 
   <select bind:value={selectedManager}>
     <option value="" disabled>Select Manager</option>
