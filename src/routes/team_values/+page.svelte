@@ -11,7 +11,6 @@
       // Fetch rosters
       const rosterResponse = await fetch('https://api.sleeper.app/v1/league/1053526624240517120/rosters');
       const rosters = await rosterResponse.json();
-      console.log("Rosters:",rosters)
 
       // Fetch players
       const playersResponse = await fetch('https://api.sleeper.app/v1/players/nfl');
@@ -26,7 +25,7 @@
       const managerMapResponse = await fetch('/Manager_map.txt');
       const managerMapText = await managerMapResponse.text();
       const managerMappings = Papa.parse(managerMapText, { header: true }).data;
-      const managerMap = new Map(managerMappings.map(entry => [entry.index, entry.Name]));
+      const managerMap = new Map(managerMappings.map(entry => [entry.Index, entry.Name]));
 
       // Organize rosters by team name
       let rostersByTeam = {};
