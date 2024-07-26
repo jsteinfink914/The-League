@@ -143,12 +143,7 @@
     font-weight: bold;
     cursor: pointer;
   }
-  tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  tr:nth-child(odd) {
-    background-color: white;
-  }
+  
   th.sorted-asc::after {
     content: ' ▲';
   }
@@ -217,10 +212,9 @@
   }
 
   td::before {
-    content: attr(data-label); /* Show data labels for stacked rows */
     position: absolute;
     left: 0;
-    width: 50%;
+    width: 90%;
     padding-left: 10px;
     font-weight: bold;
     text-align: left;

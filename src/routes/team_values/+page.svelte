@@ -85,9 +85,12 @@
 <style>
   .container {
     display: flex;
+    justify-content: center;
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    min-height: 100vh; /* Full viewport height */
+    box-sizing: border-box; /* Include padding in width */
   }
 
   select {
@@ -97,7 +100,7 @@
   }
 
   table {
-    width: 100%;
+    width: 80%;
     border-collapse: collapse;
   }
 
@@ -109,14 +112,6 @@
 
   th {
     background-color: #f2f2f2;
-  }
-
-  tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-
-  tr:hover {
-    background-color: #f1f1f1;
   }
 
   .total-value {
