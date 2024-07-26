@@ -96,19 +96,50 @@
     font-size: 16px;
   }
 
-  ul {
-    list-style: none;
-    padding: 0;
+  table {
+    width: 100%;
+    border-collapse: collapse;
   }
 
-  li {
-    margin: 5px 0;
-    font-size: 16px;
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f2f2f2;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  tr:hover {
+    background-color: #f1f1f1;
+  }
+
+  .total-value {
+    font-weight: bold;
+  }
+
+  @media (max-width: 600px) {
+    table {
+      font-size: 12px;
+    }
+
+    th, td {
+      padding: 6px;
+    }
+
+    select {
+      font-size: 14px;
+    }
   }
 </style>
 
 <div class="container">
-  <h1>Fantasy Football Team Roster</h1>
+  <h2>Fantasy Football Team Roster</h2>
 
   <select bind:value={selectedManager}>
     <option value="" disabled>Select Manager</option>
@@ -118,11 +149,25 @@
   </select>
 
   {#if selectedManager}
-    <ul>
-      {#each managerRosters[selectedManager] as player}
-        <li>{player.name}: {player.value}</li>
-      {/each}
-      <li>Total Value: {managerRosters[selectedManager].reduce((acc, player) => acc + player.value, 0)}</li>
-    </ul>
+    <table>
+      <thead>
+        <tr>
+          <th>Player Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each managerRosters[selectedManager] as player}
+          <tr>
+            <td>{player.name}</td>
+            <td>{player.value}</td>
+          </tr>
+        {/each}
+        <tr class="total-value">
+          <td>Total Value</td>
+          <td>{managerRosters[selectedManager].reduce((acc, player) => acc + player.value, 0)}</td>
+        </tr>
+      </tbody>
+    </table>
   {/if}
 </div>
