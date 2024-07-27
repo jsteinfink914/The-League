@@ -165,6 +165,7 @@
   .chart-container {
     width: 80%;
     max-height: 50vh;
+    justify-content: center;
   }
   .dropdown-container {
     width: 80%;
@@ -180,6 +181,7 @@
     width: 50%;
     border-collapse: collapse;
     align:center;
+    justify-content: center;
     max-height:50vh;
     overflow-y:auto;
   }

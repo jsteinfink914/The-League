@@ -49,8 +49,6 @@
       const previous = previousYearData.find(p => p.Name === current.Name);
       return {
         Name: current.Name,
-        CurrentValue: parseFloat(current.Value),
-        PreviousValue: previous ? parseFloat(previous.Value) : 0,
         Difference: previous ? parseFloat(current.Value) - parseFloat(previous.Value) : parseFloat(current.Value)
       };
     });
