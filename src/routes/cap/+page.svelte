@@ -198,7 +198,7 @@
 
   tr {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     border-bottom: 1px solid #ddd;
   }
 
@@ -206,7 +206,7 @@
     display: block;
     text-align: right;
     border: none; /* Remove borders for stacked rows */
-    padding-left: 50%;
+    padding-left: 10%;
     position: relative;
   }
 

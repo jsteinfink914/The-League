@@ -165,6 +165,7 @@
   .chart-container {
     width: 80%;
     margin-bottom: 10px;
+    height: 50vh;
   }
   .dropdown-container {
     width: 80%;
