@@ -60,7 +60,7 @@
           const mappedName = playerMap.get(playerName) || playerName;
           const value = playerValueMap.get(mappedName) || 0;
           return { name: playerName, value: parseFloat(value) };
-        });
+        }).sort((a, b) => b.value - a.value); 
       }
 
       // Map manager names
@@ -89,7 +89,7 @@
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    min-height: 40vh; /* Full viewport height */
+    max-height: 55vh; /* Full viewport height */
     box-sizing: border-box; /* Include padding in width */
   }
 
