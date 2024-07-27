@@ -175,17 +175,18 @@
   @media (max-width: 768px) {
   .container {
     flex-direction: row;
-    gap: 2px;
+    gap: 10px;
   }
 
   .table-container {
-    width: 90%;
+    width: 80%;
   }
 
   th, td {
-    font-size: 10px; /* Adjust font size for smaller screens */
+    font-size: 8px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
     flex-direction:row;
+    border-bottom: 1px solid #ddd;
   }
 
   /* Stack table headers and data vertically on very small screens */
@@ -206,7 +207,6 @@
   td {
     display: block;
     text-align: left;
-    border: 1px solid #ddd; /* Remove borders for stacked rows */
     padding-left: 1%;
     position: relative;
   }
@@ -274,7 +274,7 @@
 
   <!-- Differences Table -->
   <div class="table-container">
-    <h5>{Number(selectedYear) - 1} to {selectedYear} Change</h5>
+    <h5>{Number(selectedYear) - 1} to {selectedYear}</h5>
     <table>
       <thead>
         <tr>
@@ -290,8 +290,6 @@
         {#each differenceData.filter(filterData) as item (item.Name)}
           <tr>
             <td data-label="Name">{item.Name}</td>
-            <td data-label="Current Value">{item.CurrentValue}</td>
-            <td data-label="Previous Value">{item.PreviousValue}</td>
             <td data-label="Difference">{item.Difference}</td>
           </tr>
         {/each}

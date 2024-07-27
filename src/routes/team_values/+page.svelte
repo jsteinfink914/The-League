@@ -164,7 +164,7 @@
   }
   .chart-container {
     width: 80%;
-    margin-bottom: 10px;
+    margin-bottom: 1px;
     height: 50vh;
   }
   .dropdown-container {
@@ -178,8 +178,9 @@
   }
 
   table {
-    width: 80%;
+    width: 50%;
     border-collapse: collapse;
+    align:center;
     max-height:50vh;
     overflow-y:auto;
   }
@@ -217,13 +218,13 @@
 </style>
 
 <div class="container">
+<h4>Cap Values Summary</h4>
   <div class="chart-container">
     <canvas id="chart"></canvas>
   </div>
 
   <div class="dropdown-container">
-    <h4>Fantasy Football Team Roster</h4>
-
+    <h4>Team Value</h4>
     <select bind:value={selectedManager}>
       <option value="" disabled>Select Manager</option>
       {#each managers as manager}
