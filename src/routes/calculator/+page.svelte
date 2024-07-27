@@ -138,7 +138,7 @@
   position: absolute;
   max-height: 200px;
   overflow-y: auto;
-  background-color: lightblue;
+  background-color: lightgray;
   border: 1px solid black;
   width: 25%; /* Make dropdown take full width */
   z-index: 1000;

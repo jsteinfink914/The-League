@@ -124,6 +124,8 @@
   .container {
     display: flex;
     justify-content: space-between;
+    flex-wrap: warap;
+    gap: 10px;
   }
   .table-container {
     width: 48%;
@@ -155,7 +157,7 @@
   position: absolute;
   max-height: 200px;
   overflow-y: auto;
-  background-color: lightblue;
+  background-color: lightgray;
   border: black;
   width: 20%;
   z-index: 1000;
@@ -181,8 +183,8 @@
   }
 
   th, td {
-    font-size: 14px; /* Adjust font size for smaller screens */
-    padding: 8px; /* Reduce padding for smaller screens */
+    font-size: 12px; /* Adjust font size for smaller screens */
+    padding: 4px; /* Reduce padding for smaller screens */
   }
 
   /* Stack table headers and data vertically on very small screens */
@@ -206,7 +208,6 @@
     border: none; /* Remove borders for stacked rows */
     padding-left: 50%;
     position: relative;
-    color: black;
   }
 
   td::before {
@@ -272,7 +273,7 @@
 
   <!-- Differences Table -->
   <div class="table-container">
-    <h3>Difference from {Number(selectedYear) - 1} to {selectedYear}</h3>
+    <h3>{Number(selectedYear) - 1} to {selectedYear} Change</h3>
     <table>
       <thead>
         <tr>

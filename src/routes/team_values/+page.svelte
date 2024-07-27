@@ -1,10 +1,14 @@
 <script>
   import Papa from 'papaparse';
   import { onMount } from 'svelte';
+  import { Chart, registerables } from 'chart.js';
+  Chart.register(...registerables);
 
   let managers = [];
   let selectedManager = "";
   let managerRosters = {};
+  let totalValues = [];
+  let chart;
 
   const fetchData = async () => {
     try {
@@ -69,16 +73,78 @@
         const managerName = managerMap.get(index);
         rostersWithManagerNames[managerName] = roster;
       }
+      totalValues = Object.keys(rostersWithManagerNames).map(manager => {
+          const totalValue = rostersWithManagerNames[manager].reduce((acc, player) => acc + player.value, 0);
+          return { manager, totalValue };
+        });
 
       return rostersWithManagerNames;
     } catch (error) {
       console.error('Error fetching or processing data:', error);
     }
   };
+   const createChart = () => {
+    const ctx = document.getElementById('chart').getContext('2d');
+    if (chart) {
+      chart.destroy();
+    }
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: totalValues.map(item => item.manager),
+        datasets: [
+          {
+            label: 'Cap Hit',
+            data: totalValues.map(item => item.totalValue),
+            backgroundColor: totalValues.map(item => item.totalValue <= 600 ? 'blue' : 'red'),
+          },
+          {
+            label: 'Cap Space',
+            data: totalValues.map(item => item.totalValue <= 600 ? 600 - item.totalValue : 0),
+            backgroundColor: 'orange',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: Math.max(...totalValues.map(item => item.totalValue)) + 50, // Adjust max to fit the highest value,
+            afterDataLimits: scale => {
+              scale.max = Math.max(700, scale.max);
+            },
+            ticks: {
+            stepSize: 50
+          },
+
+            grid: {
+              borderDash: [10, 5],
+              drawBorder: false,
+              color: function(context) {
+                if (context.tick.value === 600) {
+                  return '#FF0000'; // Red color for the 600 line
+                } else {
+                  return Chart.defaults.color;
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+  };
 
   onMount(async () => {
     managerRosters = await fetchData();
     managers = Object.keys(managerRosters);
+    createChart();
   });
 </script>
 
@@ -86,28 +152,35 @@
   .container {
     display: flex;
     justify-content: center;
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    align-items: flex-start;
     padding: 20px;
-    max-height: 100vh; /* Full viewport height */
+    min-height: 40vh; /* Full viewport height */
     box-sizing: border-box; /* Include padding in width */
+  }
+  .chart-container {
+    width: 80%;
+    margin-bottom: 20px;
   }
 
   select {
-    margin-bottom: 20px;
-    padding: 10px;
-    font-size: 16px;
+    margin-bottom: 10px;
+    padding: 5px;
+    font-size: 14px;
   }
 
   table {
     width: 50%;
     border-collapse: collapse;
+    max-height:80vh;
+    overflow-y:auto;
   }
 
   th, td {
     border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+    padding: 5px;
+    text-align: center;
+
   }
 
 
@@ -116,6 +189,10 @@
   }
 
   @media (max-width: 600px) {
+     .container {
+      flex-direction: column;
+      align-items: center;
+    }
     table {
       font-size: 12px;
     }
@@ -127,39 +204,50 @@
     select {
       font-size: 14px;
     }
+    .chart-container,
+    .dropdown-container {
+      width: 100%;
+    
+  }
   }
 </style>
 
 <div class="container">
-  <h4>Fantasy Football Team Roster</h4>
+  <div class="chart-container">
+    <canvas id="chart"></canvas>
+  </div>
 
-  <select bind:value={selectedManager}>
-    <option value="" disabled>Select Manager</option>
-    {#each managers as manager}
-      <option value={manager}>{manager}</option>
-    {/each}
-  </select>
+  <div class="dropdown-container">
+    <h4>Fantasy Football Team Roster</h4>
 
-  {#if selectedManager}
-    <table>
-      <thead>
-        <tr>
-          <th>Player Name</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each managerRosters[selectedManager] as player}
+    <select bind:value={selectedManager}>
+      <option value="" disabled>Select Manager</option>
+      {#each managers as manager}
+        <option value={manager}>{manager}</option>
+      {/each}
+    </select>
+
+    {#if selectedManager}
+      <table>
+        <thead>
           <tr>
-            <td>{player.name}</td>
-            <td>{player.value}</td>
+            <th>Player Name</th>
+            <th>Value</th>
           </tr>
-        {/each}
-        <tr class="total-value">
-          <td>Total Value</td>
-          <td>{managerRosters[selectedManager].reduce((acc, player) => acc + player.value, 0)}</td>
-        </tr>
-      </tbody>
-    </table>
-  {/if}
+        </thead>
+        <tbody>
+          {#each managerRosters[selectedManager] as player}
+            <tr>
+              <td>{player.name}</td>
+              <td>{player.value}</td>
+            </tr>
+          {/each}
+          <tr class="total-value">
+            <td>Total Value</td>
+            <td>{managerRosters[selectedManager].reduce((acc, player) => acc + player.value, 0)}</td>
+          </tr>
+        </tbody>
+      </table>
+    {/if}
+  </div>
 </div>
