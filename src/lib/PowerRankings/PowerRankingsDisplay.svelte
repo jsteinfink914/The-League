@@ -81,6 +81,7 @@
     const refreshPlayers = async () => {
         const newPlayersInfo = await loadPlayers(null, true);
         players = newPlayersInfo.players;
+        console.log(players);
         buildRankings();
     }
 
