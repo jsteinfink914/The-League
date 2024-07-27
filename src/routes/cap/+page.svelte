@@ -185,6 +185,7 @@
     padding: 2px; /* Reduce padding for smaller screens */
     flex-direction:row;
     border-bottom: 1px solid #ddd;
+    width:auto;
   }
 
   /* Stack table headers and data vertically on very small screens */
