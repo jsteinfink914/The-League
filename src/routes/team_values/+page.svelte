@@ -89,7 +89,7 @@
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    max-height: 55vh; /* Full viewport height */
+    max-height: 100vh; /* Full viewport height */
     box-sizing: border-box; /* Include padding in width */
   }
 
