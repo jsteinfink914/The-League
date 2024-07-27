@@ -181,7 +181,6 @@
   table {
     width: 50%;
     border-collapse: collapse;
-    max-height:50vh;
     overflow-y:auto;
   }
 

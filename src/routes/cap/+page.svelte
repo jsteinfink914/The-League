@@ -124,6 +124,7 @@
     justify-content: space-between;
     flex-wrap: warap;
     gap: 10px;
+    align-items: flex-start;
   }
   .table-container {
     width: 48%;
@@ -132,17 +133,20 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
-    table-layout:auto;
+    table-layout:fixed;
   }
   th, td {
     padding: 10px;
     border-bottom: 1px solid #ddd;
+    text-align: center;
   }
   th {
     background-color: black;
     color: white;
     font-weight: bold;
     cursor: pointer;
+    top: 0; /* Keep header sticky */
+    z-index: 1; /* Ensure header is above other content */
   }
   
   th.sorted-asc::after {
@@ -201,7 +205,6 @@
   tr {
     display: flex;
     flex-direction: row;
-    border-bottom: 1px solid #ddd;
   }
 
   td {
