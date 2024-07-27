@@ -164,8 +164,7 @@
   }
   .chart-container {
     width: 80%;
-    margin-bottom: 1px;
-    height: 50vh;
+    max-height: 50vh;
   }
   .dropdown-container {
     width: 80%;
@@ -222,7 +221,6 @@
   <div class="chart-container">
     <canvas id="chart"></canvas>
   </div>
-
   <div class="dropdown-container">
     <h4>Team Value</h4>
     <select bind:value={selectedManager}>
