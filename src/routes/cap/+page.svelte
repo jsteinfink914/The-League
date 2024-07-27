@@ -126,7 +126,7 @@
     justify-content: space-between;
   }
   .table-container {
-    width: 45%;
+    width: 48%;
   }
   table {
     width: 100%;
@@ -172,8 +172,8 @@
 }
   @media (max-width: 768px) {
   .container {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    gap: 2px;
   }
 
   .table-container {

@@ -89,7 +89,7 @@
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    min-height: 100vh; /* Full viewport height */
+    min-height: 40vh; /* Full viewport height */
     box-sizing: border-box; /* Include padding in width */
   }
 
@@ -100,7 +100,7 @@
   }
 
   table {
-    width: 80%;
+    width: 50%;
     border-collapse: collapse;
   }
 
