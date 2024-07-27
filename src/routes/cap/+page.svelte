@@ -132,6 +132,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
+    table-layout:auto;
   }
   th, td {
     padding: 10px;
@@ -184,7 +185,7 @@
     font-size: 8px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
     flex-direction:row;
-    border-bottom: 1px solid #ddd;
+    text-align:center;
     width:auto;
   }
 

@@ -155,7 +155,6 @@
 <style>
   .container {
     display: flex;
-    justify-content: center;
     flex-direction: column;
     align-items: center;
     min-height: 40vh; /* Full viewport height */
@@ -168,6 +167,9 @@
   }
   .dropdown-container {
     width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   select {
@@ -179,8 +181,6 @@
   table {
     width: 50%;
     border-collapse: collapse;
-    align:center;
-    justify-content: center;
     max-height:50vh;
     overflow-y:auto;
   }
