@@ -114,7 +114,11 @@
           }
         },
         scales: {
+          x:{
+              stacked: true
+          },
           y: {
+            stacked: true,
             beginAtZero: true,
             max: Math.max(...totalValues.map(item => item.totalValue)) + 50, // Adjust max to fit the highest value,
             afterDataLimits: scale => {
@@ -152,15 +156,18 @@
   .container {
     display: flex;
     justify-content: center;
-    flex-direction: row;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
     padding: 20px;
     min-height: 40vh; /* Full viewport height */
     box-sizing: border-box; /* Include padding in width */
   }
   .chart-container {
     width: 80%;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+  }
+  .dropdown-container {
+    width: 80%;
   }
 
   select {
@@ -170,9 +177,9 @@
   }
 
   table {
-    width: 50%;
+    width: 80%;
     border-collapse: collapse;
-    max-height:80vh;
+    max-height:50vh;
     overflow-y:auto;
   }
 
@@ -189,10 +196,6 @@
   }
 
   @media (max-width: 600px) {
-     .container {
-      flex-direction: column;
-      align-items: center;
-    }
     table {
       font-size: 12px;
     }
