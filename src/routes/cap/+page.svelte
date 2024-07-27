@@ -183,8 +183,8 @@
   }
 
   th, td {
-    font-size: 12px; /* Adjust font size for smaller screens */
-    padding: 4px; /* Reduce padding for smaller screens */
+    font-size: 10px; /* Adjust font size for smaller screens */
+    padding: 2px; /* Reduce padding for smaller screens */
   }
 
   /* Stack table headers and data vertically on very small screens */
