@@ -158,7 +158,6 @@
     justify-content: center;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
     min-height: 40vh; /* Full viewport height */
     box-sizing: border-box; /* Include padding in width */
   }

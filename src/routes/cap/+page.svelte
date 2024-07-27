@@ -135,7 +135,7 @@
   }
   th, td {
     padding: 10px;
-    border: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
   }
   th {
     background-color: black;
@@ -152,7 +152,7 @@
   }
 
   .dropdown {
-  position: absolute;
+  position: relative;
   max-height: 200px;
   overflow-y: auto;
   background-color: lightgray;
@@ -277,8 +277,6 @@
       <thead>
         <tr>
           <th>Name</th>
-          <th>Current Value</th>
-          <th>Previous Value</th>
           <th on:click={toggleDifferenceSortOrder} class={differenceSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
             Difference
           </th>
