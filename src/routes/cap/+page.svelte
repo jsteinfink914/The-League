@@ -185,6 +185,7 @@
   th, td {
     font-size: 10px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
+    flex-direction:row;
   }
 
   /* Stack table headers and data vertically on very small screens */
@@ -204,9 +205,9 @@
 
   td {
     display: block;
-    text-align: right;
-    border: none; /* Remove borders for stacked rows */
-    padding-left: 10%;
+    text-align: left;
+    border: 1px solid #ddd; /* Remove borders for stacked rows */
+    padding-left: 1%;
     position: relative;
   }
 
