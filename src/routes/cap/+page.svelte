@@ -246,7 +246,7 @@
 <div class="container">
   <!-- Values Table -->
   <div class="table-container">
-    <h3>Values - {selectedYear}</h3>
+    <h5>Values - {selectedYear}</h5>
     <table>
       <thead>
         <tr>
@@ -273,7 +273,7 @@
 
   <!-- Differences Table -->
   <div class="table-container">
-    <h3>{Number(selectedYear) - 1} to {selectedYear} Change</h3>
+    <h5>{Number(selectedYear) - 1} to {selectedYear} Change</h5>
     <table>
       <thead>
         <tr>
