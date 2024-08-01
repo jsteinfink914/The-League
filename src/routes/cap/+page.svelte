@@ -185,7 +185,7 @@
     width: 100%;
   }
  table {
-    table-layout:fixed;
+    table-layout:auto;
   }
   th, td {
     font-size: 10px; /* Adjust font size for smaller screens */
@@ -193,6 +193,7 @@
     flex-direction:row;
     text-align:center;
     width:auto;
+    display:block;
   }
 
   /* Stack table headers and data vertically on very small screens */
@@ -205,7 +206,7 @@
   }
 
   tr {
-    display: flex;
+    display: block;
     flex-direction: row;
   }
 
