@@ -182,9 +182,11 @@
   }
 
   .table-container {
-    width: 80%;
+    width: 100%;
   }
-
+ table {
+    table-layout:fixed;
+  }
   th, td {
     font-size: 10px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
