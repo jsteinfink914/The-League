@@ -186,7 +186,7 @@
   }
 
   th, td {
-    font-size: 8px; /* Adjust font size for smaller screens */
+    font-size: 10px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
     flex-direction:row;
     text-align:center;
