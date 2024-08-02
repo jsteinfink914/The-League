@@ -163,7 +163,7 @@
   overflow-y: auto;
   background-color: black;
   border: black;
-  width: 20%;
+  width: 40%;
   z-index: 1000;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -183,13 +183,13 @@
   }
 
   .table-container {
-    width: 100%;
+    width: 90%;
   }
  table {
     table-layout:auto;
   }
   th, td {
-    font-size: 12px; /* Adjust font size for smaller screens */
+    font-size: 10px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
     flex-direction:column;
     text-align:left;
