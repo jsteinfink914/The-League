@@ -195,15 +195,15 @@
     text-align:left;
   }
    th:nth-child(1), td:nth-child(1) {
-      width: 70%;
+      width: 60%;
     }
 
     th:nth-child(2), td:nth-child(2) {
-      width: 15%;
+      width: 20%;
     }
 
     th:nth-child(3), td:nth-child(3) {
-      width: 15%;
+      width: 20%;
     }
 
   /* Stack table headers and data vertically on very small screens */
@@ -223,7 +223,7 @@
   td {
     text-align: left;
     padding-left: 1%;
-    position: absolute;
+    position: relative;
   }
 
   td::before {
