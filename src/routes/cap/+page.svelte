@@ -161,7 +161,7 @@
   position: relative;
   max-height: 200px;
   overflow-y: auto;
-  background-color: lightgray;
+  background-color: black;
   border: black;
   width: 20%;
   z-index: 1000;
@@ -174,7 +174,7 @@
 }
 
 .dropdown-item:hover {
-  background-color: black;
+  background-color: lightblue;
 }
   @media (max-width: 768px) {
   .container {

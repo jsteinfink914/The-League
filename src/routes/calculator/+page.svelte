@@ -138,7 +138,7 @@
   position: absolute;
   max-height: 200px;
   overflow-y: auto;
-  background-color: lightgray;
+  background-color: black;
   border: 1px solid black;
   width: 50%; /* Make dropdown take full width */
   z-index: 1000;
@@ -151,7 +151,7 @@
 }
 
 .dropdown-item:hover {
-  background-color: #f0f0f0;
+  background-color: lightblue;
 }
 
 @media (max-width: 768px) {
