@@ -173,7 +173,7 @@
 }
 
 .dropdown-item:hover {
-  background-color: #f0f0f0;
+  background-color: black;
 }
   @media (max-width: 768px) {
   .container {
