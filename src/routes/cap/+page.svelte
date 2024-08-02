@@ -294,6 +294,7 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th>Previous Value</th>
           <th on:click={toggleDifferenceSortOrder} class={differenceSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
             Difference
           </th>
