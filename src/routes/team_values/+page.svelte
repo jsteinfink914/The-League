@@ -199,6 +199,9 @@
   }
 
   @media (max-width: 600px) {
+    .chart-container{
+      margin-left:0%;
+    }
     table {
       font-size: 12px;
     }
