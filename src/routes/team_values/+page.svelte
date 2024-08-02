@@ -253,5 +253,7 @@
         </tbody>
       </table>
     {/if}
+    <br>
+    <br>
   </div>
 </div>
