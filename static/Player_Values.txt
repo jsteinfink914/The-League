@@ -1125,3 +1125,4 @@ Year,Name,Value,Rookie
 2024,Trenton Irwin,0.0,0
 2024,Jase McClellan,0.0,0
 2024,Michael Gallup,0.0,0
+2024,Justin Fields,0.0,0
