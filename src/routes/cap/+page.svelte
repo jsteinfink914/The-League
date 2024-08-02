@@ -216,8 +216,9 @@
   }
 
   tr {
-    flex-direction: row;
-    display: block;
+    flex-wrap: nowrap;
+    display: flex;
+    justify-content: space-between;
   }
 
   td {
