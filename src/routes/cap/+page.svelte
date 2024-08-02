@@ -192,18 +192,18 @@
     font-size: 12px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
     flex-direction:column;
-    text-align:center;
+    text-align:left;
   }
    th:nth-child(1), td:nth-child(1) {
-      width: 60%;
+      width: 70%;
     }
 
     th:nth-child(2), td:nth-child(2) {
-      width: 20%;
+      width: 15%;
     }
 
     th:nth-child(3), td:nth-child(3) {
-      width: 20%;
+      width: 15%;
     }
 
   /* Stack table headers and data vertically on very small screens */
@@ -223,7 +223,7 @@
   td {
     text-align: left;
     padding-left: 1%;
-    position: relative;
+    position: absolute;
   }
 
   td::before {
