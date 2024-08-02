@@ -165,6 +165,8 @@
     max-height: 50vh;
     justify-content: center;
     align-items:center;
+    padding-left:10%;
+    padding-right:10%;
   }
   .dropdown-container {
     width: 80%;

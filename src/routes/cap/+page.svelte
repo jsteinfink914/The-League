@@ -49,6 +49,7 @@
       const previous = previousYearData.find(p => p.Name === current.Name);
       return {
         Name: current.Name,
+        Prior_Value: parseFloat(previous.Value),
         Difference: previous ? parseFloat(current.Value) - parseFloat(previous.Value) : parseFloat(current.Value)
       };
     });
@@ -188,21 +189,21 @@
     table-layout:auto;
   }
   th, td {
-    font-size: 10px; /* Adjust font size for smaller screens */
+    font-size: 12px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
     flex-direction:column;
     text-align:center;
   }
    th:nth-child(1), td:nth-child(1) {
-      width: 70%;
+      width: 60%;
     }
 
     th:nth-child(2), td:nth-child(2) {
-      width: 15%;
+      width: 20%;
     }
 
     th:nth-child(3), td:nth-child(3) {
-      width: 15%;
+      width: 20%;
     }
 
   /* Stack table headers and data vertically on very small screens */
@@ -302,6 +303,7 @@
         {#each differenceData.filter(filterData) as item (item.Name)}
           <tr>
             <td data-label="Name">{item.Name}</td>
+            <td data-label="Prior Value">{item.Prior_Value}</td>
             <td data-label="Difference">{item.Difference}</td>
           </tr>
         {/each}
