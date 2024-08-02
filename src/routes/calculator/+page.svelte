@@ -126,7 +126,7 @@
 
 .team-entry input {
   margin-right: 10px;
-  width: calc(100% - 130px); /* Adjust width as needed */
+  width: calc(100% - 180px); /* Adjust width as needed */
 }
 
 .team-summary {
@@ -140,7 +140,7 @@
   overflow-y: auto;
   background-color: lightgray;
   border: 1px solid black;
-  width: 25%; /* Make dropdown take full width */
+  width: 50%; /* Make dropdown take full width */
   z-index: 1000;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -160,7 +160,7 @@
   }
 
   .team {
-    width: 100%;
+    width: 80%;
   }
 
   th, td {
