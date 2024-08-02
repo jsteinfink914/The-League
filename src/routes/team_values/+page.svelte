@@ -164,6 +164,7 @@
     width: 80%;
     max-height: 50vh;
     justify-content: center;
+    align-items:center;
   }
   .dropdown-container {
     width: 80%;

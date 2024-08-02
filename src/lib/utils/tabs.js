@@ -58,7 +58,7 @@ export const tabs = [
             },
             {
                 icon: 'attach_money',
-                label: 'Cap',
+                label: 'Player_Values',
                 dest: '/cap',
             },
             {
