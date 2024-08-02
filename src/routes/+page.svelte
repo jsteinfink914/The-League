@@ -10,23 +10,6 @@
     const podiumsData = getAwards();
     const leagueTeamManagersData = getLeagueTeamManagers();
 
-    const filePath = '/Power_Rankings.txt'
-
-
-    const loadData = async () => {
-        const response = await fetch(filePath);
-        const text = await response.text();
-        Papa.parse(text, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (result) => {
-            power_rankings = result.data;
-        }
-        });
-    };
-    onMount(() => {
-    loadData();
-  });
 </script>
 
 <style>

@@ -190,10 +190,9 @@
   th, td {
     font-size: 10px; /* Adjust font size for smaller screens */
     padding: 2px; /* Reduce padding for smaller screens */
-    flex-direction:row;
+    flex-direction:column;
     text-align:center;
     width:auto;
-    display:block;
   }
 
   /* Stack table headers and data vertically on very small screens */
@@ -207,12 +206,13 @@
 
   tr {
     flex-direction: row;
+    display: block;
   }
 
   td {
     text-align: left;
     padding-left: 1%;
-    position: absolute;
+    position: relative;
   }
 
   td::before {
