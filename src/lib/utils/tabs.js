@@ -17,11 +17,6 @@ export const tabs = [
         dest: '/transactions',
     },
     {
-        icon: 'article',
-        label: 'Blog',
-        dest: '/blog',
-    },
-    {
         icon: 'view_comfy',
         label: 'League Info',
         nest: true,
@@ -30,11 +25,6 @@ export const tabs = [
                 icon: 'storage',
                 label: 'Rosters',
                 dest: '/rosters',
-            },
-            {
-                icon: 'groups',
-                label: 'Managers',
-                dest: '/managers',
             },
             {
                 icon: 'local_fire_department',
@@ -62,8 +52,26 @@ export const tabs = [
                 dest: '/records',
             },
             {
+                icon: 'history_edu',
+                label: 'Constitution',
+                dest: '/constitution',
+            },
+            {
+                icon: 'sports_football',
+                label: 'Go to Sleeper',
+                dest: `https://sleeper.app/leagues/${leagueID}`,
+            },
+        ]
+    },
+    {
+        icon: 'attach_money',
+        label: 'Cap',
+        nest: true,
+        children: [
+
+            {
                 icon: 'attach_money',
-                label: 'Cap',
+                label: 'Player Values',
                 dest: '/cap',
             },
             {
@@ -75,17 +83,7 @@ export const tabs = [
                 icon: 'money',
                 label: 'Team Values',
                 dest: '/team_values',
-            },
-            {
-                icon: 'history_edu',
-                label: 'Constitution',
-                dest: '/constitution',
-            },
-            {
-                icon: 'sports_football',
-                label: 'Go to Sleeper',
-                dest: `https://sleeper.app/leagues/${leagueID}`,
-            },
+            }
         ]
     },
     {

@@ -3,10 +3,30 @@
 	import { getNflState, leagueName, getAwards, getLeagueTeamManagers, homepageText, managers, gotoManager, enableBlog, waitForAll } from '$lib/utils/helper';
 	import { Transactions, PowerRankings, HomePost} from '$lib/components';
 	import { getAvatarFromTeamManagers, getTeamFromTeamManagers } from '$lib/utils/helperFunctions/universalFunctions';
+    import Papa from 'papaparse';
+    import { onMount } from 'svelte';
 
     const nflState = getNflState();
     const podiumsData = getAwards();
     const leagueTeamManagersData = getLeagueTeamManagers();
+
+    const filePath = '/Power_Rankings.txt'
+
+
+    const loadData = async () => {
+        const response = await fetch(filePath);
+        const text = await response.text();
+        Papa.parse(text, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (result) => {
+            power_rankings = result.data;
+        }
+        });
+    };
+    onMount(() => {
+    loadData();
+  });
 </script>
 
 <style>
@@ -42,7 +62,31 @@
         border-left: var(--eee);
 		box-shadow: inset 8px 0px 6px -6px rgb(0 0 0 / 24%);
     }
-
+    .table-container {
+        width: 80%;
+        overflow-x: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+    }
+    th {
+        background-color: black;
+        color: white;
+        font-weight: bold;
+    }
+  @media (max-width: 768px) {
+    th, td {
+      font-size: 12px;
+      padding: 5px;
+    }
+  }
     @media (max-width: 950px) {
         .leagueData {
             max-width: 100%;
@@ -53,7 +97,12 @@
         #home {
             flex-wrap: wrap;
         }
+        th, td {
+            font-size: 12px;
+            padding: 5px;
+            }
     }
+
 
     .transactions {
         display: block;
@@ -147,7 +196,29 @@
                 <HomePost />
             {/if}
         </div>
-        <PowerRankings />
+        <h5>Power Rankings</h5>
+        <table>
+            <thead>
+            <tr>
+                <th>Team</th>
+                <th>Avg Rank</th>
+                <th>Max</th>
+                <th>Min</th>
+                <th>Spread</th>
+            </tr>
+            </thead>
+            <tbody>
+            {#each powerRankings as ranking}
+                <tr>
+                <td>{ranking.Team}</td>
+                <td>{ranking['Avg Rank']}</td>
+                <td>{ranking.Max}</td>
+                <td>{ranking.Min}</td>
+                <td>{ranking.Spread}</td>
+                </tr>
+            {/each}
+            </tbody>
+        </table>
     </div>
     
     <div class="leagueData">

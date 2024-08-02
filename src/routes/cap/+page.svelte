@@ -206,15 +206,13 @@
   }
 
   tr {
-    display: block;
     flex-direction: row;
   }
 
   td {
-    display: block;
     text-align: left;
     padding-left: 1%;
-    position: relative;
+    position: absolute;
   }
 
   td::before {
