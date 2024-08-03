@@ -142,6 +142,16 @@
 		color: #bbb;
 		font-style: italic;
 	}
+    .image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 20%;
+  }
+  .image-container img {
+    width: 60%;
+    height: 60%;
+  }
 </style>
 
 <div id="home">
@@ -155,7 +165,7 @@
                 <HomePost />
             {/if}
         </div>
-        <img src = '/Oscar.jpeg' width="40%" height="40%" align = "center" margin-left="20%">
+        <img src = '/Oscar.jpeg'>
     </div>
     
     <div class="leagueData">
