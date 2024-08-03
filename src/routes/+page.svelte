@@ -150,7 +150,7 @@
   }
   .image-container img {
     width: 60%;
-    height: 60%;
+    height: 50%;
   }
 </style>
 
