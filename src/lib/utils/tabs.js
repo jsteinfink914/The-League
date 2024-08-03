@@ -63,7 +63,7 @@ export const tabs = [
             },
             {
                 icon: 'swap_horiz',
-                label: 'Trade Calculator',
+                label: 'Cap Trade Calculator',
                 dest: '/calculator',
             },
             {
