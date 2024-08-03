@@ -155,7 +155,7 @@
                 <HomePost />
             {/if}
         </div>
-        <img src = '/Oscar.jpeg' width="60%" height="20%" align = "center">
+        <img src = '/Oscar.jpeg' width="40%" height="40%" align = "center" margin-left="20%">
     </div>
     
     <div class="leagueData">
