@@ -166,7 +166,7 @@
             {/if}
         </div>
         <div class="image-container">
-             <img src="/Oscar.jpeg">
+             <img src="/Sam_meme.jpeg">
         </div>
     </div>
     
