@@ -150,12 +150,12 @@
             <h6>{leagueName}</h6>
             <!-- homepageText contains the intro text for your league, this gets edited in /src/lib/utils/leagueInfo.js -->
             {@html homepageText }
-            <img src = '/Oscar.jpeg' width="60%" height="20%" align = "center">
             <!-- Most recent Blog Post (if enabled) -->
             {#if enableBlog}
                 <HomePost />
             {/if}
         </div>
+        <img src = '/Oscar.jpeg' width="60%" height="20%" align = "center">
     </div>
     
     <div class="leagueData">
