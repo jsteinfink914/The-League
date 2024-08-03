@@ -7,7 +7,7 @@ export const enableBlog = false; // requires VITE_CONTENTFUL_ACCESS_TOKEN and VI
 
 /*   STEP 2   */
 export const homepageText = `
-  <p>Intro... <p>
+  <p>Pending a real intro from someone - in the meantime... enjoy <p>
 `;
 
 /*   STEP 3   */
