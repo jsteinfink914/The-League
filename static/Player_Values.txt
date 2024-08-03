@@ -1121,8 +1121,5 @@ Year,Name,Value,Rookie
 2024,Gardner Minshew II,0.0,0
 2024,Isaiah Spiller,5.0,0
 2024,Julius Chestnut,0.0,0
-2024,Bo Nix,0.0,1
 2024,Trenton Irwin,0.0,0
-2024,Jase McClellan,0.0,0
-2024,Michael Gallup,0.0,0
 2024,Justin Fields,0.0,0
