@@ -147,6 +147,7 @@
     justify-content: center;
     align-items: center;
     margin-left: 20%;
+    width: 100%; /* Ensures the container takes full width */
   }
   .image-container img {
     width: 60%;
