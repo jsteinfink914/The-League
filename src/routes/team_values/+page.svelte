@@ -207,7 +207,7 @@
     }
 
     th, td {
-      padding: 6px;
+      padding: 3px;
     }
 
     select {
