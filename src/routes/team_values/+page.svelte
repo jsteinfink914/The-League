@@ -55,7 +55,13 @@
       const playerValuesResponse = await fetch('/Player_Values.txt');
       const playerValuesText = await playerValuesResponse.text();
       const playerValues = Papa.parse(playerValuesText, { header: true }).data;
-      const playerValueMap = new Map(playerValues.map(entry => [entry.Name, entry.Value]));
+      const playerValueMap = new Map();
+                           playerValues.forEach(entry => {
+                           if (entry.Year === '2024') {
+                          playerValueMap.set(entry.Name, parseFloat(entry.Value) || 0);
+                          }
+                          });
+     // const playerValueMap = new Map(playerValues.map(entry => [entry.Name, entry.Value]));
 
       // Map player names to values
       const rostersWithValues = {};
