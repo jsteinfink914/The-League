@@ -383,6 +383,7 @@ Year,Name,Value,Rookie
 2022,DeeJay Dallas,0,
 2022,Kevin Harris,0,
 2022,Trey McBride,0,1
+2022,Khalil Shakir,0,1
 2023,Justin Jefferson,145,0
 2023,Ja'Marr Chase,140,0
 2023,Christian McCaffrey,139,0
@@ -900,7 +901,7 @@ Year,Name,Value,Rookie
 2024,Joshua Palmer,24.0,0
 2024,Jerome Ford,11.5,0
 2024,Jayden Daniels,22.0,1
-2024,Khalil Shakir,22.0,0
+2024,Khalil Shakir,11.0,0
 2024,Gabe Davis,21.0,0
 2024,Curtis Samuel,21.0,0
 2024,Romeo Doubs,11.0,0
