@@ -1123,3 +1123,6 @@ Year,Name,Value,Rookie
 2024,Julius Chestnut,0.0,0
 2024,Trenton Irwin,0.0,0
 2024,Justin Fields,0.0,0
+2024,Rashaad Penny,0.0,0
+2024,Cam Akers,0.0,0
+2024,Kadarius Toney,0.0,0
