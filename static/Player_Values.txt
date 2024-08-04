@@ -103,7 +103,7 @@ Year,Name,Value,Rookie
 2022,Kadarius Toney,26,0
 2022,Michael Carter,25,0
 2022,T.J. Hockenson,25,0
-2022,Brian Robinson Jr.,24,0
+2022,Brian Robinson Jr.,24,1
 2022,James Robinson,23,0
 2022,DeAndre Hopkins,23,0
 2022,Mecole Hardman Jr.,23,0
@@ -871,7 +871,7 @@ Year,Name,Value,Rookie
 2024,Devin Singletary,38.0,0
 2024,Xavier Worthy,38.0,1
 2024,Jake Ferguson,19.0,0
-2024,Brian Robinson Jr.,37.0,0
+2024,Brian Robinson Jr.,30.5,0
 2024,Jonathon Brooks,37.0,1
 2024,David Njoku,36.0,0
 2024,Kyler Murray,35.0,0
