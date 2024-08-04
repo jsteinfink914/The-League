@@ -1,4 +1,4 @@
-Fantasy_Pros,Sleeper
+Sleeper,Fantasy_Pros
 Marvin Mims,Marvin Mims Jr.
 Irv Smith,Irv Smith Jr.
 Travis Etienne,Travis Etienne Jr.
