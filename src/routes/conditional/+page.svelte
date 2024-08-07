@@ -1,5 +1,19 @@
 <script>
-    // Additional logic or state can be defined here if needed
+    let trades = [
+        {
+            date: "11/1/23",
+            parties: "Abul and Coyne",
+            picks: ["Coyne’s 25 1", "Sween’s 25 1", "Dev’s 25 1"],
+            conditions: "The three picks (Coyne’s 25 1, Sween’s 25 1, and Dev’s 25 1) are to be pooled and selected by the pick holders in the following order: Holder of Coyne’s 25 1, Holder of Sween’s 25 1, Holder of Dev’s 25 1. The selection will take place once all implicated picks have been determined."
+        },
+        // Add more trade objects as needed
+    ];
+
+    let selectedTrade = null;
+
+    const toggleTrade = (index) => {
+        selectedTrade = selectedTrade === index ? null : index;
+    };
 </script>
 
 <style>
@@ -7,55 +21,72 @@
         border: 1px solid #ddd;
         padding: 15px;
         border-radius: 5px;
-        background-color: #f9f9f9;
         font-family: Arial, sans-serif;
         line-height: 1.6;
-        text-align: center;
         max-width: 600px;
         margin: 0 auto;
     }
 
     h2 {
-        color: #333;
-        font-size: 1.5em; /* Smaller header size */
+        font-size: 1.5em;
+        text-align: center;
+    }
+
+    .dropdown {
+        margin-bottom: 10px;
+        cursor: pointer;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f1f1f1;
+        text-align: center;
+    }
+
+    .dropdown h3 {
+        margin: 0;
+        font-size: 1.2em;
     }
 
     .section {
         margin-bottom: 10px;
+        text-align: center;
     }
 
     .section h3 {
         margin: 0 0 5px;
-        color: #555;
-        font-size: 1.2em; /* Smaller subheader size */
+        font-size: 1.2em;
     }
 
     .section p, .section ul {
         margin: 0;
-        font-size: 1em; /* Smaller text size */
+        font-size: 1em;
     }
 
     ul {
-        padding-left: 20px; /* Indent list items */
-        text-align: left; /* Align list items to the left */
+        padding-left: 20px;
+        text-align: left;
     }
 
     @media (max-width: 600px) {
         .trade-info {
             padding: 10px;
-            font-size: 0.9em; /* Slightly smaller text on phones */
+            font-size: 0.9em;
         }
 
         h2 {
-            font-size: 1.2em; /* Smaller header size on phones */
+            font-size: 1.2em;
+        }
+
+        .dropdown h3 {
+            font-size: 1em;
         }
 
         .section h3 {
-            font-size: 1em; /* Smaller subheader size on phones */
+            font-size: 1em;
         }
 
         .section p, .section ul {
-            font-size: 0.9em; /* Smaller text size on phones */
+            font-size: 0.9em;
         }
     }
 </style>
@@ -63,37 +94,31 @@
 <div class="trade-info">
     <h2>Trade Details</h2>
     
-    <div class="section">
-        <h3>Date of Trade:</h3>
-        <p>11/1/23</p>
-    </div>
-    
-    <div class="section">
-        <h3>Parties Involved:</h3>
-        <p>Abul and Coyne</p>
-    </div>
-    
-    <div class="section">
-        <h3>Picks Involved:</h3>
-        <p>
-            - Coyne’s 25 1<br>
-            - Sween’s 25 1<br>
-            - Dev’s 25 1
-        </p>
-    </div>
-    
-    <div class="section">
-        <h3>Conditions:</h3>
-        <p>
-            The three picks (Coyne’s 25 1, Sween’s 25 1, and Dev’s 25 1) are to be pooled and selected by the pick holders in the following order:
-        </p>
-        <ul>
-            <li>Holder of Coyne’s 25 1</li>
-            <li>Holder of Sween’s 25 1</li>
-            <li>Holder of Dev’s 25 1</li>
-        </ul>
-        <p>
-            The selection will take place once all implicated picks have been determined.
-        </p>
-    </div>
+    {#each trades as trade, index}
+        <div class="dropdown" on:click={() => toggleTrade(index)}>
+            <h3>{trade.parties} - {trade.date}</h3>
+        </div>
+        {#if selectedTrade === index}
+            <div class="section">
+                <h3>Date of Trade:</h3>
+                <p>{trade.date}</p>
+            </div>
+            <div class="section">
+                <h3>Parties Involved:</h3>
+                <p>{trade.parties}</p>
+            </div>
+            <div class="section">
+                <h3>Picks Involved:</h3>
+                <p>
+                    {#each trade.picks as pick}
+                        {pick}<br>
+                    {/each}
+                </p>
+            </div>
+            <div class="section">
+                <h3>Conditions:</h3>
+                <p>{trade.conditions}</p>
+            </div>
+        {/if}
+    {/each}
 </div>
