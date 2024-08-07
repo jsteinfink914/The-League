@@ -1,5 +1,5 @@
 <script>
-    // You can define any additional logic or state here if needed
+    // Additional logic or state can be defined here if needed
 </script>
 
 <style>
