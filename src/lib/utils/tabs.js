@@ -72,6 +72,12 @@ export const tabs = [
                 dest: '/team_values',
             },
             {
+                icon: 'swap_horiz',
+                label: 'Conditional Trades',
+                dest: '/conditional',
+            },
+            
+            {
                 icon: 'history_edu',
                 label: 'Constitution',
                 dest: '/constitution',
