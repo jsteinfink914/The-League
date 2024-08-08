@@ -165,9 +165,6 @@
                 <HomePost />
             {/if}
         </div>
-        <div class="image-container">
-             <img src="/Sam_meme.jpeg">
-        </div>
     </div>
     
     <div class="leagueData">
