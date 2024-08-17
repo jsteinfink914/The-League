@@ -17,3 +17,6 @@ Chris Rodriguez,Chris Rodriguez Jr.
 Patrick Mahomes,Patrick Mahomes II
 Deebo Samuel,Deebo Samuel Sr.
 Gardner Minshew,Gardner Minshew II
+Marvin Harrison,Marvin Harrison Jr.
+Tyrone Tracy,Tyrone Tracy Jr.
+Brian Thomas,Brian Thomas Jr.
