@@ -6,7 +6,20 @@
             picks: ["Coyne’s 25 1", "Sween’s 25 1", "Dev’s 25 1"],
             conditions: "The three picks (Coyne’s 25 1, Sween’s 25 1, and Dev’s 25 1) are to be pooled and selected by the pick holders in the following order: Holder of Coyne’s 25 1, Holder of Sween’s 25 1, Holder of Dev’s 25 1. The selection will take place once all implicated picks have been determined."
         },
+        {
+            date: "11/21/24",
+            parties: "Will and Coyne",
+            picks: ["Will's 2028 3"],
+            conditions: "Will owes Coyne his 2028 3 upon the pick becoming available to trade."
+        },
+        {
+            date: "11/22/23",
+            parties: "Chi and Ska",
+            picks: ["Chi's 2025 1", "Will's 2025 1"],
+            conditions: "Chi's pick is top-4 protected. If the pick is within the top 4, Ska will receive Will's 2025 1 instead."
+        }
         // Add more trade objects as needed
+
     ];
 
     let selectedTrade = null;
