@@ -13,7 +13,7 @@
             conditions: "Will owes Coyne his 2028 3 upon the pick becoming available to trade."
         },
         {
-            date: "11/22/23",
+            date: "11/22/24",
             parties: "Chi and Ska",
             picks: ["Chi's 2025 1", "Will's 2025 1"],
             conditions: "Chi's pick is top-4 protected. If the pick is within the top 4, Ska will receive Will's 2025 1 instead."
