@@ -10,21 +10,19 @@
             date: "11/21/24",
             parties: "Will and Coyne",
             picks: ["Will's 2028 3"],
-            conditions: "Will owes Coyne his 2028 3 upon the pick becoming available to trade."
+            conditions: "Will owes Coyne his 2028 3 upon the pick becoming available to trade. Deal involving Ekeler and Ertz for Rhamondre."
         },
         {
             date: "11/22/24",
             parties: "Chi and Ska",
             picks: ["Chi's 2025 1", "Will's 2025 1"],
-            conditions: "Chi's pick is top-4 protected. If the pick is within the top 4, Ska will receive Will's 2025 1 instead."
-        }
-trade."
+            conditions: "Chi's pick is top-4 protected. If the pick is within the top 4, Ska will receive Will's 2025 1 instead. Deal for Aaron Jones."
         },
         {
             date: "11/25/24",
             parties: "Tombs and Coyne",
             picks: ["Mc's 2028 slate of picks"],
-            conditions: "Mc owes Coyne his 2028 slate of picks upon them becoming available."
+            conditions: "Mc owes Coyne his 2028 slate of picks upon them becoming available. Deal for Kittle and Ekeler."
         }
         // Add more trade objects as needed
 
