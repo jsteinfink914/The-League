@@ -18,6 +18,14 @@
             picks: ["Chi's 2025 1", "Will's 2025 1"],
             conditions: "Chi's pick is top-4 protected. If the pick is within the top 4, Ska will receive Will's 2025 1 instead."
         }
+trade."
+        },
+        {
+            date: "11/25/24",
+            parties: "Tombs and Coyne",
+            picks: ["Mc's 2028 slate of picks"],
+            conditions: "Mc owes Coyne his 2028 slate of picks upon them becoming available."
+        }
         // Add more trade objects as needed
 
     ];
