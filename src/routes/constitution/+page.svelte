@@ -15,15 +15,10 @@
 </script>
 
 <main>
-  <object
-    data="/constitution.pdf"
-    type="application/pdf"
-    width="100%"
-    height="600px"
-    style="overflow: auto; display: block;"
+  <p
   >
     This browser does not support PDFs. Please download the PDF to view it: <a href="/constitution.pdf">Download PDF</a>.
-  </object>
+  </p>
 </main>
 
 <style>
