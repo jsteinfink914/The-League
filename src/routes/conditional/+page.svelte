@@ -23,7 +23,14 @@
             parties: "Tombs and Coyne",
             picks: ["Mc's 2028 slate of picks"],
             conditions: "Mc owes Coyne his 2028 slate of picks upon them becoming available. Deal for Kittle and Ekeler."
+        },
+    {
+            date: "5/10/25",
+            parties: "Steiny and Coyne",
+            picks: ["Steiny's 28,29,30, and 31 3rd round picks."],
+            conditions: "Steiny owes Coyne his 3rd round pick until 2031 upon them becoming available. Deal for Goedert."
         }
+
         // Add more trade objects as needed
 
     ];
