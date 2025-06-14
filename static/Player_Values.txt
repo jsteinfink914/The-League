@@ -1247,7 +1247,7 @@ Year,Name,Value,Rookie
 2025,Tyjae Spears,11,0
 2025,Caleb Williams,21,0
 2025,Travis Etienne Jr.,17,0
-2025,Marquise Brown,17,1
+2025,Marquise Brown,17,0
 2025,Brandon Aiyuk,17,0
 2025,Justin Herbert,16,0
 2025,Jared Goff,16,0
@@ -1256,7 +1256,7 @@ Year,Name,Value,Rookie
 2025,Romeo Doubs,16,0
 2025,Cedric Tillman,8,0
 2025,Roschon Johnson,10.5,0
-2025,Jordan Mason,15,1
+2025,Jordan Mason,15,0
 2025,Tre Harris,15,1
 2025,Pat Freiermuth,15,0
 2025,Dallas Goedert,15,0
@@ -1276,13 +1276,13 @@ Year,Name,Value,Rookie
 2025,Tyler Allgeier,10,0
 2025,Trey Benson,12,0
 2025,Jaydon Blue,10,1
-2025,Calvin Austin III,10,1
+2025,Calvin Austin III,10,0
 2025,Evan Engram,10,0
 2025,Tua Tagovailoa,9,0
 2025,C.J. Stroud,4.5,0
 2025,Bhayshul Tuten,9,1
 2025,DeMario Douglas,9,0
-2025,Nick Westbrook-Ikhine,9,1
+2025,Nick Westbrook-Ikhine,9,0
 2025,Jayden Higgins,9,1
 2025,Zach Ertz,9,0
 2025,Geno Smith,8,0
@@ -1303,7 +1303,7 @@ Year,Name,Value,Rookie
 2025,Braelon Allen,5,0
 2025,Kyle Williams,5,1
 2025,Jalen McMillan,2,0
-2025,Ray-Ray McCloud III,5,1
+2025,Ray-Ray McCloud III,5,0
 2025,Cade Otton,5,0
 2025,Mike Williams,4,0
 2025,Mike Gesicki,4,0
@@ -1317,9 +1317,9 @@ Year,Name,Value,Rookie
 2025,Alec Pierce,3,0
 2025,Kyle Pitts,3,0
 2025,Colston Loveland,3,1
-2025,Brenton Strange,1.5,1
+2025,Brenton Strange,1.5,0
 2025,Philadelphia Eagles,3,0
-2025,Michael Penix Jr.,2,1
+2025,Michael Penix Jr.,2,0
 2025,Miles Sanders,2,0
 2025,J.K. Dobbins,2,0
 2025,Blake Corum,13,0
@@ -1336,8 +1336,8 @@ Year,Name,Value,Rookie
 2025,Detroit Lions,2,0
 2025,Bryce Young,2.5,0
 2025,Trevor Etienne,1,1
-2025,Andrei Iosivas,1,1
-2025,Allen Lazard,1,1
+2025,Andrei Iosivas,1,0
+2025,Allen Lazard,1,0
 2025,Pat Bryant,1,1
 2025,Isaiah Likely,1,0
 2025,Tyler Higbee,1,0
@@ -1357,7 +1357,7 @@ Year,Name,Value,Rookie
 2025,Harrison Butker,1,0
 2025,Cameron Dicker,1,0
 2025,Evan McPherson,1,0
-2025,Brandon McManus,1,1
+2025,Brandon McManus,1,0
 2025,Tyler Loop,1,1
 2025,Ka'imi Fairbairn,1,0
 2025,Younghoe Koo,1,0
@@ -1372,7 +1372,7 @@ Year,Name,Value,Rookie
 2025,Cleveland Browns,0,0
 2025,New York Jets,0,0
 2025,Dalton Schultz,0,0
-2025,Sam Darnold,0,1
+2025,Sam Darnold,0,0
 2025,Wil Lutz,0,0
 2025,Chris Boswell,0,0
 2025,Jake Moody,0,0
@@ -1385,7 +1385,7 @@ Year,Name,Value,Rookie
 2025,Miami Dolphins,0,0
 2025,Las Vegas Raiders,0,0
 2025,New Orleans Saints,0,0
-2025,Chig Okonkwo,0,1
+2025,Chig Okonkwo,0,0
 2025,Samaje Perine,0,0
 2025,Antonio Gibson,0,0
 2025,Devin Singletary,0,0
@@ -1398,7 +1398,7 @@ Year,Name,Value,Rookie
 2025,Juwan Johnson,0,0
 2025,Diontae Johnson,0,0
 2025,Christian Watson,0,0
-2025,Parker Washington,0,1
+2025,Parker Washington,0,0
 2025,Alexander Mattison,0,0
 2025,Elijah Mitchell,0,0
 2025,Nick Chubb,0,0
@@ -1406,7 +1406,7 @@ Year,Name,Value,Rookie
 2025,Noah Fant,0,0
 2025,Theo Johnson,0,0
 2025,Adonai Mitchell,11,0
-2025,Marquez Valdes-Scantling,0,1
+2025,Marquez Valdes-Scantling,0,0
 2025,Noah Brown,0,0
 2025,Jarquez Hunter,0,1
 2025,Keaton Mitchell,0,0
@@ -1417,40 +1417,40 @@ Year,Name,Value,Rookie
 2025,Tyler Conklin,0,0
 2025,Mason Taylor,0,1
 2025,Demarcus Robinson,0,0
-2025,Jalen Coker,0,1
-2025,Dyami Brown,0,1
+2025,Jalen Coker,0,0
+2025,Dyami Brown,0,0
 2025,Emari Demercado,0,0
 2025,Audric Estime,0,0
 2025,Aaron Rodgers,0,0
 2025,Josh Reynolds,0,0
-2025,Jordan Whittington,0,1
+2025,Jordan Whittington,0,0
 2025,Greg Dortch,0,0
 2025,KaVontae Turpin,0,0
 2025,Kenneth Gainwell,0,0
 2025,Anthony Richardson,8,0
-2025,Foster Moreau,0,1
+2025,Foster Moreau,0,0
 2025,Ja'Tavion Sanders,0,0
-2025,Will Dissly,0,1
+2025,Will Dissly,0,0
 2025,Curtis Samuel,0,0
 2025,Dontayvion Wicks,0,0
 2025,Kyle Juszczyk,0,0
 2025,Khalil Herbert,0,0
 2025,Clyde Edwards-Helaire,0,0
 2025,Cordarrelle Patterson,0,0
-2025,Sincere McCormick,0,1
+2025,Sincere McCormick,0,0
 2025,Dameon Pierce,0,0
 2025,DJ Giddens,0,1
-2025,Sean Tucker,0,1
+2025,Sean Tucker,0,0
 2025,Isaiah Davis,0,0
 2025,Tyler Goodson,0,1
-2025,Devaughn Vele,0,1
+2025,Devaughn Vele,0,0
 2025,Van Jefferson,0,0
-2025,A.J. Dillon,0,1
-2025,Kye Robichaux,0,1
-2025,Jeremy McNichols,0,1
-2025,Amar Johnson,0,1
-2025,Emanuel Wilson,0,1
-2025,Noah Gray,0,1
+2025,A.J. Dillon,0,0
+2025,Kye Robichaux,0,0
+2025,Jeremy McNichols,0,0
+2025,Amar Johnson,0,0
+2025,Emanuel Wilson,0,0
+2025,Noah Gray,0,0
 2025,Michael Mayer,0,0
 2025,Tim Patrick,0,0
 2025,Rondale Moore,0,0
@@ -1458,7 +1458,7 @@ Year,Name,Value,Rookie
 2025,Cole Kmet,0,0
 2025,Luke McCaffrey,0,0
 2025,Malachi Corley,3,0
-2025,Chimere Dike,0,1
-2025,Austin Hooper,0,1
-2025,Russell Wilson,0,0
+2025,Chimere Dike,0,0
+2025,Austin Hooper,0,0
+2025,Russell Wilson,0,1
 2025,Tyler Shough,0,1
