@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
 
   let years = [];
-  let selectedYear = "2024";
+  let selectedYear = "2025";
   let data = [];
 
   // For team comparison
