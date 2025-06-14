@@ -63,6 +63,7 @@ Generate a custom league page for your Sleeper fantasy football league in just a
 ### Setup your own League Page
 *If you've never touched a line of code, use the [Training Wheels Guide](./TRAINING_WHEELS.md) instead*
 - Fork this repo
+- Recalculate player values (paying attention to current/new year rookies), make sure to update year in the team values, cap, and calculator. Update league ID in team value sheet to pull right rosters.
 - Go to `/src/lib/utils/leagueInfo.js` and replace `your_league_id` (line 2) and `your_league_name` (line 3) with your Sleeper league ID and league name. (Optionally, also fill out the dues, and dynasty fields):
 ![league ID instructions](https://storage.googleapis.com/nfl-player-data/league_id_instructions.png)
 - Write your homepage text (league intro/bio) `/src/lib/utils/leagueInfo.js` (lines 9-14)
