@@ -57,7 +57,7 @@
       const playerValues = Papa.parse(playerValuesText, { header: true }).data;
       const playerValueMap = new Map();
                            playerValues.forEach(entry => {
-                           if (entry.Year === '2024') {
+                           if (entry.Year === '2025') {
                           playerValueMap.set(entry.Name, parseFloat(entry.Value) || 0);
                           }
                           });
