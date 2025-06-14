@@ -1130,7 +1130,7 @@ Year,Name,Value,Rookie
 2025,Justin Jefferson,131,0
 2025,CeeDee Lamb,128,0
 2025,Saquon Barkley,126,0
-2025,Puka Nacua,124,0
+2025,Puka Nacua,62,0
 2025,Bijan Robinson,122,0
 2025,Malik Nabers,66,0
 2025,Jahmyr Gibbs,120,0
