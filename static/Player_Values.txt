@@ -1460,5 +1460,5 @@ Year,Name,Value,Rookie
 2025,Malachi Corley,3,0
 2025,Chimere Dike,0,0
 2025,Austin Hooper,0,0
-2025,Russell Wilson,0,1
+2025,Russell Wilson,0,0
 2025,Tyler Shough,0,1
