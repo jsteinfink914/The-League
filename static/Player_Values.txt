@@ -1131,14 +1131,14 @@ Year,Name,Value,Rookie
 2025,CeeDee Lamb,128,0
 2025,Saquon Barkley,126,0
 2025,Puka Nacua,62,0
-2025,Bijan Robinson,122,0
+2025,Bijan Robinson,126,0
 2025,Malik Nabers,66,0
-2025,Jahmyr Gibbs,120,0
+2025,Jahmyr Gibbs,95,0
 2025,Derrick Henry,114,0
 2025,Amon-Ra St. Brown,112,0
 2025,Brian Thomas Jr.,31,0
 2025,Josh Jacobs,105,0
-2025,De'Von Achane,105,0
+2025,De'Von Achane,58.5,0
 2025,Nico Collins,105,0
 2025,Davante Adams,104,0
 2025,Tee Higgins,98,0
@@ -1158,30 +1158,30 @@ Year,Name,Value,Rookie
 2025,Terry McLaurin,85,0
 2025,Xavier Worthy,35,0
 2025,Breece Hall,81,0
-2025,Rashee Rice,81,0
+2025,Rashee Rice,41,0
 2025,Alvin Kamara,80,0
 2025,DJ Moore,79,0
 2025,Jalen Hurts,78,0
 2025,Jayden Daniels,23,0
 2025,Kenneth Walker III,78,0
-2025,Jaxon Smith-Njigba,78,0
+2025,Jaxon Smith-Njigba,54.5,0
 2025,DK Metcalf,77,0
 2025,James Conner,76,0
 2025,Joe Mixon,76,0
-2025,Chase Brown,72,0
+2025,Chase Brown,37.5,0
 2025,Marvin Harrison Jr.,85,0
 2025,Chuba Hubbard,65,0
 2025,D'Andre Swift,65,0
-2025,Zay Flowers,65,0
+2025,Zay Flowers,45,0
 2025,Joe Burrow,64,0
-2025,Aaron Jones Sr.,64,1
+2025,Aaron Jones Sr.,0,0
 2025,Garrett Wilson,64,0
 2025,David Montgomery,63,0
 2025,Courtland Sutton,63,0
 2025,DeVonta Smith,62,0
 2025,Brock Bowers,27,0
 2025,Calvin Ridley,61,0
-2025,Jordan Addison,60,0
+2025,Jordan Addison,48.5,0
 2025,George Pickens,59,0
 2025,George Kittle,59,0
 2025,Trey McBride,56,0
@@ -1206,7 +1206,7 @@ Year,Name,Value,Rookie
 2025,Brock Purdy,39,0
 2025,Quinshon Judkins,39,1
 2025,Kaleb Johnson,39,1
-2025,Jayden Reed,39,0
+2025,Jayden Reed,24,0
 2025,Keon Coleman,23,0
 2025,Tetairoa McMillan,38,1
 2025,Khalil Shakir,36,0
@@ -1214,7 +1214,7 @@ Year,Name,Value,Rookie
 2025,Darnell Mooney,36,0
 2025,Bo Nix,0,0
 2025,Chris Olave,34,0
-2025,Sam LaPorta,34,0
+2025,Sam LaPorta,19,0
 2025,Javonte Williams,32,0
 2025,Rhamondre Stevenson,32,0
 2025,Ricky Pearsall,2,0
@@ -1232,8 +1232,8 @@ Year,Name,Value,Rookie
 2025,Dak Prescott,27,0
 2025,Michael Pittman Jr.,27,0
 2025,David Njoku,27,0
-2025,Zach Charbonnet,23,0
-2025,Quentin Johnston,23,0
+2025,Zach Charbonnet,20,0
+2025,Quentin Johnston,20.5,0
 2025,Wan'Dale Robinson,23,0
 2025,Adam Thielen,23,0
 2025,T.J. Hockenson,23,0
@@ -1241,10 +1241,10 @@ Year,Name,Value,Rookie
 2025,Rachaad White,21,0
 2025,Najee Harris,21,0
 2025,Christian Kirk,21,0
-2025,Josh Downs,21,0
-2025,Marvin Mims Jr.,19,0
+2025,Josh Downs,10.5,0
+2025,Marvin Mims Jr.,9.5,0
 2025,Xavier Legette,6,0
-2025,Tyjae Spears,18,0
+2025,Tyjae Spears,11,0
 2025,Caleb Williams,21,0
 2025,Travis Etienne Jr.,17,0
 2025,Marquise Brown,17,1
@@ -1254,20 +1254,20 @@ Year,Name,Value,Rookie
 2025,Emeka Egbuka,16,1
 2025,Jack Bech,16,1
 2025,Romeo Doubs,16,0
-2025,Cedric Tillman,16,0
-2025,Roschon Johnson,15,0
+2025,Cedric Tillman,8,0
+2025,Roschon Johnson,10.5,0
 2025,Jordan Mason,15,1
 2025,Tre Harris,15,1
 2025,Pat Freiermuth,15,0
 2025,Dallas Goedert,15,0
-2025,Tank Bigsby,14,0
+2025,Tank Bigsby,11,0
 2025,Isaac Guerendo,0,0
-2025,Kendre Miller,14,0
+2025,Kendre Miller,7.5,0
 2025,Zack Moss,12,0
 2025,Trevor Lawrence,11,0
 2025,Jaleel McLaughlin,11,0
 2025,MarShawn Lloyd,8,0
-2025,Michael Wilson,11,0
+2025,Michael Wilson,5.5,0
 2025,Tucker Kraft,11,0
 2025,Jordan Love,10,0
 2025,J.J. McCarthy,0,0
@@ -1279,7 +1279,7 @@ Year,Name,Value,Rookie
 2025,Calvin Austin III,10,1
 2025,Evan Engram,10,0
 2025,Tua Tagovailoa,9,0
-2025,C.J. Stroud,9,0
+2025,C.J. Stroud,4.5,0
 2025,Bhayshul Tuten,9,1
 2025,DeMario Douglas,9,0
 2025,Nick Westbrook-Ikhine,9,1
@@ -1296,7 +1296,7 @@ Year,Name,Value,Rookie
 2025,Hunter Henry,7,0
 2025,Jerome Ford,6,0
 2025,Tyler Warren,6,1
-2025,Dalton Kincaid,6,0
+2025,Dalton Kincaid,6.5,0
 2025,Raheem Mostert,5,0
 2025,Jaylen Wright,1,0
 2025,Ty Johnson,5,0
@@ -1317,7 +1317,7 @@ Year,Name,Value,Rookie
 2025,Alec Pierce,3,0
 2025,Kyle Pitts,3,0
 2025,Colston Loveland,3,1
-2025,Brenton Strange,3,1
+2025,Brenton Strange,1.5,1
 2025,Philadelphia Eagles,3,0
 2025,Michael Penix Jr.,2,1
 2025,Miles Sanders,2,0
@@ -1334,7 +1334,7 @@ Year,Name,Value,Rookie
 2025,Pittsburgh Steelers,2,0
 2025,Baltimore Ravens,2,0
 2025,Detroit Lions,2,0
-2025,Bryce Young,1,0
+2025,Bryce Young,2.5,0
 2025,Trevor Etienne,1,1
 2025,Andrei Iosivas,1,1
 2025,Allen Lazard,1,1
@@ -1427,7 +1427,7 @@ Year,Name,Value,Rookie
 2025,Greg Dortch,0,0
 2025,KaVontae Turpin,0,0
 2025,Kenneth Gainwell,0,0
-2025,Anthony Richardson Sr.,0,1
+2025,Anthony Richardson,8,0
 2025,Foster Moreau,0,1
 2025,Ja'Tavion Sanders,0,0
 2025,Will Dissly,0,1
