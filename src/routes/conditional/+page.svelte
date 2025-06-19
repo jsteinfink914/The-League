@@ -29,7 +29,13 @@
             parties: "Steiny and Coyne",
             picks: ["Steiny's 28,29,30, and 31 3rd round picks."],
             conditions: "Steiny owes Coyne his 3rd round pick until 2031 upon them becoming available. Deal for Goedert."
-        }
+        },
+{
+date: "6/18/25",
+            parties: "Z and Coyne",
+            picks: ["Z's '28 2nd round pick."],
+            conditions: "Z owes Coyne his '28 2. Deal for Olave."
+}
 
         // Add more trade objects as needed
 
