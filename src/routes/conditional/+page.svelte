@@ -35,7 +35,13 @@ date: "6/18/25",
             parties: "Z and Coyne",
             picks: ["Z's '28 2nd round pick."],
             conditions: "Z owes Coyne his '28 2. Deal for Olave."
-}
+},
+{
+            date: "7/1/25",
+            parties: "Sween and Coyne",
+            picks: ["Sween, Will, Abul, Coyne 2027 1st round picks."],
+            conditions: "Holder of Sween's 27 1 is entitled to the third best pick of his, will, abul, and coyne's 27 1's after all have been finalized."
+        }
 
         // Add more trade objects as needed
 
