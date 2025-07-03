@@ -40,8 +40,14 @@ date: "6/18/25",
             date: "7/1/25",
             parties: "Sween and Coyne",
             picks: ["Sween, Will, Abul, Coyne 2027 1st round picks."],
-            conditions: "Holder of Sween's 27 1 is entitled to the third best pick of his, will, abul, and coyne's 27 1's after all have been finalized."
-        }
+            conditions: "Holder of Sween's 27 1 is entitled to the third best pick of Sween, Will, Abul, and Coyne's 27 1's after all have been finalized. Trade for Waddle."
+        },
+{
+            date: "7/3/25",
+            parties: "Ska and Coyne",
+            picks: ["Coop, Will, Jeff, Abul, Mcsherry 2026 3rd round picks."],
+            conditions: "Holder of Coop's 26 3 is entitled to the best pick of Coop, Will, Jeff, Abul, Mcsherry 2026 3rds after all have been finalized. Trade for Chi Watson."
+}
 
         // Add more trade objects as needed
 
