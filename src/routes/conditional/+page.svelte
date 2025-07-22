@@ -27,7 +27,7 @@
     {
             date: "5/10/25",
             parties: "Steiny and Coyne",
-            picks: ["Steiny's 28,29,30, and 31 3rd round picks."],
+            picks: ["Steiny's 28 1 and 28,29,30, and 31 3rd round picks."],
             conditions: "Steiny owes Coyne his 3rd round pick until 2031 upon them becoming available. Deal for Goedert."
         },
 {
