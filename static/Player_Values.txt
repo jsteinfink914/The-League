@@ -1264,7 +1264,7 @@ Year,Name,Value,Rookie
 2025,Jared Goff,13,0
 2025,Tyler Lockett,13,0
 2025,Jake Ferguson,13,0
-2025,Luther Burden III,12,1
+2025,Luther Burden,12,1
 2025,Joshua Palmer,12,0
 2025,Brandon Aiyuk,12,0
 2025,Kyle Pitts,12,0
