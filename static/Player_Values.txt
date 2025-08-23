@@ -1284,14 +1284,14 @@ Year,Name,Value,Rookie
 2025,Tyler Allgeier,8,0
 2025,Ray Davis,6,0
 2025,Tre' Harris,8,1
-2025,Calvin Austin III,8,0
+2025,Calvin Austin,8,0
 2025,Braelon Allen,5,0
 2025,Hunter Henry,7,0
 2025,Rico Dowdle,6,0
 2025,Bhayshul Tuten,6,1
 2025,Roschon Johnson,6,0
 2025,Alec Pierce,6,0
-2025,Ray-Ray McCloud III,6,0
+2025,Ray-Ray McCloud,6,0
 2025,Colston Loveland,6,1
 2025,Brian Robinson Jr.,5,0
 2025,Kareem Hunt,5,0
@@ -1464,3 +1464,4 @@ Year,Name,Value,Rookie
 2025,Russell Wilson,0,0
 2025,Tyler Shough,0,0
 2025,Joe Flacco,0,0
+2025,Jonathon Brooks,25,0
