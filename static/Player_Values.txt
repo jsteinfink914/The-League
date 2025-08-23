@@ -1185,7 +1185,7 @@ Year,Name,Value,Rookie
 2025,Jakobi Meyers,58,0
 2025,David Montgomery,57,0
 2025,Tetairoa McMillan,56,1
-2025,Aaron Jones Sr.,55,1
+2025,Aaron Jones,55,0
 2025,Tony Pollard,55,0
 2025,Jaylen Waddle,54,0
 2025,Deebo Samuel Sr.,54,0
