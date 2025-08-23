@@ -1267,7 +1267,7 @@ Year,Name,Value,Rookie
 2025,Luther Burden III,12,1
 2025,Joshua Palmer,12,0
 2025,Brandon Aiyuk,12,0
-2025,Kyle Pitts Sr.,12,1
+2025,Kyle Pitts,12,1
 2025,Dallas Goedert,11,0
 2025,C.J. Stroud,5,0
 2025,Trey Benson,12,0
