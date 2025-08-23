@@ -1195,7 +1195,7 @@ Year,Name,Value,Rookie
 2025,Matthew Golden,47,1
 2025,Stefon Diggs,47,0
 2025,Travis Hunter,46,1
-2025,Jauan Jennings,45,1
+2025,Jauan Jennings,45,0
 2025,Rashee Rice,22.5,0
 2025,Rome Odunze,34,0
 2025,Patrick Mahomes II,43,0
