@@ -1212,7 +1212,7 @@ Year,Name,Value,Rookie
 2025,Jordan Addison,37.5,0
 2025,Khalil Shakir,38,0
 2025,Jayden Reed,23.5,0
-2025,Chris Godwin Jr.,38,1
+2025,Chris Godwin,38,0
 2025,Travis Kelce,38,0
 2025,Jaylen Warren,37,0
 2025,Keon Coleman,23,0
@@ -1233,10 +1233,10 @@ Year,Name,Value,Rookie
 2025,Rashod Bateman,26,0
 2025,J.K. Dobbins,25,0
 2025,Javonte Williams,24,0
-2025,Marquise Brown,24,1
+2025,Hollywood Brown,24,0
 2025,Adam Thielen,24,0
 2025,Rhamondre Stevenson,23,0
-2025,Jordan Mason,23,1
+2025,Jordan Mason,23,0
 2025,Zach Charbonnet,20,0
 2025,Cedric Tillman,11.5,0
 2025,Keenan Allen,23,0
