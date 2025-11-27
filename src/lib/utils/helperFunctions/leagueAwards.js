@@ -5,10 +5,15 @@ import { get } from 'svelte/store';
 import { awards } from '$lib/stores';
 
 export const getAwards = async () => {
-	if(get(awards).length) {
-		return get(awards);
+	const storeValue = get(awards);
+	if(storeValue && storeValue.length) {
+		return storeValue;
 	}
-	const leagueData = await getLeagueData().catch((err) => { console.error(err); });
+	const leagueData = await getLeagueData();
+
+	if (!leagueData) {
+		throw new Error('Failed to fetch league data for awards');
+	}
 
 	let previousSeasonID = leagueData.status == "complete" ? leagueData.league_id : leagueData.previous_league_id;
 

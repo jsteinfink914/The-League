@@ -20,12 +20,16 @@ export const getLeagueTeamManagers = async () => {
             fetch(`https://api.sleeper.app/v1/league/${currentLeagueID}/users`, {compress: true}),
 			getLeagueData(currentLeagueID),
             fetch(`https://api.sleeper.app/v1/league/${currentLeagueID}/rosters`, {compress: true}),
-        ).catch((err) => { console.error(err); });
+        );
+
+		if (!usersRaw || !usersRaw.ok || !leagueData || !rostersRaw || !rostersRaw.ok) {
+			throw new Error('Failed to fetch league team managers data');
+		}
 
         const [users, rosters] = await waitForAll(
             usersRaw.json(), 
             rostersRaw.json(), 
-        ).catch((err) => { console.error(err); });
+        );
 
         const year = parseInt(leagueData.season);
         currentLeagueID = leagueData.previous_league_id;
