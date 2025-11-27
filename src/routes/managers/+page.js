@@ -5,7 +5,7 @@ import {
 
 export async function load() {
     if(!managers.length) return {managers};
-    const leagueTeamManagersData = getLeagueTeamManagers();
+    const leagueTeamManagersData = await getLeagueTeamManagers();
 
     const props = {
         managers,

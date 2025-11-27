@@ -5,10 +5,10 @@ export async function load({ url, fetch }) {
     const query = url?.searchParams?.get('query');
     const curPage = url?.searchParams?.get('page');
 
-    const transactionsData = getLeagueTransactions(false);
-    const leagueTeamManagersData = getLeagueTeamManagers();
+    const transactionsData = await getLeagueTransactions(false);
+    const leagueTeamManagersData = await getLeagueTeamManagers();
 
-    const playersData = loadPlayers(fetch);
+    const playersData = await loadPlayers(fetch);
 
     const bannedValued = [
         'undefined',

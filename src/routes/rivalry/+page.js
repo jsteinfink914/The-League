@@ -6,10 +6,10 @@ export async function load({url, fetch}) {
     const playerTwo = url?.searchParams?.get('player_two');
 
     return {
-        leagueTeamManagerData: getLeagueTeamManagers(),
-        playersData: loadPlayers(fetch),
-        transactionsData: getLeagueTransactions(),
-        recordsData: getLeagueRecords(),
+        leagueTeamManagerData: await getLeagueTeamManagers(),
+        playersData: await loadPlayers(fetch),
+        transactionsData: await getLeagueTransactions(),
+        recordsData: await getLeagueRecords(),
         playerOne,
         playerTwo,
     };

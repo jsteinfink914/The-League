@@ -1,13 +1,13 @@
 
 import { enableBlog, getBlogPosts, getLeagueTeamManagers } from '$lib/utils/helper';
 
-export function load({ url, fetch }) {
+export async function load({ url, fetch }) {
     if(!enableBlog) return false;
 
     const queryPage = url?.searchParams?.get('page') || 1;
     const filterKey = url?.searchParams?.get('filter') || '';
-    const postsData = getBlogPosts(fetch);
-    const leagueTeamManagersData = getLeagueTeamManagers();
+    const postsData = await getBlogPosts(fetch);
+    const leagueTeamManagersData = await getLeagueTeamManagers();
 
     return {
         queryPage,

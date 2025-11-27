@@ -1,14 +1,12 @@
 <script>
 	import LinearProgress from '@smui/linear-progress';
-	import { getNflState, leagueName, getAwards, getLeagueTeamManagers, homepageText, managers, gotoManager, enableBlog, waitForAll } from '$lib/utils/helper';
+	import { leagueName, homepageText, managers, gotoManager, enableBlog } from '$lib/utils/helper';
 	import { Transactions, PowerRankings, HomePost} from '$lib/components';
 	import { getAvatarFromTeamManagers, getTeamFromTeamManagers } from '$lib/utils/helperFunctions/universalFunctions';
     import Papa from 'papaparse';
     import { onMount } from 'svelte';
 
-    const nflState = getNflState();
-    const podiumsData = getAwards();
-    const leagueTeamManagersData = getLeagueTeamManagers();
+    export let data;
 
 </script>
 
@@ -169,42 +167,38 @@
     
     <div class="leagueData">
         <div class="homeBanner">
-            {#await nflState}
-                <div class="center">Retrieving NFL state...</div>
-                <LinearProgress indeterminate />
-            {:then nflStateData}
-                <div class="center">NFL {nflStateData.season} 
-                    {#if nflStateData.season_type == 'pre'}
+            {#if data.nflState}
+                <div class="center">NFL {data.nflState.season} 
+                    {#if data.nflState.season_type == 'pre'}
                         Preseason
-                    {:else if nflStateData.season_type == 'post'}
+                    {:else if data.nflState.season_type == 'post'}
                         Postseason
                     {:else}
-                        Season - {nflStateData.week > 0 ? `Week ${nflStateData.week}` : "Preseason"}
+                        Season - {data.nflState.week > 0 ? `Week ${data.nflState.week}` : "Preseason"}
                     {/if}
                 </div>
-            {:catch error}
-                <div class="center">Something went wrong: {error.message}</div>
-            {/await}
+            {:else}
+                <div class="center">Retrieving NFL state...</div>
+                <LinearProgress indeterminate />
+            {/if}
         </div>
 
         <div id="currentChamp">
-            {#await waitForAll(podiumsData, leagueTeamManagersData)}
-                <p class="center">Retrieving awards...</p>
-                <LinearProgress indeterminate />
-            {:then [podiums, leagueTeamManagers]}
-                {#if podiums[0]}
-                    <h4>{podiums[0].year} Fantasy Champ</h4>
-                    <div id="champ" on:click={() => {if(managers.length) gotoManager({year: podiums[0].year, leagueTeamManagers, rosterID: parseInt(podiums[0].champion)})}} >
-                        <img src="{getAvatarFromTeamManagers(leagueTeamManagers, podiums[0].champion, podiums[0].year)}" class="first" alt="champion" />
+            {#if data.podiumsData && data.leagueTeamManagersData}
+                {#if data.podiumsData[0]}
+                    <h4>{data.podiumsData[0].year} Fantasy Champ</h4>
+                    <div id="champ" on:click={() => {if(managers.length) gotoManager({year: data.podiumsData[0].year, leagueTeamManagers: data.leagueTeamManagersData, rosterID: parseInt(data.podiumsData[0].champion)})}} >
+                        <img src="{getAvatarFromTeamManagers(data.leagueTeamManagersData, data.podiumsData[0].champion, data.podiumsData[0].year)}" class="first" alt="champion" />
                         <img src="/laurel.png" class="laurel" alt="laurel" />
                     </div>
-                    <span class="label" on:click={() => gotoManager({year: podiums[0].year, leagueTeamManagers, rosterID: parseInt(podiums[0].champion)})} >{getTeamFromTeamManagers(leagueTeamManagers, podiums[0].champion, podiums[0].year).name}</span>
+                    <span class="label" on:click={() => gotoManager({year: data.podiumsData[0].year, leagueTeamManagers: data.leagueTeamManagersData, rosterID: parseInt(data.podiumsData[0].champion)})} >{getTeamFromTeamManagers(data.leagueTeamManagersData, data.podiumsData[0].champion, data.podiumsData[0].year).name}</span>
                 {:else}
                     <p class="center">No former champs.</p>
                 {/if}
-            {:catch error}
-                <p class="center">Something went wrong: {error.message}</p>
-            {/await}
+            {:else}
+                <p class="center">Retrieving awards...</p>
+                <LinearProgress indeterminate />
+            {/if}
         </div>
 
         <div class="transactions" >

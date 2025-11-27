@@ -4,9 +4,9 @@ export async function load({ url, fetch }) {
     const queryWeek = url?.searchParams?.get('week');
     return {
         queryWeek: isNaN(queryWeek) ? null : queryWeek,
-        matchupsData: getLeagueMatchups(),
-        bracketsData: getBrackets(),
-        leagueTeamManagersData: getLeagueTeamManagers(),
-        playersData: loadPlayers(fetch),
+        matchupsData: await getLeagueMatchups(),
+        bracketsData: await getBrackets(),
+        leagueTeamManagersData: await getLeagueTeamManagers(),
+        playersData: await loadPlayers(fetch),
     };
 }
