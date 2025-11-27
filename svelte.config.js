@@ -1,6 +1,6 @@
 import vercel from '@sveltejs/adapter-vercel';
 import node from '@sveltejs/adapter-node';
-import { vitePreprocess } from '@sveltejs/kit/vite';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 const dockerBuild = process.env.DOCKER_BUILD;
 
