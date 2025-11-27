@@ -51,7 +51,7 @@ date: "6/18/25",
 {
             date: "11/21/25",
             parties: "Sween and Mc",
-            picks: ["Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks"]
+            picks: ["Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks"],
             conditions: "Of Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks, the following will be distributed:
 - Sween gets 1st
 - Christian gets 2nd
@@ -62,7 +62,7 @@ Trade for Saquon."
 {
             date: "11/25/25",
             parties: "Chi and Mc",
-            picks: ["Mcsherry 2029 2nd round pick."]
+            picks: ["Mcsherry 2029 2nd round pick."],
             conditions: "Chi gets Mc's 29 2. Trade for Javonte! and Lamar"
 }
 
