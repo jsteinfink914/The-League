@@ -52,12 +52,13 @@ date: "6/18/25",
             date: "11/21/25",
             parties: "Sween and Mc",
             picks: ["Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks"],
-            conditions: "Of Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks, the following will be distributed:
-- Sween gets 1st
-- Christian gets 2nd
-- Coyne gets 3rd
-- Christian gets 4th
-Trade for Saquon."
+            conditions: "Of Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks, the following will be distributed: Sween gets 1st, Christian gets 2nd, Coyne gets 3rd, Christian gets 4th. Trade for Saquon."
+},
+{
+            date: "11/23/25",
+            parties: "Sween and Coyne",
+            picks: ["McSween’s 2029 2"],
+            conditions: "Coyne gets Sween 2029 2. Trade for Njoku but Bijan was involved."
 },
 {
             date: "11/25/25",
