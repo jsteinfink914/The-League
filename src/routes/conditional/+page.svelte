@@ -47,6 +47,23 @@ date: "6/18/25",
             parties: "Ska and Coyne",
             picks: ["Coop, Will, Jeff, Abul, Mcsherry 2026 3rd round picks."],
             conditions: "Holder of Coop's 26 3 is entitled to the best pick of Coop, Will, Jeff, Abul, Mcsherry 2026 3rds after all have been finalized. Trade for Chi Watson."
+},
+{
+            date: "11/21/25",
+            parties: "Sween and Mc",
+            picks: ["Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks"]
+            conditions: "Of Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks, the following will be distributed:
+- Sween gets 1st
+- Christian gets 2nd
+- Coyne gets 3rd
+- Christian gets 4th
+Trade for Saquon."
+},
+{
+            date: "11/25/25",
+            parties: "Chi and Mc",
+            picks: ["Mcsherry 2029 2nd round pick."]
+            conditions: "Chi gets Mc's 29 2. Trade for Javonte! and Lamar"
 }
 
         // Add more trade objects as needed
