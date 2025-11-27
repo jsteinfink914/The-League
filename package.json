@@ -26,6 +26,7 @@
     "email": "n.melhado@gmail.com"
   },
   "license": "MIT",
+  "type": "module",
   "engines": {
     "node": "24.x",
     "npm": ">=8.0.0"
