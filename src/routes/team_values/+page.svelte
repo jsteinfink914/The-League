@@ -13,7 +13,7 @@
   const fetchData = async () => {
     try {
       // Fetch rosters
-      const rosterResponse = await fetch('https://api.sleeper.app/v1/league/1192332341500989440/rosters');
+      const rosterResponse = await fetch('https://api.sleeper.app/v1/league/1312126305021485056/rosters');
       const rosters = await rosterResponse.json();
 
       // Fetch players
@@ -57,7 +57,7 @@
       const playerValues = Papa.parse(playerValuesText, { header: true }).data;
       const playerValueMap = new Map();
                            playerValues.forEach(entry => {
-                           if (entry.Year === '2025') {
+                           if (entry.Year === '2026') {
                           playerValueMap.set(entry.Name, parseFloat(entry.Value) || 0);
                           }
                           });
