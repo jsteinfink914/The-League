@@ -49,6 +49,12 @@ date: "6/18/25",
             conditions: "Holder of Coop's 26 3 is entitled to the best pick of Coop, Will, Jeff, Abul, Mcsherry 2026 3rds after all have been finalized. Trade for Chi Watson."
 },
 {
+            date: "11/20/25",
+            parties: "Will and Chi",
+            picks: ["Will's 2029 3rd"],
+            conditions: "Chi gets Will's 2029 3rd. Trade for Najee."
+},
+{
             date: "11/21/25",
             parties: "Sween and Mc",
             picks: ["Coyne, Will’s, Alex’s, and McSween’s 2027 1 picks"],
