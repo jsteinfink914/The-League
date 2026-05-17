@@ -75,6 +75,60 @@ export function resolvePlayerValue(sleeperName, indexes) {
   return { fantasyProsName: mappedName, value: 0, matchType: 'none' };
 }
 
+/**
+ * Index league-entry rookie contracts (Rookie === 1) by normalized name so
+ * year-to-year Fantasy Pros renames (e.g. Luther Burden → Luther Burden III) stay linked.
+ *
+ * @param {{ Year: number, Name: string, Value: number, Rookie: number }[]} historyRows
+ */
+export function buildRookieContracts(historyRows) {
+  const byNormalized = new Map();
+  const ambiguousNormalized = new Set();
+
+  for (const row of historyRows) {
+    if (row.Rookie !== 1) continue;
+
+    const norm = normalizeName(row.Name);
+    const existing = byNormalized.get(norm);
+
+    if (!existing) {
+      byNormalized.set(norm, {
+        RookieYear: row.Year,
+        RookieValue: row.Value,
+        rookieName: row.Name
+      });
+      continue;
+    }
+
+    if (existing.rookieName !== row.Name) {
+      ambiguousNormalized.add(norm);
+    }
+
+    if (row.Year < existing.RookieYear) {
+      byNormalized.set(norm, {
+        RookieYear: row.Year,
+        RookieValue: row.Value,
+        rookieName: row.Name
+      });
+    }
+  }
+
+  return { byNormalized, ambiguousNormalized };
+}
+
+/**
+ * @param {string} fantasyProsName
+ * @param {ReturnType<typeof buildRookieContracts>} contracts
+ */
+export function findRookieContract(fantasyProsName, contracts) {
+  if (!fantasyProsName) return null;
+
+  const norm = normalizeName(fantasyProsName);
+  if (contracts.ambiguousNormalized.has(norm)) return null;
+
+  return contracts.byNormalized.get(norm) ?? null;
+}
+
 export function suggestName(name, rows) {
   const normalizedName = normalizeName(name);
   let best = null;

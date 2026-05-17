@@ -57,4 +57,6 @@ Review `data/player-values/review/unmatched-roster-YYYY.csv` and add any needed 
 - Year 4 and later: FantasyPros market value
 - Everyone without a historical rookie row: FantasyPros market value
 
+Rookie contracts are matched by **normalized name** (suffixes like Jr./III/Sr. are ignored), so a 2025 rookie row for `Luther Burden` still applies to `Luther Burden III` in later years. Add explicit rows to `static/fp_sleeper_mapping.txt` when Sleeper and Fantasy Pros names differ in ways normalization cannot handle.
+
 The rookie value defaults to the FantasyPros market value in the review file, but you can edit `RookieValue` before generation if your league sets it differently.

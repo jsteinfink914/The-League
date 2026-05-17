@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url';
 import Papa from 'papaparse';
 import { leagueID } from '../src/lib/utils/leagueInfo.js';
 import {
+  buildRookieContracts,
   buildValueIndexes,
+  findRookieContract,
   normalizeName,
   resolvePlayerValue,
   suggestName
@@ -295,7 +297,7 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
   const history = readPlayerValues(valuesPath);
   const rookieRows = readRookieReview(rookiesPath);
   const currentRookies = new Map(rookieRows.map((row) => [row.Fantasy_Pros, row.RookieValue]));
-  const rookieContracts = getRookieContracts(history);
+  const rookieContracts = buildRookieContracts(history);
   const existingOtherYears = history.filter((row) => row.Year !== year);
 
   const generatedRows = [];
@@ -313,7 +315,7 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
       continue;
     }
 
-    const contract = rookieContracts.get(marketRow.Name);
+    const contract = findRookieContract(marketRow.Name, rookieContracts);
     if (!contract) {
       generatedRows.push({
         Year: year,
@@ -357,19 +359,6 @@ function calculateContractValue(contractYear, rookieValue, marketValue) {
   if (contractYear <= 2) return rookieValue;
   if (contractYear === 3) return Math.round((rookieValue + marketValue) / 2);
   return marketValue;
-}
-
-function getRookieContracts(rows) {
-  const contracts = new Map();
-  for (const row of rows) {
-    if (row.Rookie === 1 && !contracts.has(row.Name)) {
-      contracts.set(row.Name, {
-        RookieYear: row.Year,
-        RookieValue: row.Value
-      });
-    }
-  }
-  return contracts;
 }
 
 function readFantasyProsValues(filePath) {

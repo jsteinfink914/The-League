@@ -1517,7 +1517,6 @@ Year,Name,Value,Rookie
 2026,Rome Odunze,54,0
 2026,TreVeyon Henderson,53,0
 2026,DK Metcalf,51,0
-2026,Luther Burden III,51,0
 2026,Christian Watson,47,0
 2026,Matthew Golden,47,0
 2026,Ladd McConkey,46,0
@@ -1610,6 +1609,7 @@ Year,Name,Value,Rookie
 2026,Alvin Kamara,13,0
 2026,Kayshon Boutte,13,0
 2026,Keon Coleman,12,0
+2026,Luther Burden III,12,0
 2026,Isaiah Likely,11,0
 2026,Omar Cooper Jr.,11,1
 2026,C.J. Stroud,10,0
