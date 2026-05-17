@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import { leagueID } from '$lib/utils/leagueInfo';
+  import { buildValueIndexes, resolvePlayerValue } from '$lib/utils/playerNameLookup';
   Chart.register(...registerables);
 
   const valueYear = '2026';
@@ -55,29 +56,34 @@
         }
       }
 
-      // Map player names using the fp_sleeper_mapping.txt
-      const playerMap = new Map(playerMappings.map(entry => [entry.Sleeper, entry.Fantasy_Pros]));
+      const sleeperToFantasyPros = new Map(
+        playerMappings
+          .filter((entry) => entry.Sleeper && entry.Fantasy_Pros)
+          .map((entry) => [entry.Sleeper, entry.Fantasy_Pros])
+      );
 
-      // Fetch player values
       const playerValuesResponse = await fetch('/Player_Values.txt');
       const playerValuesText = await playerValuesResponse.text();
       const playerValues = Papa.parse(playerValuesText, { header: true }).data;
-      const playerValueMap = new Map();
-                           playerValues.forEach(entry => {
-                           if (entry.Year === valueYear) {
-                          playerValueMap.set(entry.Name, parseFloat(entry.Value) || 0);
-                          }
-                          });
-     // const playerValueMap = new Map(playerValues.map(entry => [entry.Name, entry.Value]));
+      const yearRows = playerValues
+        .filter((entry) => entry.Year === valueYear)
+        .map((entry) => ({
+          Name: entry.Name,
+          Value: parseFloat(entry.Value) || 0
+        }));
+      const valueIndexes = {
+        ...buildValueIndexes(yearRows),
+        sleeperToFantasyPros
+      };
 
-      // Map player names to values
       const rostersWithValues = {};
       for (const [index, roster] of Object.entries(rostersByTeam)) {
-        rostersWithValues[index] = roster.map(playerName => {
-          const mappedName = playerMap.get(playerName) || playerName;
-          const value = playerValueMap.get(mappedName) || 0;
-          return { name: playerName, value: parseFloat(value) };
-        }).sort((a, b) => b.value - a.value); 
+        rostersWithValues[index] = roster
+          .map((playerName) => {
+            const resolved = resolvePlayerValue(playerName, valueIndexes);
+            return { name: playerName, value: resolved.value };
+          })
+          .sort((a, b) => b.value - a.value);
       }
 
       // Map manager names

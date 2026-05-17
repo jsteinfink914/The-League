@@ -33,6 +33,20 @@ If you skip both `--fetch-sleeper` and `--sleeper`, the script will create an em
 npm run values:generate -- --year YYYY --fantasypros data/player-values/raw/fantasypros-YYYY.csv
 ```
 
+9. Audit league rosters for name mismatches (run after generate, before relying on team values):
+
+```bash
+npm run values:audit -- --year YYYY --fetch-sleeper
+```
+
+If you already have Sleeper JSON saved locally:
+
+```bash
+npm run values:audit -- --year YYYY --sleeper data/player-values/raw/sleeper-players-YYYY.json
+```
+
+Review `data/player-values/review/unmatched-roster-YYYY.csv` and add any needed rows to `static/fp_sleeper_mapping.txt`. The audit exits with a non-zero code when flagged players remain.
+
 ## Rules encoded by the generator
 
 `Rookie = 1` marks only the player's league-entry rookie year.

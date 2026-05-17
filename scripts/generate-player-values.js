@@ -2,6 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Papa from 'papaparse';
+import { leagueID } from '../src/lib/utils/leagueInfo.js';
+import {
+  buildValueIndexes,
+  normalizeName,
+  resolvePlayerValue,
+  suggestName
+} from '../src/lib/utils/playerNameLookup.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -10,7 +17,7 @@ const DEFAULT_MAPPING_PATH = path.join(ROOT, 'static', 'fp_sleeper_mapping.txt')
 const REVIEW_DIR = path.join(ROOT, 'data', 'player-values', 'review');
 const RAW_DIR = path.join(ROOT, 'data', 'player-values', 'raw');
 
-const COMMANDS = new Set(['prepare', 'generate']);
+const COMMANDS = new Set(['prepare', 'generate', 'audit']);
 
 async function main() {
   const [command, ...rest] = process.argv.slice(2);
@@ -40,6 +47,19 @@ async function main() {
     return;
   }
 
+  if (command === 'audit') {
+    const exitCode = await audit({
+      year,
+      leagueId: args['league-id'] || leagueID,
+      valuesPath: resolvePath(args.values || DEFAULT_VALUES_PATH),
+      mappingPath: resolvePath(args.mapping || DEFAULT_MAPPING_PATH),
+      fantasyProsPath: fs.existsSync(fantasyProsPath) ? fantasyProsPath : null,
+      sleeperPath: args.sleeper ? resolvePath(args.sleeper) : null,
+      fetchSleeper: Boolean(args['fetch-sleeper'])
+    });
+    process.exit(exitCode);
+  }
+
   generate({
     year,
     fantasyProsPath,
@@ -61,31 +81,36 @@ async function prepare({ year, fantasyProsPath, sleeperPath, fetchSleeper }) {
   }
 
   const marketRows = readFantasyProsValues(fantasyProsPath);
-  const marketByName = new Map(marketRows.map((row) => [row.Name, row]));
-  const marketByNormalizedName = new Map(marketRows.map((row) => [normalizeName(row.Name), row]));
   const mappings = readNameMappings(DEFAULT_MAPPING_PATH);
-  const candidates = sleeperPath ? readSleeperRookieCandidates(sleeperPath, year) : [];
+  const indexes = {
+    ...buildValueIndexes(marketRows.map((row) => ({ Name: row.Name, MarketValue: row.MarketValue }))),
+    sleeperToFantasyPros: mappings.sleeperToFantasyPros
+  };
+  const candidates = sleeperPath ? readSleeperRookieCandidates(sleeperPath) : [];
 
   const rows = [];
   const unmatched = [];
   for (const candidate of candidates) {
-    const mappedName = mappings.sleeperToFantasyPros.get(candidate.Sleeper) || candidate.Sleeper;
-    const exact = marketByName.get(mappedName);
-    const normalized = marketByNormalizedName.get(normalizeName(mappedName));
-    const match = exact || normalized;
+    const resolved = resolvePlayerValue(candidate.Sleeper, indexes);
 
-    if (match) {
+    if (resolved.matchType !== 'none' && resolved.matchType !== 'empty') {
       rows.push({
-        Fantasy_Pros: match.Name,
-        RookieValue: match.MarketValue,
+        Fantasy_Pros: resolved.fantasyProsName,
+        RookieValue: resolved.value,
         Rookie: 1,
-        Source: exact ? 'sleeper+mapping' : 'sleeper+normalized',
+        Source:
+          resolved.matchType === 'mapping'
+            ? 'sleeper+mapping'
+            : resolved.matchType === 'normalized'
+              ? 'sleeper+normalized'
+              : 'sleeper+exact',
         Sleeper: candidate.Sleeper,
         Notes: ''
       });
       continue;
     }
 
+    const mappedName = mappings.sleeperToFantasyPros.get(candidate.Sleeper) || candidate.Sleeper;
     const suggestion = suggestName(mappedName, marketRows);
     unmatched.push({
       Sleeper: candidate.Sleeper,
@@ -122,6 +147,142 @@ async function prepare({ year, fantasyProsPath, sleeperPath, fetchSleeper }) {
   }
   console.log(`Rookie review: ${relative(rookiesPath)}`);
   console.log(`Unmatched review: ${relative(unmatchedPath)}`);
+}
+
+async function audit({
+  year,
+  leagueId,
+  valuesPath,
+  mappingPath,
+  fantasyProsPath,
+  sleeperPath,
+  fetchSleeper
+}) {
+  ensureFile(valuesPath, 'player values');
+
+  const defaultSleeperPath = path.join(RAW_DIR, `sleeper-players-${year}.json`);
+  if (!sleeperPath && fetchSleeper) {
+    sleeperPath = defaultSleeperPath;
+    await fetchSleeperPlayers(sleeperPath);
+  } else if (!sleeperPath && fs.existsSync(defaultSleeperPath)) {
+    sleeperPath = defaultSleeperPath;
+  }
+
+  if (!sleeperPath) {
+    fail('Sleeper player data required. Pass --sleeper or --fetch-sleeper.');
+  }
+
+  const yearRows = readPlayerValues(valuesPath).filter((row) => row.Year === year);
+  if (!yearRows.length) {
+    fail(`No player values found for year ${year} in ${relative(valuesPath)}.`);
+  }
+
+  const mappings = readNameMappings(mappingPath);
+  const indexes = {
+    ...buildValueIndexes(yearRows.map((row) => ({ Name: row.Name, Value: row.Value }))),
+    sleeperToFantasyPros: mappings.sleeperToFantasyPros
+  };
+
+  const suggestRows = fantasyProsPath
+    ? readFantasyProsValues(fantasyProsPath).map((row) => ({
+        Name: row.Name,
+        MarketValue: row.MarketValue
+      }))
+    : yearRows.map((row) => ({ Name: row.Name, Value: row.Value }));
+
+  const sleeperNames = await readLeagueRosterSleeperNames(leagueId, sleeperPath);
+  const flagged = [];
+
+  for (const sleeperName of sleeperNames) {
+    const resolved = resolvePlayerValue(sleeperName, indexes);
+    const mappedName = mappings.sleeperToFantasyPros.get(sleeperName) || sleeperName;
+    const norm = normalizeName(mappedName);
+    const notes = [];
+
+    if (indexes.ambiguousNormalized.has(norm)) {
+      notes.push('Ambiguous normalized name; add explicit fp_sleeper_mapping.txt row');
+    }
+
+    const suggestion =
+      resolved.matchType === 'none' ? suggestName(mappedName, suggestRows) : null;
+    const suggestedValue = suggestion ? Number(suggestion.Value ?? suggestion.MarketValue ?? 0) : 0;
+
+    const sleeperFirst = mappedName.split(' ')[0]?.toLowerCase();
+    const suggestFirst = suggestion?.Name.split(' ')[0]?.toLowerCase();
+    const firstNameMatches = sleeperFirst && suggestFirst && sleeperFirst === suggestFirst;
+
+    if (resolved.matchType === 'none' && suggestedValue > 0 && firstNameMatches) {
+      flagged.push({
+        Sleeper: sleeperName,
+        Resolved_Name: resolved.fantasyProsName,
+        Value: resolved.value,
+        Match_Type: resolved.matchType,
+        Suggested_Fantasy_Pros: suggestion?.Name || '',
+        Suggested_Value: suggestedValue,
+        Confidence: suggestion ? suggestion.Score.toFixed(2) : '',
+        Notes: notes.join('; ') || 'Likely missing fp_sleeper_mapping.txt row'
+      });
+    } else if (notes.length) {
+      flagged.push({
+        Sleeper: sleeperName,
+        Resolved_Name: resolved.fantasyProsName,
+        Value: resolved.value,
+        Match_Type: resolved.matchType,
+        Suggested_Fantasy_Pros: '',
+        Suggested_Value: '',
+        Confidence: '',
+        Notes: notes.join('; ')
+      });
+    }
+  }
+
+  const unmatchedPath = path.join(REVIEW_DIR, `unmatched-roster-${year}.csv`);
+  writeCsv(unmatchedPath, flagged, [
+    'Sleeper',
+    'Resolved_Name',
+    'Value',
+    'Match_Type',
+    'Suggested_Fantasy_Pros',
+    'Suggested_Value',
+    'Confidence',
+    'Notes'
+  ]);
+
+  console.log(`Audited ${sleeperNames.length} rostered players for ${year}.`);
+  console.log(`Flagged ${flagged.length} issues.`);
+  console.log(`Review: ${relative(unmatchedPath)}`);
+
+  if (flagged.length) {
+    console.log('\nFlagged players:');
+    for (const row of flagged) {
+      console.log(`- ${row.Sleeper} (${row.Notes})`);
+    }
+    return 1;
+  }
+
+  return 0;
+}
+
+async function readLeagueRosterSleeperNames(leagueId, sleeperPlayersPath) {
+  const response = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
+  if (!response.ok) {
+    fail(`League roster fetch failed with HTTP ${response.status}.`);
+  }
+
+  const rosters = await response.json();
+  const players = JSON.parse(fs.readFileSync(sleeperPlayersPath, 'utf8'));
+  const names = new Set();
+
+  for (const roster of rosters) {
+    for (const playerId of roster.players || []) {
+      const player = players[playerId];
+      if (!player) continue;
+      const name = [player.first_name, player.last_name].filter(Boolean).join(' ').trim();
+      if (name) names.add(name);
+    }
+  }
+
+  return [...names].sort((a, b) => a.localeCompare(b));
 }
 
 function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }) {
@@ -321,56 +482,6 @@ function parseDollarValue(value) {
   return Number(String(value).replace(/[$,\s]/g, ''));
 }
 
-function normalizeName(name) {
-  return String(name)
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\b(jr|sr|ii|iii|iv|v)\b/g, '')
-    .replace(/[^a-z0-9]/g, '');
-}
-
-function suggestName(name, rows) {
-  const normalizedName = normalizeName(name);
-  let best = null;
-
-  for (const row of rows) {
-    const score = similarity(normalizedName, normalizeName(row.Name));
-    if (!best || score > best.Score) {
-      best = { ...row, Score: score };
-    }
-  }
-
-  return best && best.Score >= 0.72 ? best : null;
-}
-
-function similarity(a, b) {
-  if (!a || !b) return 0;
-  const distance = levenshtein(a, b);
-  return 1 - distance / Math.max(a.length, b.length);
-}
-
-function levenshtein(a, b) {
-  const costs = Array.from({ length: b.length + 1 }, (_, i) => i);
-
-  for (let i = 1; i <= a.length; i++) {
-    let previous = i - 1;
-    costs[0] = i;
-
-    for (let j = 1; j <= b.length; j++) {
-      const current = costs[j];
-      costs[j] = Math.min(
-        costs[j] + 1,
-        costs[j - 1] + 1,
-        previous + (a[i - 1] === b[j - 1] ? 0 : 1)
-      );
-      previous = current;
-    }
-  }
-
-  return costs[b.length];
-}
-
 function writeCsv(filePath, rows, columns) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const csv = rows.length
@@ -416,10 +527,12 @@ function printUsage() {
   npm run values:prepare -- --year 2026 --fantasypros data/player-values/raw/fantasypros-2026.csv --sleeper data/player-values/raw/sleeper-players-2026.json
   npm run values:prepare -- --year 2026 --fantasypros data/player-values/raw/fantasypros-2026.csv --fetch-sleeper
   npm run values:generate -- --year 2026 --fantasypros data/player-values/raw/fantasypros-2026.csv
+  npm run values:audit -- --year 2026 --fetch-sleeper
 
 Notes:
   prepare writes data/player-values/review/rookies-YYYY.csv for manual review.
-  generate replaces that year in static/Player_Values.txt using the reviewed rookie file.`);
+  generate replaces that year in static/Player_Values.txt using the reviewed rookie file.
+  audit flags rostered players with zero value but a likely FantasyPros match.`);
 }
 
 main();
