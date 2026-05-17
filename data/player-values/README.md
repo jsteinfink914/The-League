@@ -47,6 +47,8 @@ npm run values:audit -- --year YYYY --sleeper data/player-values/raw/sleeper-pla
 
 Review `data/player-values/review/unmatched-roster-YYYY.csv` and add any needed rows to `static/fp_sleeper_mapping.txt`. The audit exits with a non-zero code when flagged players remain.
 
+`values:generate` also copies `data/player-values/raw/fantasypros-YYYY.csv` to `static/fantasypros-YYYY.csv` so the Team Values page can show year-3 blend math (rookie + market).
+
 ## Rules encoded by the generator
 
 `Rookie = 1` marks only the player's league-entry rookie year.

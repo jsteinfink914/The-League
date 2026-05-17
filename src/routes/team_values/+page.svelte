@@ -3,7 +3,13 @@
   import { onMount } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import { leagueID } from '$lib/utils/leagueInfo';
-  import { buildValueIndexes, resolvePlayerValue } from '$lib/utils/playerNameLookup';
+  import {
+    buildRookieContracts,
+    buildValueIndexes,
+    getContractBreakdown,
+    parseFantasyProsMarketCsv,
+    resolvePlayerValue
+  } from '$lib/utils/playerNameLookup';
   Chart.register(...registerables);
 
   const valueYear = '2026';
@@ -64,25 +70,72 @@
 
       const playerValuesResponse = await fetch('/Player_Values.txt');
       const playerValuesText = await playerValuesResponse.text();
-      const playerValues = Papa.parse(playerValuesText, { header: true }).data;
-      const yearRows = playerValues
-        .filter((entry) => entry.Year === valueYear)
+      const playerValues = Papa.parse(playerValuesText, { header: true, skipEmptyLines: true }).data;
+      const historyRows = playerValues
+        .filter((entry) => entry.Year && entry.Name)
+        .map((entry) => ({
+          Year: Number(entry.Year),
+          Name: String(entry.Name).trim(),
+          Value: parseFloat(entry.Value) || 0,
+          Rookie: Number(entry.Rookie) === 1 ? 1 : 0
+        }));
+      const yearRows = historyRows
+        .filter((entry) => String(entry.Year) === valueYear)
         .map((entry) => ({
           Name: entry.Name,
-          Value: parseFloat(entry.Value) || 0
+          Value: entry.Value
         }));
       const valueIndexes = {
         ...buildValueIndexes(yearRows),
         sleeperToFantasyPros
       };
+      const rookieContracts = buildRookieContracts(historyRows);
+
+      let marketValueByName = new Map();
+      try {
+        const marketResponse = await fetch(`/fantasypros-${valueYear}.csv`);
+        if (marketResponse.ok) {
+          marketValueByName = parseFantasyProsMarketCsv(await marketResponse.text());
+        }
+      } catch (marketError) {
+        console.warn('FantasyPros market file not loaded:', marketError);
+      }
 
       const rostersWithValues = {};
       for (const [index, roster] of Object.entries(rostersByTeam)) {
         rostersWithValues[index] = roster
           .map((playerName) => {
+            if (!playerName) {
+              return {
+                name: '',
+                value: 0,
+                status: 'none',
+                label: '',
+                formula: '',
+                fantasyProsName: ''
+              };
+            }
+
             const resolved = resolvePlayerValue(playerName, valueIndexes);
-            return { name: playerName, value: resolved.value };
+            const breakdown = getContractBreakdown({
+              fantasyProsName: resolved.fantasyProsName,
+              capYear: valueYear,
+              capValue: resolved.value,
+              historyRows,
+              marketValueByName,
+              rookieContracts
+            });
+
+            return {
+              name: playerName,
+              value: resolved.value,
+              status: breakdown.status,
+              label: breakdown.label,
+              formula: breakdown.formula,
+              fantasyProsName: resolved.fantasyProsName
+            };
           })
+          .filter((player) => player.name)
           .sort((a, b) => b.value - a.value);
       }
 
@@ -202,7 +255,8 @@
   }
 
   table {
-    width: 50%;
+    width: 90%;
+    max-width: 900px;
     border-collapse: collapse;
     overflow-y:auto;
   }
@@ -219,16 +273,94 @@
     font-weight: bold;
   }
 
+  .rules-legend {
+    width: 80%;
+    max-width: 720px;
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    text-align: left;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  .rules-legend ul {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+  }
+
+  .rules-legend li {
+    margin-bottom: 0.25rem;
+  }
+
+  .contract-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .contract-rookie_year {
+    background: #e8f4e8;
+    color: #1b5e20;
+  }
+
+  .contract-rookie_y1_2 {
+    background: #e3f2fd;
+    color: #0d47a1;
+  }
+
+  .contract-rookie_y3 {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  .contract-market {
+    background: #f5f5f5;
+    color: #424242;
+  }
+
+  .formula-cell {
+    font-size: 12px;
+    text-align: left;
+    max-width: 220px;
+  }
+
+  tr.row-rookie_year td {
+    background: #f9fff9;
+  }
+
+  tr.row-rookie_y1_2 td {
+    background: #f8fbff;
+  }
+
+  tr.row-rookie_y3 td {
+    background: #fffaf5;
+  }
+
   @media (max-width: 600px) {
     .chart-container{
       margin-left:0%;
     }
     table {
-      font-size: 12px;
+      font-size: 11px;
+      width: 100%;
     }
 
     th, td {
       padding: 3px;
+    }
+
+    .rules-legend {
+      width: 100%;
+      font-size: 11px;
+    }
+
+    .formula-cell {
+      max-width: 120px;
     }
 
     select {
@@ -244,6 +376,15 @@
 
 <div class="container">
 <h4>Cap Values Summary</h4>
+  <div class="rules-legend">
+    <strong>Cap contract rules ({valueYear})</strong>
+    <ul>
+      <li><strong>Rookie year</strong> — league-entry year: locked rookie value</li>
+      <li><strong>Rookie deal (yr 1–2)</strong> — years 1–2 since entry: same rookie value</li>
+      <li><strong>Rookie deal (yr 3 blend)</strong> — year 3: average of rookie value and Fantasy Pros market</li>
+      <li><strong>Market</strong> — year 4+ or no rookie row: full Fantasy Pros market value</li>
+    </ul>
+  </div>
   <div class="chart-container">
     <canvas id="chart"></canvas>
   </div>
@@ -262,18 +403,27 @@
           <tr>
             <th>Player Name</th>
             <th>Value</th>
+            <th>Contract</th>
+            <th>How calculated</th>
           </tr>
         </thead>
         <tbody>
           {#each managerRosters[selectedManager] as player}
-            <tr>
+            <tr class="row-{player.status}">
               <td>{player.name}</td>
               <td>{player.value}</td>
+              <td>
+                {#if player.label}
+                  <span class="contract-badge contract-{player.status}">{player.label}</span>
+                {/if}
+              </td>
+              <td class="formula-cell">{player.formula}</td>
             </tr>
           {/each}
           <tr class="total-value">
             <td>Total Value</td>
             <td>{managerRosters[selectedManager].reduce((acc, player) => acc + player.value, 0)}</td>
+            <td colspan="2"></td>
           </tr>
         </tbody>
       </table>

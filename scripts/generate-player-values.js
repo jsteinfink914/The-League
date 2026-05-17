@@ -6,6 +6,7 @@ import { leagueID } from '../src/lib/utils/leagueInfo.js';
 import {
   buildRookieContracts,
   buildValueIndexes,
+  calculateContractValue,
   findRookieContract,
   normalizeName,
   resolvePlayerValue,
@@ -347,18 +348,16 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
 
   writeCsv(outputPath, allRows, ['Year', 'Name', 'Value', 'Rookie']);
 
+  const staticMarketPath = path.join(ROOT, 'static', `fantasypros-${year}.csv`);
+  fs.copyFileSync(fantasyProsPath, staticMarketPath);
+  console.log(`Copied market values for UI: ${relative(staticMarketPath)}`);
+
   console.log(`Generated ${generatedRows.length} rows for ${year}.`);
   console.log(`Output: ${relative(outputPath)}`);
   if (warnings.length) {
     console.log('\nWarnings:');
     for (const warning of warnings) console.log(`- ${warning}`);
   }
-}
-
-function calculateContractValue(contractYear, rookieValue, marketValue) {
-  if (contractYear <= 2) return rookieValue;
-  if (contractYear === 3) return Math.round((rookieValue + marketValue) / 2);
-  return marketValue;
 }
 
 function readFantasyProsValues(filePath) {
