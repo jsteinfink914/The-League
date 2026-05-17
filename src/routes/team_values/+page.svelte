@@ -2,7 +2,10 @@
   import Papa from 'papaparse';
   import { onMount } from 'svelte';
   import { Chart, registerables } from 'chart.js';
+  import { leagueID } from '$lib/utils/leagueInfo';
   Chart.register(...registerables);
+
+  const valueYear = '2026';
 
   let managers = [];
   let selectedManager = "";
@@ -13,7 +16,7 @@
   const fetchData = async () => {
     try {
       // Fetch rosters
-      const rosterResponse = await fetch('https://api.sleeper.app/v1/league/1312126305021485056/rosters');
+      const rosterResponse = await fetch(`https://api.sleeper.app/v1/league/${leagueID}/rosters`);
       const rosters = await rosterResponse.json();
 
       // Fetch players
@@ -41,9 +44,13 @@
         });
       });
 
-      // Ensure each roster has exactly 23 players
+      // Pad short rosters to 23 slots (dynasty minimum); leave longer rosters as-is
       for (let i = 1; i <= 16; i++) {
-        if (rostersByTeam[i].length !== 23) {
+        if (!rostersByTeam[i]) {
+          rostersByTeam[i] = Array(23).fill("");
+          continue;
+        }
+        if (rostersByTeam[i].length < 23) {
           rostersByTeam[i].push(...Array(23 - rostersByTeam[i].length).fill(""));
         }
       }
@@ -57,7 +64,7 @@
       const playerValues = Papa.parse(playerValuesText, { header: true }).data;
       const playerValueMap = new Map();
                            playerValues.forEach(entry => {
-                           if (entry.Year === '2026') {
+                           if (entry.Year === valueYear) {
                           playerValueMap.set(entry.Name, parseFloat(entry.Value) || 0);
                           }
                           });
@@ -152,9 +159,11 @@
   };
 
   onMount(async () => {
-    managerRosters = await fetchData();
+    managerRosters = (await fetchData()) ?? {};
     managers = Object.keys(managerRosters);
-    createChart();
+    if (totalValues.length) {
+      createChart();
+    }
   });
 </script>
 
