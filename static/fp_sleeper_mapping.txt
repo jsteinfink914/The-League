@@ -4,6 +4,7 @@ Irv Smith,Irv Smith Jr.
 Travis Etienne,Travis Etienne Jr.
 Odell Beckham,Odell Beckham Jr.
 Marvin Jones,Marvin Jones Jr.
+James Cook,James Cook III
 Kenneth Walker,Kenneth Walker III
 Richie James,Richie James Jr.
 Brian Robinson,Brian Robinson Jr.
