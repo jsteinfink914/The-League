@@ -304,23 +304,23 @@
   }
 
   .contract-rookie_year {
-    background: #e8f4e8;
-    color: #1b5e20;
+    background: var(--badgeRookieYearBg);
+    color: var(--badgeRookieYearText);
   }
 
   .contract-rookie_y1_2 {
-    background: #e3f2fd;
-    color: #0d47a1;
+    background: var(--badgeRookieY12Bg);
+    color: var(--badgeRookieY12Text);
   }
 
   .contract-rookie_y3 {
-    background: #fff3e0;
-    color: #e65100;
+    background: var(--badgeRookieY3Bg);
+    color: var(--badgeRookieY3Text);
   }
 
   .contract-market {
-    background: #f5f5f5;
-    color: #424242;
+    background: var(--badgeMarketBg);
+    color: var(--badgeMarketText);
   }
 
   .formula-cell {
@@ -330,15 +330,15 @@
   }
 
   tr.row-rookie_year td {
-    background: #f9fff9;
+    background: var(--waiverAdd);
   }
 
   tr.row-rookie_y1_2 td {
-    background: #f8fbff;
+    background: var(--draftSwapped);
   }
 
   tr.row-rookie_y3 td {
-    background: #fffaf5;
+    background: var(--r2);
   }
 
   @media (max-width: 600px) {
