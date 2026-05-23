@@ -4,6 +4,7 @@
     let bets = [];
     let selectedBet = null;
     let loading = true;
+    let loadError = null;
 
     let showForm = false;
     let editingId = null;
@@ -20,9 +21,16 @@
     let confirmDeleteId = null;
 
     async function loadBets() {
-        const res = await fetch('/api/sidebets');
-        bets = await res.json();
-        loading = false;
+        try {
+            const res = await fetch('/api/sidebets');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+            bets = Array.isArray(data) ? data : [];
+        } catch (e) {
+            loadError = e.message;
+        } finally {
+            loading = false;
+        }
     }
 
     onMount(loadBets);
@@ -463,6 +471,8 @@
 
 {#if loading}
     <p style="text-align:center;color:var(--g999);">Loading...</p>
+{:else if loadError}
+    <p style="text-align:center;color:#c62828;padding:20px;">Error loading bets: {loadError}</p>
 {:else}
 <div class="bets-container">
     {#each bets as bet, index}
