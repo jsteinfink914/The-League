@@ -39,6 +39,17 @@ export async function POST({ request }) {
     return json(newBet, { status: 201 });
 }
 
+export async function DELETE({ request }) {
+    const body = await request.json();
+    const bets = readBets();
+    const filtered = bets.filter(b => b.id !== body.id);
+    if (filtered.length === bets.length) {
+        return json({ error: 'Bet not found' }, { status: 404 });
+    }
+    writeBets(filtered);
+    return json({ success: true });
+}
+
 export async function PUT({ request }) {
     const body = await request.json();
     const bets = readBets();

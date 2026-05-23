@@ -18,6 +18,7 @@
     let pendingSubmit = null;
 
     let showHistoryId = null;
+    let confirmDeleteId = null;
 
     async function loadTrades() {
         const res = await fetch('/api/conditional');
@@ -94,6 +95,22 @@
     function cancelNameDialog() {
         showNameDialog = false;
         pendingSubmit = null;
+    }
+
+    function openDelete(e, id) {
+        e.stopPropagation();
+        confirmDeleteId = id;
+    }
+
+    async function confirmDelete() {
+        await fetch('/api/conditional', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: confirmDeleteId }) });
+        confirmDeleteId = null;
+        selectedTrade = null;
+        await loadTrades();
+    }
+
+    function cancelDelete() {
+        confirmDeleteId = null;
     }
 
     function toggleHistory(e, id) {
@@ -185,6 +202,22 @@
 
     .edit-btn:hover {
         background: #e8eaf6;
+    }
+
+    .delete-btn {
+        background: none;
+        border: 1px solid #e57373;
+        color: #c62828;
+        border-radius: 4px;
+        padding: 2px 10px;
+        font-size: 0.8em;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+        background: #ffebee;
     }
 
     .section {
@@ -343,6 +376,20 @@
         background: #f5f5f5;
     }
 
+    .btn-danger {
+        background: #c62828;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 20px;
+        cursor: pointer;
+        font-size: 0.95em;
+    }
+
+    .btn-danger:hover {
+        background: #b71c1c;
+    }
+
     @media (max-width: 600px) {
         .trade-info {
             padding: 10px;
@@ -367,6 +414,7 @@
         <div class="dropdown" on:click={() => toggleTrade(index)}>
             <h3>{trade.parties} — {trade.date}</h3>
             <button class="edit-btn" on:click={(e) => openEdit(e, trade)}>Edit</button>
+            <button class="delete-btn" on:click={(e) => openDelete(e, trade.id)}>Delete</button>
         </div>
 
         {#if selectedTrade === index}
@@ -447,6 +495,19 @@
                 on:click={submitForm}>
                 {editingId ? 'Save Changes' : 'Add Pick'}
             </button>
+        </div>
+    </div>
+</div>
+{/if}
+
+{#if confirmDeleteId}
+<div class="overlay" on:click|self={cancelDelete}>
+    <div class="modal">
+        <h3>Delete this entry?</h3>
+        <p style="color:#555;margin:0 0 18px;">This cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn-secondary" on:click={cancelDelete}>Cancel</button>
+            <button class="btn-danger" on:click={confirmDelete}>Delete</button>
         </div>
     </div>
 </div>

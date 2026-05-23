@@ -40,6 +40,17 @@ export async function POST({ request }) {
     return json(newTrade, { status: 201 });
 }
 
+export async function DELETE({ request }) {
+    const body = await request.json();
+    const trades = readTrades();
+    const filtered = trades.filter(t => t.id !== body.id);
+    if (filtered.length === trades.length) {
+        return json({ error: 'Trade not found' }, { status: 404 });
+    }
+    writeTrades(filtered);
+    return json({ success: true });
+}
+
 export async function PUT({ request }) {
     const body = await request.json();
     const trades = readTrades();
