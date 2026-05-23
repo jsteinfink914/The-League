@@ -1,84 +1,71 @@
 import { json } from '@sveltejs/kit';
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import pool from '$lib/server/db.js';
 
-const DATA_PATH = join(process.cwd(), 'data', 'sideBets.json');
-
-function readBets() {
-    try {
-        return JSON.parse(readFileSync(DATA_PATH, 'utf-8'));
-    } catch {
-        return [];
-    }
-}
-
-function writeBets(bets) {
-    writeFileSync(DATA_PATH, JSON.stringify(bets, null, 2));
-}
-
-export function GET() {
-    return json(readBets());
+export async function GET() {
+    const { rows } = await pool.query(
+        'SELECT id, date, parties, bet, added_by, added_at, edit_history FROM side_bets ORDER BY added_at ASC'
+    );
+    return json(rows.map(r => ({
+        id: r.id,
+        date: r.date,
+        parties: r.parties,
+        bet: r.bet,
+        addedBy: r.added_by,
+        addedAt: r.added_at,
+        editHistory: r.edit_history
+    })));
 }
 
 export async function POST({ request }) {
     const body = await request.json();
-    const bets = readBets();
+    const id = `sb-${Date.now()}`;
+    const now = new Date().toISOString();
 
-    const newBet = {
-        id: `sb-${Date.now()}`,
-        date: body.date,
-        parties: body.parties,
-        bet: body.bet,
-        addedBy: body.submittedBy,
-        addedAt: new Date().toISOString(),
-        editHistory: []
-    };
-
-    bets.push(newBet);
-    writeBets(bets);
-    return json(newBet, { status: 201 });
-}
-
-export async function DELETE({ request }) {
-    const body = await request.json();
-    const bets = readBets();
-    const filtered = bets.filter(b => b.id !== body.id);
-    if (filtered.length === bets.length) {
-        return json({ error: 'Bet not found' }, { status: 404 });
-    }
-    writeBets(filtered);
-    return json({ success: true });
+    const { rows } = await pool.query(
+        `INSERT INTO side_bets (id, date, parties, bet, added_by, added_at, edit_history)
+         VALUES ($1,$2,$3,$4,$5,$6,'[]') RETURNING *`,
+        [id, body.date, body.parties, body.bet, body.submittedBy, now]
+    );
+    const r = rows[0];
+    return json({
+        id: r.id, date: r.date, parties: r.parties, bet: r.bet,
+        addedBy: r.added_by, addedAt: r.added_at, editHistory: r.edit_history
+    }, { status: 201 });
 }
 
 export async function PUT({ request }) {
     const body = await request.json();
-    const bets = readBets();
 
-    const idx = bets.findIndex(b => b.id === body.id);
-    if (idx === -1) {
-        return json({ error: 'Bet not found' }, { status: 404 });
-    }
+    const { rows: existing } = await pool.query(
+        'SELECT * FROM side_bets WHERE id = $1', [body.id]
+    );
+    if (!existing.length) return json({ error: 'Bet not found' }, { status: 404 });
 
-    const prev = bets[idx];
-    bets[idx] = {
-        ...prev,
-        date: body.date,
-        parties: body.parties,
-        bet: body.bet,
-        editHistory: [
-            ...prev.editHistory,
-            {
-                editedBy: body.submittedBy,
-                editedAt: new Date().toISOString(),
-                snapshot: {
-                    date: prev.date,
-                    parties: prev.parties,
-                    bet: prev.bet
-                }
-            }
-        ]
+    const prev = existing[0];
+    const snapshot = {
+        editedBy: body.submittedBy,
+        editedAt: new Date().toISOString(),
+        snapshot: { date: prev.date, parties: prev.parties, bet: prev.bet }
     };
+    const newHistory = [...prev.edit_history, snapshot];
 
-    writeBets(bets);
-    return json(bets[idx]);
+    const { rows } = await pool.query(
+        `UPDATE side_bets SET date=$1, parties=$2, bet=$3, edit_history=$4
+         WHERE id=$5 RETURNING *`,
+        [body.date, body.parties, body.bet, JSON.stringify(newHistory), body.id]
+    );
+    const r = rows[0];
+    return json({
+        id: r.id, date: r.date, parties: r.parties, bet: r.bet,
+        addedBy: r.added_by, addedAt: r.added_at, editHistory: r.edit_history
+    });
+}
+
+export async function DELETE({ request }) {
+    const body = await request.json();
+    const { rowCount } = await pool.query(
+        'DELETE FROM side_bets WHERE id = $1', [body.id]
+    );
+    if (!rowCount) return json({ error: 'Bet not found' }, { status: 404 });
+    return json({ success: true });
 }
