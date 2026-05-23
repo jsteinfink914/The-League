@@ -264,8 +264,28 @@
 
     .history-entry {
         border-top: 1px solid #eee;
-        padding-top: 6px;
-        margin-top: 6px;
+        padding-top: 8px;
+        margin-top: 8px;
+    }
+
+    .history-meta {
+        margin-bottom: 4px;
+    }
+
+    .history-label {
+        font-style: italic;
+        color: #888;
+        font-size: 0.9em;
+        margin: 4px 0 2px;
+    }
+
+    .history-field {
+        margin: 2px 0;
+        line-height: 1.4;
+    }
+
+    .history-key {
+        font-weight: bold;
     }
 
     .overlay {
@@ -426,11 +446,14 @@
             </div>
             {#if showHistoryId === bet.id}
                 <div class="history-box">
-                    <h4>Edit History</h4>
+                    <h4>Edit History (most recent first)</h4>
                     {#each [...bet.editHistory].reverse() as entry}
                         <div class="history-entry">
-                            <strong>{entry.editedBy}</strong> edited on {formatDate(entry.editedAt)}<br>
-                            <em>Previous: {entry.snapshot.parties} — {entry.snapshot.date}</em>
+                            <div class="history-meta"><strong>{entry.editedBy}</strong> edited on {formatDate(entry.editedAt)}</div>
+                            <div class="history-label">Before this edit:</div>
+                            <div class="history-field"><span class="history-key">Date:</span> {entry.snapshot.date}</div>
+                            <div class="history-field"><span class="history-key">Parties:</span> {entry.snapshot.parties}</div>
+                            <div class="history-field"><span class="history-key">Bet:</span> {entry.snapshot.bet}</div>
                         </div>
                     {/each}
                 </div>
