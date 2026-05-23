@@ -116,6 +116,25 @@
     function formatDate(iso) {
         return new Date(iso).toLocaleString();
     }
+
+    function buildTimeline(bet) {
+        const steps = [];
+
+        const originalValues = bet.editHistory.length > 0
+            ? bet.editHistory[0].snapshot
+            : { date: bet.date, parties: bet.parties, bet: bet.bet };
+
+        steps.push({ who: bet.addedBy, when: bet.addedAt, label: 'Created', values: originalValues });
+
+        bet.editHistory.forEach((entry, i) => {
+            const values = i + 1 < bet.editHistory.length
+                ? bet.editHistory[i + 1].snapshot
+                : { date: bet.date, parties: bet.parties, bet: bet.bet };
+            steps.push({ who: entry.editedBy, when: entry.editedAt, label: 'Edited', values });
+        });
+
+        return steps;
+    }
 </script>
 
 <style>
@@ -272,13 +291,6 @@
         margin-bottom: 4px;
     }
 
-    .history-label {
-        font-style: italic;
-        color: #888;
-        font-size: 0.9em;
-        margin: 4px 0 2px;
-    }
-
     .history-field {
         margin: 2px 0;
         line-height: 1.4;
@@ -286,6 +298,41 @@
 
     .history-key {
         font-weight: bold;
+    }
+
+    .timeline-badge {
+        display: inline-block;
+        font-size: 0.72em;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-bottom: 4px;
+    }
+
+    .badge-created {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .badge-edited {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .current-tag {
+        display: inline-block;
+        font-size: 0.72em;
+        background: #fff3e0;
+        color: #e65100;
+        border-radius: 8px;
+        padding: 1px 7px;
+        margin-left: 6px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        vertical-align: middle;
     }
 
     .overlay {
@@ -446,14 +493,19 @@
             </div>
             {#if showHistoryId === bet.id}
                 <div class="history-box">
-                    <h4>Edit History (most recent first)</h4>
-                    {#each [...bet.editHistory].reverse() as entry}
+                    <h4>Full History</h4>
+                    {#each buildTimeline(bet) as step, i}
                         <div class="history-entry">
-                            <div class="history-meta"><strong>{entry.editedBy}</strong> edited on {formatDate(entry.editedAt)}</div>
-                            <div class="history-label">Before this edit:</div>
-                            <div class="history-field"><span class="history-key">Date:</span> {entry.snapshot.date}</div>
-                            <div class="history-field"><span class="history-key">Parties:</span> {entry.snapshot.parties}</div>
-                            <div class="history-field"><span class="history-key">Bet:</span> {entry.snapshot.bet}</div>
+                            <div class="timeline-badge {step.label === 'Created' ? 'badge-created' : 'badge-edited'}">
+                                {step.label}
+                            </div>
+                            <div class="history-meta">
+                                <strong>{step.who}</strong> — {formatDate(step.when)}
+                                {#if i === buildTimeline(bet).length - 1}<span class="current-tag">current</span>{/if}
+                            </div>
+                            <div class="history-field"><span class="history-key">Date:</span> {step.values.date}</div>
+                            <div class="history-field"><span class="history-key">Parties:</span> {step.values.parties}</div>
+                            <div class="history-field"><span class="history-key">Bet:</span> {step.values.bet}</div>
                         </div>
                     {/each}
                 </div>

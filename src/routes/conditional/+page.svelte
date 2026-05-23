@@ -121,6 +121,28 @@
     function formatDate(iso) {
         return new Date(iso).toLocaleString();
     }
+
+    function buildTimeline(trade) {
+        const steps = [];
+
+        // Original state: what Jake added. If there were later edits, the first
+        // snapshot IS Jake's version. If no edits, the current values are Jake's.
+        const originalValues = trade.editHistory.length > 0
+            ? trade.editHistory[0].snapshot
+            : { date: trade.date, parties: trade.parties, picks: trade.picks, conditions: trade.conditions };
+
+        steps.push({ who: trade.addedBy, when: trade.addedAt, label: 'Created', values: originalValues });
+
+        trade.editHistory.forEach((entry, i) => {
+            // What this person changed it TO: the next entry's snapshot, or current if last
+            const values = i + 1 < trade.editHistory.length
+                ? trade.editHistory[i + 1].snapshot
+                : { date: trade.date, parties: trade.parties, picks: trade.picks, conditions: trade.conditions };
+            steps.push({ who: entry.editedBy, when: entry.editedAt, label: 'Edited', values });
+        });
+
+        return steps;
+    }
 </script>
 
 <style>
@@ -282,13 +304,6 @@
         margin-bottom: 4px;
     }
 
-    .history-label {
-        font-style: italic;
-        color: #888;
-        font-size: 0.9em;
-        margin: 4px 0 2px;
-    }
-
     .history-field {
         margin: 2px 0;
         line-height: 1.4;
@@ -296,6 +311,41 @@
 
     .history-key {
         font-weight: bold;
+    }
+
+    .timeline-badge {
+        display: inline-block;
+        font-size: 0.72em;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-bottom: 4px;
+    }
+
+    .badge-created {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .badge-edited {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .current-tag {
+        display: inline-block;
+        font-size: 0.72em;
+        background: #fff3e0;
+        color: #e65100;
+        border-radius: 8px;
+        padding: 1px 7px;
+        margin-left: 6px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        vertical-align: middle;
     }
 
     .overlay {
@@ -469,15 +519,20 @@
             </div>
             {#if showHistoryId === trade.id}
                 <div class="history-box">
-                    <h4>Edit History (most recent first)</h4>
-                    {#each [...trade.editHistory].reverse() as entry}
+                    <h4>Full History</h4>
+                    {#each buildTimeline(trade) as step, i}
                         <div class="history-entry">
-                            <div class="history-meta"><strong>{entry.editedBy}</strong> edited on {formatDate(entry.editedAt)}</div>
-                            <div class="history-label">Before this edit:</div>
-                            <div class="history-field"><span class="history-key">Date:</span> {entry.snapshot.date}</div>
-                            <div class="history-field"><span class="history-key">Parties:</span> {entry.snapshot.parties}</div>
-                            <div class="history-field"><span class="history-key">Picks:</span> {entry.snapshot.picks.join(', ')}</div>
-                            <div class="history-field"><span class="history-key">Conditions:</span> {entry.snapshot.conditions}</div>
+                            <div class="timeline-badge {step.label === 'Created' ? 'badge-created' : 'badge-edited'}">
+                                {step.label}
+                            </div>
+                            <div class="history-meta">
+                                <strong>{step.who}</strong> — {formatDate(step.when)}
+                                {#if i === buildTimeline(trade).length - 1}<span class="current-tag">current</span>{/if}
+                            </div>
+                            <div class="history-field"><span class="history-key">Date:</span> {step.values.date}</div>
+                            <div class="history-field"><span class="history-key">Parties:</span> {step.values.parties}</div>
+                            <div class="history-field"><span class="history-key">Picks:</span> {step.values.picks.join(', ')}</div>
+                            <div class="history-field"><span class="history-key">Conditions:</span> {step.values.conditions}</div>
                         </div>
                     {/each}
                 </div>
