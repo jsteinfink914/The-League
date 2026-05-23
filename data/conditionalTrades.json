@@ -145,5 +145,30 @@
     "addedBy": "System",
     "addedAt": "2025-11-25T00:00:00.000Z",
     "editHistory": []
+  },
+  {
+    "id": "ct-1779549851599",
+    "date": "Yesterday",
+    "parties": "Test",
+    "picks": [
+      "Test"
+    ],
+    "conditions": "Test",
+    "addedBy": "Hake",
+    "addedAt": "2026-05-23T15:24:11.599Z",
+    "editHistory": [
+      {
+        "editedBy": "Sam",
+        "editedAt": "2026-05-23T15:24:21.515Z",
+        "snapshot": {
+          "date": "Today",
+          "parties": "Test",
+          "picks": [
+            "Test"
+          ],
+          "conditions": "Test"
+        }
+      }
+    ]
   }
 ]

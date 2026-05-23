@@ -152,8 +152,8 @@
     }
 
     .add-btn {
-        background: #1a237e;
-        color: #fff;
+        background: var(--blueOne);
+        color: var(--fff);
         border: none;
         border-radius: 50%;
         width: 36px;
@@ -168,11 +168,11 @@
     }
 
     .add-btn:hover {
-        background: #283593;
+        background: var(--blueTwo);
     }
 
     .bets-container {
-        border: 1px solid #ddd;
+        border: 1px solid var(--ddd);
         padding: 15px;
         border-radius: 5px;
         font-family: Arial, sans-serif;
@@ -185,7 +185,7 @@
         margin-bottom: 10px;
         cursor: pointer;
         padding: 10px 14px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--ccc);
         border-radius: 5px;
         display: flex;
         align-items: center;
@@ -194,7 +194,7 @@
     }
 
     .dropdown:hover {
-        background: #f5f5f5;
+        background: var(--f8f8f8);
     }
 
     .dropdown h3 {
@@ -205,7 +205,7 @@
 
     .edit-btn {
         background: none;
-        border: 1px solid #aaa;
+        border: 1px solid var(--aaa);
         border-radius: 4px;
         padding: 2px 10px;
         font-size: 0.8em;
@@ -215,7 +215,7 @@
     }
 
     .edit-btn:hover {
-        background: #e8eaf6;
+        background: var(--eee);
     }
 
     .delete-btn {
@@ -231,7 +231,7 @@
     }
 
     .delete-btn:hover {
-        background: #ffebee;
+        background: rgba(198, 40, 40, 0.12);
     }
 
     .section {
@@ -251,7 +251,7 @@
 
     .meta {
         font-size: 0.78em;
-        color: #888;
+        color: var(--g999);
         text-align: center;
         margin-top: 6px;
     }
@@ -259,7 +259,7 @@
     .history-toggle {
         background: none;
         border: none;
-        color: #1a237e;
+        color: var(--blueOne);
         cursor: pointer;
         font-size: 0.78em;
         text-decoration: underline;
@@ -267,8 +267,8 @@
     }
 
     .history-box {
-        background: #f9f9f9;
-        border: 1px solid #eee;
+        background: var(--f3f3f3);
+        border: 1px solid var(--eee);
         border-radius: 4px;
         padding: 8px 12px;
         margin-top: 8px;
@@ -282,7 +282,7 @@
     }
 
     .history-entry {
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--eee);
         padding-top: 8px;
         margin-top: 8px;
     }
@@ -312,20 +312,20 @@
     }
 
     .badge-created {
-        background: #e8f5e9;
-        color: #2e7d32;
+        background: var(--badgeRookieYearBg);
+        color: var(--badgeRookieYearText);
     }
 
     .badge-edited {
-        background: #e3f2fd;
-        color: #1565c0;
+        background: var(--badgeRookieY12Bg);
+        color: var(--badgeRookieY12Text);
     }
 
     .current-tag {
         display: inline-block;
         font-size: 0.72em;
-        background: #fff3e0;
-        color: #e65100;
+        background: var(--badgeRookieY3Bg);
+        color: var(--badgeRookieY3Text);
         border-radius: 8px;
         padding: 1px 7px;
         margin-left: 6px;
@@ -338,7 +338,7 @@
     .overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.4);
+        background: rgba(0,0,0,0.5);
         z-index: 100;
         display: flex;
         align-items: center;
@@ -347,12 +347,13 @@
     }
 
     .modal {
-        background: #fff;
+        background: var(--fff);
+        border: 1px solid var(--ddd);
         border-radius: 8px;
         padding: 24px;
         width: 100%;
         max-width: 500px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
 
     .modal h3 {
@@ -370,12 +371,14 @@
     .field label {
         font-size: 0.85em;
         font-weight: bold;
-        color: #333;
+        color: var(--g333);
     }
 
     .field input,
     .field textarea {
-        border: 1px solid #ccc;
+        background: var(--fff);
+        color: var(--g000);
+        border: 1px solid var(--ccc);
         border-radius: 4px;
         padding: 7px 10px;
         font-size: 0.95em;
@@ -386,7 +389,7 @@
     .field input:focus,
     .field textarea:focus {
         outline: none;
-        border-color: #1a237e;
+        border-color: var(--blueOne);
     }
 
     .modal-actions {
@@ -397,8 +400,8 @@
     }
 
     .btn-primary {
-        background: #1a237e;
-        color: #fff;
+        background: var(--blueOne);
+        color: var(--fff);
         border: none;
         border-radius: 4px;
         padding: 8px 20px;
@@ -407,17 +410,17 @@
     }
 
     .btn-primary:hover {
-        background: #283593;
+        background: var(--blueTwo);
     }
 
     .btn-primary:disabled {
-        background: #9fa8da;
+        opacity: 0.5;
         cursor: not-allowed;
     }
 
     .btn-secondary {
         background: none;
-        border: 1px solid #aaa;
+        border: 1px solid var(--aaa);
         border-radius: 4px;
         padding: 8px 16px;
         cursor: pointer;
@@ -425,7 +428,7 @@
     }
 
     .btn-secondary:hover {
-        background: #f5f5f5;
+        background: var(--f8f8f8);
     }
 
     .btn-danger {
@@ -459,7 +462,7 @@
 </div>
 
 {#if loading}
-    <p style="text-align:center;color:#888;">Loading...</p>
+    <p style="text-align:center;color:var(--g999);">Loading...</p>
 {:else}
 <div class="bets-container">
     {#each bets as bet, index}
@@ -514,7 +517,7 @@
     {/each}
 
     {#if bets.length === 0}
-        <p style="text-align:center;color:#888;">No side bets yet. Hit + to add one.</p>
+        <p style="text-align:center;color:var(--g999);">No side bets yet. Hit + to add one.</p>
     {/if}
 </div>
 {/if}
@@ -551,7 +554,7 @@
 <div class="overlay" on:click|self={cancelDelete}>
     <div class="modal">
         <h3>Delete this bet?</h3>
-        <p style="color:#555;margin:0 0 18px;">This cannot be undone.</p>
+        <p style="color:var(--g555);margin:0 0 18px;">This cannot be undone.</p>
         <div class="modal-actions">
             <button class="btn-secondary" on:click={cancelDelete}>Cancel</button>
             <button class="btn-danger" on:click={confirmDelete}>Delete</button>
