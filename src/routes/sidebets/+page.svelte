@@ -1,8 +1,8 @@
 <script>
     import { onMount } from 'svelte';
 
-    let trades = [];
-    let selectedTrade = null;
+    let bets = [];
+    let selectedBet = null;
     let loading = true;
 
     let showForm = false;
@@ -10,8 +10,7 @@
 
     let formDate = '';
     let formParties = '';
-    let formPicksRaw = '';
-    let formConditions = '';
+    let formBet = '';
 
     let showNameDialog = false;
     let submitterName = '';
@@ -19,16 +18,16 @@
 
     let showHistoryId = null;
 
-    async function loadTrades() {
-        const res = await fetch('/api/conditional');
-        trades = await res.json();
+    async function loadBets() {
+        const res = await fetch('/api/sidebets');
+        bets = await res.json();
         loading = false;
     }
 
-    onMount(loadTrades);
+    onMount(loadBets);
 
-    const toggleTrade = (index) => {
-        selectedTrade = selectedTrade === index ? null : index;
+    const toggleBet = (index) => {
+        selectedBet = selectedBet === index ? null : index;
         showHistoryId = null;
     };
 
@@ -36,21 +35,19 @@
         editingId = null;
         formDate = '';
         formParties = '';
-        formPicksRaw = '';
-        formConditions = '';
+        formBet = '';
         showForm = true;
-        selectedTrade = null;
+        selectedBet = null;
     }
 
-    function openEdit(e, trade) {
+    function openEdit(e, bet) {
         e.stopPropagation();
-        editingId = trade.id;
-        formDate = trade.date;
-        formParties = trade.parties;
-        formPicksRaw = trade.picks.join('\n');
-        formConditions = trade.conditions;
+        editingId = bet.id;
+        formDate = bet.date;
+        formParties = bet.parties;
+        formBet = bet.bet;
         showForm = true;
-        selectedTrade = null;
+        selectedBet = null;
     }
 
     function cancelForm() {
@@ -59,7 +56,7 @@
     }
 
     function submitForm() {
-        if (!formDate.trim() || !formParties.trim() || !formConditions.trim()) return;
+        if (!formDate.trim() || !formParties.trim() || !formBet.trim()) return;
         submitterName = '';
         pendingSubmit = 'form';
         showNameDialog = true;
@@ -69,26 +66,24 @@
         if (!submitterName.trim()) return;
         showNameDialog = false;
 
-        const picks = formPicksRaw.split('\n').map(s => s.trim()).filter(Boolean);
         const payload = {
             date: formDate.trim(),
             parties: formParties.trim(),
-            picks,
-            conditions: formConditions.trim(),
+            bet: formBet.trim(),
             submittedBy: submitterName.trim()
         };
 
         if (editingId) {
             payload.id = editingId;
-            await fetch('/api/conditional', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            await fetch('/api/sidebets', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         } else {
-            await fetch('/api/conditional', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            await fetch('/api/sidebets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         }
 
         showForm = false;
         editingId = null;
         pendingSubmit = null;
-        await loadTrades();
+        await loadBets();
     }
 
     function cancelNameDialog() {
@@ -140,7 +135,7 @@
         background: #283593;
     }
 
-    .trade-info {
+    .bets-container {
         border: 1px solid #ddd;
         padding: 15px;
         border-radius: 5px;
@@ -197,14 +192,9 @@
         font-size: 1.1em;
     }
 
-    .section p, .section ul {
+    .section p {
         margin: 0;
         font-size: 1em;
-    }
-
-    ul {
-        padding-left: 20px;
-        text-align: left;
     }
 
     .meta {
@@ -299,11 +289,6 @@
         border-color: #1a237e;
     }
 
-    .field small {
-        font-size: 0.75em;
-        color: #888;
-    }
-
     .modal-actions {
         display: flex;
         gap: 10px;
@@ -344,7 +329,7 @@
     }
 
     @media (max-width: 600px) {
-        .trade-info {
+        .bets-container {
             padding: 10px;
             font-size: 0.9em;
         }
@@ -355,54 +340,46 @@
 </style>
 
 <div class="page-header">
-    <h2>Conditional Picks</h2>
-    <button class="add-btn" on:click={openAdd} title="Add new conditional pick">+</button>
+    <h2>Side Bets</h2>
+    <button class="add-btn" on:click={openAdd} title="Add new side bet">+</button>
 </div>
 
 {#if loading}
     <p style="text-align:center;color:#888;">Loading...</p>
 {:else}
-<div class="trade-info">
-    {#each trades as trade, index}
-        <div class="dropdown" on:click={() => toggleTrade(index)}>
-            <h3>{trade.parties} — {trade.date}</h3>
-            <button class="edit-btn" on:click={(e) => openEdit(e, trade)}>Edit</button>
+<div class="bets-container">
+    {#each bets as bet, index}
+        <div class="dropdown" on:click={() => toggleBet(index)}>
+            <h3>{bet.parties} — {bet.date}</h3>
+            <button class="edit-btn" on:click={(e) => openEdit(e, bet)}>Edit</button>
         </div>
 
-        {#if selectedTrade === index}
+        {#if selectedBet === index}
             <div class="section">
-                <h3>Date of Trade:</h3>
-                <p>{trade.date}</p>
+                <h3>Date:</h3>
+                <p>{bet.date}</p>
             </div>
             <div class="section">
                 <h3>Parties Involved:</h3>
-                <p>{trade.parties}</p>
+                <p>{bet.parties}</p>
             </div>
             <div class="section">
-                <h3>Picks Involved:</h3>
-                <p>
-                    {#each trade.picks as pick}
-                        {pick}<br>
-                    {/each}
-                </p>
-            </div>
-            <div class="section">
-                <h3>Conditions:</h3>
-                <p>{trade.conditions}</p>
+                <h3>The Bet:</h3>
+                <p>{bet.bet}</p>
             </div>
             <div class="meta">
-                Added by <strong>{trade.addedBy}</strong> on {formatDate(trade.addedAt)}
-                {#if trade.editHistory.length > 0}
+                Added by <strong>{bet.addedBy}</strong> on {formatDate(bet.addedAt)}
+                {#if bet.editHistory.length > 0}
                     &nbsp;·&nbsp;
-                    <button class="history-toggle" on:click={(e) => toggleHistory(e, trade.id)}>
-                        {showHistoryId === trade.id ? 'Hide' : 'Show'} edit history ({trade.editHistory.length})
+                    <button class="history-toggle" on:click={(e) => toggleHistory(e, bet.id)}>
+                        {showHistoryId === bet.id ? 'Hide' : 'Show'} edit history ({bet.editHistory.length})
                     </button>
                 {/if}
             </div>
-            {#if showHistoryId === trade.id}
+            {#if showHistoryId === bet.id}
                 <div class="history-box">
                     <h4>Edit History</h4>
-                    {#each [...trade.editHistory].reverse() as entry}
+                    {#each [...bet.editHistory].reverse() as entry}
                         <div class="history-entry">
                             <strong>{entry.editedBy}</strong> edited on {formatDate(entry.editedAt)}<br>
                             <em>Previous: {entry.snapshot.parties} — {entry.snapshot.date}</em>
@@ -413,8 +390,8 @@
         {/if}
     {/each}
 
-    {#if trades.length === 0}
-        <p style="text-align:center;color:#888;">No conditional picks yet. Hit + to add one.</p>
+    {#if bets.length === 0}
+        <p style="text-align:center;color:#888;">No side bets yet. Hit + to add one.</p>
     {/if}
 </div>
 {/if}
@@ -422,30 +399,25 @@
 {#if showForm}
 <div class="overlay" on:click|self={cancelForm}>
     <div class="modal">
-        <h3>{editingId ? 'Edit Conditional Pick' : 'Add Conditional Pick'}</h3>
+        <h3>{editingId ? 'Edit Side Bet' : 'Add Side Bet'}</h3>
         <div class="field">
             <label>Date</label>
             <input type="text" bind:value={formDate} placeholder="e.g. 11/1/24" />
         </div>
         <div class="field">
             <label>Parties Involved</label>
-            <input type="text" bind:value={formParties} placeholder="e.g. Abul and Coyne" />
+            <input type="text" bind:value={formParties} placeholder="e.g. Coyne vs. Ska" />
         </div>
         <div class="field">
-            <label>Picks Involved</label>
-            <textarea rows="3" bind:value={formPicksRaw} placeholder="One pick per line"></textarea>
-            <small>Enter each pick on its own line</small>
-        </div>
-        <div class="field">
-            <label>Conditions</label>
-            <textarea rows="4" bind:value={formConditions} placeholder="Describe the conditions of the deal..."></textarea>
+            <label>The Bet</label>
+            <textarea rows="4" bind:value={formBet} placeholder="Describe the bet..."></textarea>
         </div>
         <div class="modal-actions">
             <button class="btn-secondary" on:click={cancelForm}>Cancel</button>
             <button class="btn-primary"
-                disabled={!formDate.trim() || !formParties.trim() || !formConditions.trim()}
+                disabled={!formDate.trim() || !formParties.trim() || !formBet.trim()}
                 on:click={submitForm}>
-                {editingId ? 'Save Changes' : 'Add Pick'}
+                {editingId ? 'Save Changes' : 'Add Bet'}
             </button>
         </div>
     </div>

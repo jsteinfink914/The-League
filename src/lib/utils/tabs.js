@@ -76,6 +76,11 @@ export const tabs = [
                 label: 'Conditional Trades',
                 dest: '/conditional',
             },
+            {
+                icon: 'casino',
+                label: 'Side Bets',
+                dest: '/sidebets',
+            },
             
             {
                 icon: 'history_edu',
