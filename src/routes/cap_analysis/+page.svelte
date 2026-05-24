@@ -23,16 +23,23 @@
     TE: '#f39c12',
     Other: '#95a5a6'
   };
+  const CHART_COLORS = [
+    '#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6',
+    '#1abc9c','#e67e22','#e91e63','#00bcd4',
+    '#8bc34a','#ff5722','#607d8b','#795548','#ffc107','#673ab7','#34495e'
+  ];
 
   // ── State ──────────────────────────────────────────────────────────────────
   let loading = true;
   let error = null;
   let activeSection = 'allocation';
-  let pointsMode = 'starter'; // 'starter' | 'roster'
-  let trendView = 'season';   // 'season' | 'weekly'
+  let pointsMode = 'starter';
+  let trendView = 'season';
   let selectedCapYear = Number(VALUE_YEAR);
+  let selectedTrendYear = 'All';
+
   let playerSortKey = 'dollarPerStarterPt';
-  let playerSortDir = 1;      // 1 = asc, -1 = desc
+  let playerSortDir = 1;
   let teamSortKey = 'dollarPerStarterPt';
   let teamSortDir = 1;
   let playerFilterPos = 'All';
@@ -43,11 +50,23 @@
   let data = null;
   let allManagers = [];
   let availableYears = [];
+  let trendYears = [];
 
   // ── Charts ─────────────────────────────────────────────────────────────────
   let allocationChart = null;
   let allocationPctChart = null;
   let trendChart = null;
+
+  // ── Helpers: read CSS vars for Chart.js theming ───────────────────────────
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function chartTheme() {
+    const textColor = cssVar('--g333') || '#333';
+    const gridColor = cssVar('--ddd') || '#ddd';
+    return { textColor, gridColor };
+  }
 
   // ── Derived ────────────────────────────────────────────────────────────────
   $: efficiencyKey = pointsMode === 'starter' ? 'dollarPerStarterPt' : 'dollarPerRosterPt';
@@ -76,43 +95,51 @@
     return playerSortDir * (av - bv);
   });
 
+  $: filteredSeasonTrends = data
+    ? (selectedTrendYear === 'All'
+        ? data.seasonTrends
+        : data.seasonTrends.filter((r) => r.year === Number(selectedTrendYear))
+      ).sort((a, b) => b.year - a.year || (a[efficiencyKey] ?? Infinity) - (b[efficiencyKey] ?? Infinity))
+    : [];
+
   function setPlayerSort(key) {
-    if (playerSortKey === key) {
-      playerSortDir *= -1;
-    } else {
-      playerSortKey = key;
-      playerSortDir = key === 'name' || key === 'position' || key === 'manager' ? 1 : 1;
-    }
+    if (playerSortKey === key) playerSortDir *= -1;
+    else { playerSortKey = key; playerSortDir = 1; }
   }
-
   function setTeamSort(key) {
-    if (teamSortKey === key) {
-      teamSortDir *= -1;
-    } else {
-      teamSortKey = key;
-      teamSortDir = 1;
-    }
+    if (teamSortKey === key) teamSortDir *= -1;
+    else { teamSortKey = key; teamSortDir = 1; }
   }
-
   function sortArrow(key, currentKey, dir) {
     if (key !== currentKey) return '';
     return dir === 1 ? ' ▲' : ' ▼';
   }
 
   // ── Chart builders ─────────────────────────────────────────────────────────
-  function destroyCharts() {
-    [allocationChart, allocationPctChart, trendChart].forEach((c) => c?.destroy());
-    allocationChart = null;
-    allocationPctChart = null;
-    trendChart = null;
-  }
-
   function buildAllocationCharts() {
     if (!data) return;
     const yearData = data.capByPosition[selectedCapYear] || {};
     const managers = Object.keys(yearData).sort();
+    const { textColor, gridColor } = chartTheme();
 
-    // Absolute stacked bar
+    const sharedScaleOpts = (stacked, maxY) => ({
+      x: {
+        stacked,
+        ticks: { color: textColor, maxRotation: 45 },
+        grid: { color: gridColor }
+      },
+      y: {
+        stacked,
+        beginAtZero: true,
+        ...(maxY != null ? { max: maxY } : {}),
+        ticks: {
+          color: textColor,
+          ...(maxY != null ? { callback: (v) => `${v}%` } : {})
+        },
+        grid: { color: gridColor }
+      }
+    });
+
     const absCtx = document.getElementById('alloc-abs-chart');
     if (absCtx) {
       allocationChart?.destroy();
@@ -128,36 +155,39 @@
         },
         options: {
           responsive: true,
-          plugins: { legend: { position: 'top' }, title: { display: true, text: 'Cap $ by Position' } },
-          scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+          plugins: {
+            legend: { position: 'top', labels: { color: textColor } },
+            title: { display: true, text: 'Cap $ by Position', color: textColor }
+          },
+          scales: sharedScaleOpts(true, null)
         }
       });
     }
 
-    // % of cap stacked bar + league avg lines
     const pctCtx = document.getElementById('alloc-pct-chart');
     if (pctCtx) {
       allocationPctChart?.destroy();
       const leagueAvg = data.leagueAvgByPosition[selectedCapYear] || {};
-      const pctDatasets = POSITIONS.map((pos) => ({
-        label: pos,
-        data: managers.map((m) => {
-          const tc = yearData[m];
-          if (!tc || !tc.total) return 0;
-          return Math.round((tc[pos] / tc.total) * 1000) / 10;
-        }),
-        backgroundColor: POS_COLORS[pos],
-        stack: 'pct'
-      }));
-
       allocationPctChart = new Chart(pctCtx.getContext('2d'), {
         type: 'bar',
-        data: { labels: managers, datasets: pctDatasets },
+        data: {
+          labels: managers,
+          datasets: POSITIONS.map((pos) => ({
+            label: pos,
+            data: managers.map((m) => {
+              const tc = yearData[m];
+              if (!tc || !tc.total) return 0;
+              return Math.round((tc[pos] / tc.total) * 1000) / 10;
+            }),
+            backgroundColor: POS_COLORS[pos],
+            stack: 'pct'
+          }))
+        },
         options: {
           responsive: true,
           plugins: {
-            legend: { position: 'top' },
-            title: { display: true, text: '% of Cap by Position (league avg shown in tooltip)' },
+            legend: { position: 'top', labels: { color: textColor } },
+            title: { display: true, text: '% of Cap by Position', color: textColor },
             tooltip: {
               callbacks: {
                 footer: (items) => {
@@ -169,10 +199,7 @@
               }
             }
           },
-          scales: {
-            x: { stacked: true },
-            y: { stacked: true, beginAtZero: true, max: 100, ticks: { callback: (v) => `${v}%` } }
-          }
+          scales: sharedScaleOpts(true, 100)
         }
       });
     }
@@ -186,15 +213,32 @@
 
     const ptKey = pointsMode === 'starter' ? 'dollarPerStarterPt' : 'dollarPerRosterPt';
     const managers = allManagers;
-    const CHART_COLORS = [
-      '#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6',
-      '#1abc9c','#e67e22','#34495e','#e91e63','#00bcd4',
-      '#8bc34a','#ff5722','#607d8b','#795548','#ffc107','#673ab7'
-    ];
+    const { textColor, gridColor } = chartTheme();
+
+    const sharedOpts = (title, xLabel, yLabel) => ({
+      responsive: true,
+      plugins: {
+        legend: { position: 'right', labels: { color: textColor, boxWidth: 12 } },
+        title: { display: true, text: title, color: textColor },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: $${c.parsed.y?.toFixed(2)}/pt` } }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: { display: true, text: yLabel, color: textColor },
+          ticks: { color: textColor },
+          grid: { color: gridColor }
+        },
+        x: {
+          title: { display: true, text: xLabel, color: textColor },
+          ticks: { color: textColor },
+          grid: { color: gridColor }
+        }
+      }
+    });
 
     if (trendView === 'season') {
       const years = [...new Set(data.seasonTrends.map((t) => t.year))].sort((a, b) => a - b);
-
       trendChart = new Chart(ctx.getContext('2d'), {
         type: 'line',
         data: {
@@ -203,36 +247,20 @@
             const mgrTrends = data.seasonTrends.filter((t) => t.manager === mgr);
             return {
               label: mgr,
-              data: years.map((y) => {
-                const entry = mgrTrends.find((t) => t.year === y);
-                return entry?.[ptKey] ?? null;
-              }),
+              data: years.map((y) => mgrTrends.find((t) => t.year === y)?.[ptKey] ?? null),
               borderColor: CHART_COLORS[i % CHART_COLORS.length],
               backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + '33',
               tension: 0.3,
-              spanGaps: true
+              spanGaps: true,
+              pointRadius: 4
             };
           })
         },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'right' },
-            title: { display: true, text: '$/Fantasy Point by Season' },
-            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: $${ctx.parsed.y?.toFixed(2)}/pt` } }
-          },
-          scales: {
-            y: {
-              beginAtZero: false,
-              title: { display: true, text: '$ per Fantasy Point' }
-            },
-            x: { title: { display: true, text: 'Season' } }
-          }
-        }
+        options: sharedOpts('$/Fantasy Point by Season', 'Season', '$ per Fantasy Point')
       });
     } else {
       const allWeeks = [...new Set(
-        Object.values(data.weeklyTrends).flatMap((wArr) => wArr.map((w) => w.week))
+        Object.values(data.weeklyTrends).flatMap((arr) => arr.map((w) => w.week))
       )].sort((a, b) => a - b);
 
       trendChart = new Chart(ctx.getContext('2d'), {
@@ -243,54 +271,33 @@
             const wArr = data.weeklyTrends[mgr] || [];
             return {
               label: mgr,
-              data: allWeeks.map((w) => {
-                const entry = wArr.find((e) => e.week === w);
-                return entry?.[ptKey] ?? null;
-              }),
+              data: allWeeks.map((w) => wArr.find((e) => e.week === w)?.[ptKey] ?? null),
               borderColor: CHART_COLORS[i % CHART_COLORS.length],
               backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + '33',
               tension: 0.3,
-              spanGaps: true
+              spanGaps: true,
+              pointRadius: 3
             };
           })
         },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'right' },
-            title: { display: true, text: 'Rolling $/Fantasy Point (cumulative, current season)' },
-            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: $${ctx.parsed.y?.toFixed(2)}/pt` } }
-          },
-          scales: {
-            y: {
-              beginAtZero: false,
-              title: { display: true, text: '$ per Fantasy Point (cumulative)' }
-            },
-            x: { title: { display: true, text: 'Week' } }
-          }
-        }
+        options: sharedOpts(
+          'Rolling $/Fantasy Point — Current Season (cumulative)',
+          'Week',
+          '$ per Fantasy Point (cumulative)'
+        )
       });
     }
   }
 
-  // Reactive chart rebuilds when controls change
-  $: if (data && activeSection === 'allocation') {
-    setTimeout(buildAllocationCharts, 0);
-  }
-  $: if (data && activeSection === 'trends') {
-    setTimeout(buildTrendChart, 0);
-  }
-  $: if (data && activeSection === 'trends' && (trendView || pointsMode)) {
-    setTimeout(buildTrendChart, 0);
-  }
-  $: if (data && activeSection === 'allocation' && selectedCapYear) {
-    setTimeout(buildAllocationCharts, 0);
-  }
+  // ── Reactive chart rebuilds ────────────────────────────────────────────────
+  $: if (data && activeSection === 'allocation') setTimeout(buildAllocationCharts, 0);
+  $: if (data && activeSection === 'allocation' && selectedCapYear) setTimeout(buildAllocationCharts, 0);
+  $: if (data && activeSection === 'trends') setTimeout(buildTrendChart, 0);
+  $: if (data && activeSection === 'trends' && (trendView || pointsMode)) setTimeout(buildTrendChart, 0);
 
   // ── Load ───────────────────────────────────────────────────────────────────
   onMount(async () => {
     try {
-      // Fetch static data files
       const [playerMapRes, managerMapRes, playerValuesRes, nflPlayersRes] = await Promise.all([
         fetch('/fp_sleeper_mapping.txt'),
         fetch('/Manager_map.txt'),
@@ -338,13 +345,8 @@
       }
 
       data = await buildCapAnalysisData({
-        historyRows,
-        marketValueByName,
-        rookieContracts,
-        valueIndexes,
-        players: nflPlayers,
-        managerMapRaw,
-        valueYear: VALUE_YEAR
+        historyRows, marketValueByName, rookieContracts,
+        valueIndexes, players: nflPlayers, managerMapRaw, valueYear: VALUE_YEAR
       });
 
       allManagers = [...new Set([
@@ -355,9 +357,10 @@
       availableYears = data.years.slice().reverse();
       selectedCapYear = Number(VALUE_YEAR);
 
+      trendYears = [...new Set(data.seasonTrends.map((r) => r.year))].sort((a, b) => b - a);
+
       loading = false;
 
-      // Draw initial charts after DOM updates
       await new Promise((r) => setTimeout(r, 50));
       buildAllocationCharts();
     } catch (err) {
@@ -374,16 +377,24 @@
     margin: 0 auto;
     padding: 1rem 1.25rem 3rem;
     font-family: inherit;
+    color: var(--g111);
   }
 
-  h2 { margin-bottom: 0.25rem; }
-  .subtitle { color: #666; margin-top: 0; margin-bottom: 1.5rem; font-size: 14px; }
+  h2 { margin-bottom: 0.25rem; color: var(--g111); }
+  h3 { color: var(--g111); }
+
+  .subtitle {
+    color: var(--g555);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 14px;
+  }
 
   /* Section tabs */
   .section-tabs {
     display: flex;
     gap: 0;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid var(--ddd);
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
   }
@@ -394,16 +405,16 @@
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    color: #666;
+    color: var(--g555);
     border-bottom: 3px solid transparent;
     margin-bottom: -2px;
     transition: color 0.15s, border-color 0.15s;
   }
   .tab-btn.active {
-    color: var(--accent, #1a73e8);
-    border-bottom-color: var(--accent, #1a73e8);
+    color: var(--blueTwo);
+    border-bottom-color: var(--blueTwo);
   }
-  .tab-btn:hover:not(.active) { color: #333; }
+  .tab-btn:hover:not(.active) { color: var(--g333); }
 
   /* Controls bar */
   .controls {
@@ -413,17 +424,32 @@
     margin-bottom: 1.25rem;
     flex-wrap: wrap;
   }
-  .controls label { font-size: 13px; color: #555; }
-  .controls select, .controls input[type="text"] {
+  .controls label {
+    font-size: 13px;
+    color: var(--g555);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .controls select,
+  .controls input[type="text"] {
     padding: 4px 8px;
     font-size: 13px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--ddd);
     border-radius: 4px;
+    background: var(--fff);
+    color: var(--g111);
+  }
+  .ctrl-label {
+    font-size: 13px;
+    color: var(--g555);
+    font-weight: 600;
   }
 
+  /* Toggle buttons */
   .toggle-group {
     display: flex;
-    border: 1px solid #ccc;
+    border: 1px solid var(--ddd);
     border-radius: 4px;
     overflow: hidden;
   }
@@ -431,13 +457,17 @@
     padding: 4px 14px;
     font-size: 13px;
     border: none;
-    background: #f5f5f5;
+    background: var(--eee);
+    color: var(--g333);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
   .toggle-btn.active {
-    background: var(--accent, #1a73e8);
+    background: var(--blueTwo);
     color: #fff;
+  }
+  .toggle-btn:hover:not(.active) {
+    background: var(--ddd);
   }
 
   /* Charts */
@@ -448,21 +478,21 @@
     margin-bottom: 2rem;
   }
   .chart-box {
-    background: var(--surface, #fff);
-    border: 1px solid #e0e0e0;
+    background: var(--fff);
+    border: 1px solid var(--ddd);
     border-radius: 8px;
     padding: 1rem;
   }
   .chart-box canvas { max-height: 340px; }
 
   .chart-full {
-    background: var(--surface, #fff);
-    border: 1px solid #e0e0e0;
+    background: var(--fff);
+    border: 1px solid var(--ddd);
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 2rem;
   }
-  .chart-full canvas { max-height: 400px; }
+  .chart-full canvas { max-height: 420px; }
 
   /* Tables */
   .table-section { margin-bottom: 2rem; }
@@ -471,18 +501,19 @@
   .table-wrap {
     overflow-x: auto;
     border-radius: 8px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--ddd);
   }
 
   table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+    color: var(--g111);
   }
 
   thead th {
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--g111);
+    color: var(--fff);
     padding: 8px 10px;
     text-align: left;
     white-space: nowrap;
@@ -491,17 +522,24 @@
     position: sticky;
     top: 0;
   }
-  thead th:hover { background: #333; }
+  thead th:hover { opacity: 0.88; }
 
-  tbody tr:nth-child(even) { background: var(--oddRowBackground, #f9f9f9); }
-  tbody tr:hover { background: var(--tableHover, #eef4ff); }
+  tbody tr:nth-child(even) { background: var(--r1); }
+  tbody tr:hover { background: var(--headerPrimary); }
 
   td {
     padding: 7px 10px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--eee);
     white-space: nowrap;
+    color: var(--g111);
   }
 
+  .league-avg-row td {
+    background: var(--r2);
+    font-style: italic;
+  }
+
+  /* Position badges */
   .pos-badge {
     display: inline-block;
     padding: 1px 6px;
@@ -516,11 +554,14 @@
   .pos-TE { background: #f39c12; }
   .pos-Other { background: #95a5a6; }
 
+  /* Efficiency coloring — use defined league-aware shades */
   .eff-good { color: #27ae60; font-weight: 700; }
   .eff-mid  { color: #e67e22; font-weight: 700; }
   .eff-bad  { color: #e74c3c; font-weight: 700; }
 
-  .null-val { color: #aaa; font-style: italic; }
+  .null-val { color: var(--g999); font-style: italic; }
+
+  .contract-label { font-size: 11px; color: var(--g555); }
 
   /* Loading / error */
   .loading, .error-msg {
@@ -529,9 +570,9 @@
     justify-content: center;
     min-height: 30vh;
     font-size: 15px;
-    color: #666;
+    color: var(--g555);
   }
-  .error-msg { color: #c0392b; }
+  .error-msg { color: #e74c3c; }
 
   @media (max-width: 768px) {
     .charts-row { grid-template-columns: 1fr; }
@@ -588,7 +629,6 @@
         </div>
       </div>
 
-      <!-- Allocation table -->
       <div class="table-section">
         <h3>Cap Breakdown by Position — {selectedCapYear}</h3>
         <div class="table-wrap">
@@ -614,14 +654,11 @@
                   {/each}
                 </tr>
               {/each}
-              <!-- League average row -->
               {#if data.leagueAvgByPosition[selectedCapYear]}
                 {@const avg = data.leagueAvgByPosition[selectedCapYear]}
-                <tr style="background: var(--r2, #fff3cd); font-style: italic;">
+                <tr class="league-avg-row">
                   <td><strong>League Avg</strong></td>
-                  {#each POSITIONS as pos}
-                    <td>—</td>
-                  {/each}
+                  {#each POSITIONS as pos}<td>—</td>{/each}
                   <td>—</td>
                   {#each POSITIONS as pos}
                     <td>{avg[pos]?.toFixed(1)}%</td>
@@ -637,7 +674,7 @@
     <!-- ── SECTION 2: Efficiency ───────────────────────────────────────── -->
     {#if activeSection === 'efficiency'}
       <div class="controls">
-        <span style="font-size:13px; color:#555; font-weight:600;">Points:</span>
+        <span class="ctrl-label">Points:</span>
         <div class="toggle-group">
           <button class="toggle-btn" class:active={pointsMode === 'starter'}
             on:click={() => (pointsMode = 'starter')}>Starter</button>
@@ -646,7 +683,7 @@
         </div>
       </div>
 
-      <!-- Team-level table -->
+      <!-- Team table -->
       <div class="table-section">
         <h3>Team Efficiency — {VALUE_YEAR}</h3>
         <div class="table-wrap">
@@ -683,7 +720,7 @@
         </div>
       </div>
 
-      <!-- Player-level table -->
+      <!-- Player table -->
       <div class="table-section">
         <h3>Player Efficiency — {VALUE_YEAR}</h3>
         <div class="controls" style="margin-bottom: 0.75rem;">
@@ -735,7 +772,7 @@
                       <span class="null-val">no pts</span>
                     {/if}
                   </td>
-                  <td style="font-size:11px; color:#777;">{p.contractLabel || '—'}</td>
+                  <td class="contract-label">{p.contractLabel || '—'}</td>
                 </tr>
               {/each}
             </tbody>
@@ -747,7 +784,7 @@
     <!-- ── SECTION 3: Historical Trends ───────────────────────────────── -->
     {#if activeSection === 'trends'}
       <div class="controls">
-        <span style="font-size:13px; color:#555; font-weight:600;">View:</span>
+        <span class="ctrl-label">View:</span>
         <div class="toggle-group">
           <button class="toggle-btn" class:active={trendView === 'season'}
             on:click={() => { trendView = 'season'; setTimeout(buildTrendChart, 0); }}>
@@ -758,7 +795,7 @@
             Weekly (Current Season)
           </button>
         </div>
-        <span style="font-size:13px; color:#555; font-weight:600;">Points:</span>
+        <span class="ctrl-label">Points:</span>
         <div class="toggle-group">
           <button class="toggle-btn" class:active={pointsMode === 'starter'}
             on:click={() => { pointsMode = 'starter'; setTimeout(buildTrendChart, 0); }}>
@@ -769,16 +806,28 @@
             All Roster
           </button>
         </div>
+        {#if trendView === 'season'}
+          <label>Filter year:
+            <select bind:value={selectedTrendYear}>
+              <option value="All">All seasons</option>
+              {#each trendYears as y}
+                <option value={y}>{y}</option>
+              {/each}
+            </select>
+          </label>
+        {/if}
       </div>
 
       <div class="chart-full">
         <canvas id="trend-chart"></canvas>
       </div>
 
-      <!-- Season trends table -->
       {#if trendView === 'season'}
         <div class="table-section">
-          <h3>Season-by-Season Efficiency</h3>
+          <h3>
+            Season-by-Season Efficiency
+            {#if selectedTrendYear !== 'All'} — {selectedTrendYear}{/if}
+          </h3>
           <div class="table-wrap">
             <table>
               <thead>
@@ -791,7 +840,7 @@
                 </tr>
               </thead>
               <tbody>
-                {#each [...data.seasonTrends].sort((a,b) => b.year - a.year || a[efficiencyKey] - b[efficiencyKey]) as row}
+                {#each filteredSeasonTrends as row}
                   {@const effVal = row[efficiencyKey]}
                   {@const pts = row[ptsKey]}
                   <tr>
