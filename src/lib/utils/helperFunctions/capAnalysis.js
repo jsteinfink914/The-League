@@ -167,6 +167,12 @@ function getCapHit({ pid, players, yearIndexes, historyRows, marketValueByName, 
 
 /**
  * Build all cap analysis data for the page.
+ *
+ * @param {Object} opts
+ * @param {Array}  opts.preloadedHistory - Pre-computed historical seasonTrends from
+ *   static/cap-history.json. When supplied, historical Sleeper matchup API calls are
+ *   skipped entirely (only the current season is fetched live).
+ *   Pass null to force a full live fetch (e.g. when the JSON hasn't been generated yet).
  */
 export async function buildCapAnalysisData({
   historyRows,
@@ -175,7 +181,8 @@ export async function buildCapAnalysisData({
   valueIndexes,
   players,
   managerMapRaw,
-  valueYear
+  valueYear,
+  preloadedHistory = null
 }) {
   const currentYearNum = Number(valueYear);
   const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
@@ -289,26 +296,68 @@ export async function buildCapAnalysisData({
   }));
 
   // ── Step 6: Historical season trends ─────────────────────────────────────
-  // Only process seasons that have cap data AND are not too far back
-  // Fetch historical matchups in parallel for seasons with cap data
-  const historicalSeasons = seasonChain.filter(
-    (s) => s.year !== currentYearNum && capYears.includes(s.year)
-  );
-
-  // Fetch all historical season data in parallel
-  const histResults = await Promise.allSettled(
-    historicalSeasons.map(async ({ year, seasonID, playoffWeekStart }) => {
-      const [matchups, rosters] = await Promise.all([
-        fetchSeasonMatchups(seasonID, playoffWeekStart),
-        fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/rosters`)
-      ]);
-      return { year, matchups, rosters };
-    })
-  );
-
   const seasonTrends = [];
 
-  // Add current year to trends
+  if (preloadedHistory && Array.isArray(preloadedHistory)) {
+    // Fast path: use pre-computed data from static/cap-history.json.
+    // Only current-year entries need to be computed live (done below).
+    for (const entry of preloadedHistory) {
+      if (entry.year !== currentYearNum) seasonTrends.push(entry);
+    }
+  } else {
+    // Slow path: fetch all historical seasons live (fallback when JSON not generated yet).
+    const historicalSeasons = seasonChain.filter(
+      (s) => s.year !== currentYearNum && capYears.includes(s.year)
+    );
+    const histResults = await Promise.allSettled(
+      historicalSeasons.map(async ({ year, seasonID, playoffWeekStart }) => {
+        const [matchups, rosters] = await Promise.all([
+          fetchSeasonMatchups(seasonID, playoffWeekStart),
+          fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/rosters`)
+        ]);
+        return { year, matchups, rosters };
+      })
+    );
+    for (const result of histResults) {
+      if (result.status !== 'fulfilled') continue;
+      const { year, matchups, rosters } = result.value;
+      const yRows = historyRows.filter((r) => r.Year === year);
+      if (!yRows.length) continue;
+      const yi = { ...buildValueIndexesLocal(yRows), sleeperToFantasyPros: valueIndexes.sleeperToFantasyPros };
+      const playerPts = buildPlayerPoints(matchups);
+      const seasonRosterPlayers = new Map();
+      for (const roster of rosters) seasonRosterPlayers.set(String(roster.roster_id), roster.players || []);
+      const seasonPlayerToRoster = new Map();
+      for (const [rid, pids] of seasonRosterPlayers) for (const pid of pids) seasonPlayerToRoster.set(pid, rid);
+      const teamAggs = new Map();
+      for (const [rid] of seasonRosterPlayers) {
+        const mn = managerMapRaw.get(rid) || `Team ${rid}`;
+        teamAggs.set(mn, { capHit: 0, starterPts: 0, rosterPts: 0 });
+      }
+      for (const [pid, pts] of playerPts) {
+        const rid = seasonPlayerToRoster.get(pid);
+        if (!rid) continue;
+        const mn = managerMapRaw.get(rid) || `Team ${rid}`;
+        if (!teamAggs.has(mn)) continue;
+        const { capHit } = getCapHit({ pid, players, yearIndexes: yi, historyRows, marketValueByName: new Map(), rookieContracts, year });
+        if (!capHit) continue;
+        const a = teamAggs.get(mn);
+        a.capHit += capHit; a.starterPts += pts.starterPts; a.rosterPts += pts.rosterPts;
+      }
+      for (const [manager, a] of teamAggs) {
+        if (!a.capHit) continue;
+        const sp = Math.round(a.starterPts * 10) / 10;
+        const rp = Math.round(a.rosterPts  * 10) / 10;
+        seasonTrends.push({
+          year, manager, capHit: a.capHit, starterPts: sp, rosterPts: rp,
+          dollarPerStarterPt: sp > 0 ? Math.round((a.capHit / sp) * 100) / 100 : null,
+          dollarPerRosterPt:  rp > 0 ? Math.round((a.capHit / rp) * 100) / 100 : null
+        });
+      }
+    }
+  }
+
+  // Add current year to trends (always live)
   {
     const year = currentYearNum;
     const yRows = historyRows.filter((r) => r.Year === year);
@@ -346,55 +395,6 @@ export async function buildCapAnalysisData({
           dollarPerRosterPt: rp > 0 ? Math.round((a.capHit / rp) * 100) / 100 : null
         });
       }
-    }
-  }
-
-  // Process historical seasons
-  for (const result of histResults) {
-    if (result.status !== 'fulfilled') continue;
-    const { year, matchups, rosters } = result.value;
-
-    const yRows = historyRows.filter((r) => r.Year === year);
-    if (!yRows.length) continue;
-
-    const yi = { ...buildValueIndexesLocal(yRows), sleeperToFantasyPros: valueIndexes.sleeperToFantasyPros };
-    const playerPts = buildPlayerPoints(matchups);
-
-    const seasonRosterPlayers = new Map();
-    for (const roster of rosters) {
-      seasonRosterPlayers.set(String(roster.roster_id), roster.players || []);
-    }
-    const seasonPlayerToRoster = new Map();
-    for (const [rid, pids] of seasonRosterPlayers) for (const pid of pids) seasonPlayerToRoster.set(pid, rid);
-
-    const teamAggs = new Map();
-    for (const [rid] of seasonRosterPlayers) {
-      const mn = managerMapRaw.get(rid) || `Team ${rid}`;
-      teamAggs.set(mn, { capHit: 0, starterPts: 0, rosterPts: 0 });
-    }
-
-    for (const [pid, pts] of playerPts) {
-      const rid = seasonPlayerToRoster.get(pid);
-      if (!rid) continue;
-      const mn = managerMapRaw.get(rid) || `Team ${rid}`;
-      if (!teamAggs.has(mn)) continue;
-      const { capHit } = getCapHit({ pid, players, yearIndexes: yi, historyRows, marketValueByName: new Map(), rookieContracts, year });
-      if (!capHit) continue;
-      const a = teamAggs.get(mn);
-      a.capHit += capHit;
-      a.starterPts += pts.starterPts;
-      a.rosterPts += pts.rosterPts;
-    }
-
-    for (const [manager, a] of teamAggs) {
-      if (!a.capHit) continue;
-      const sp = Math.round(a.starterPts * 10) / 10;
-      const rp = Math.round(a.rosterPts * 10) / 10;
-      seasonTrends.push({
-        year, manager, capHit: a.capHit, starterPts: sp, rosterPts: rp,
-        dollarPerStarterPt: sp > 0 ? Math.round((a.capHit / sp) * 100) / 100 : null,
-        dollarPerRosterPt: rp > 0 ? Math.round((a.capHit / rp) * 100) / 100 : null
-      });
     }
   }
 

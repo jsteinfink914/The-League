@@ -45,6 +45,7 @@
   },
   "scripts": {
     "dev": "vite dev",
+    "gen-cap-history": "node scripts/generate-cap-history.js",
     "build": "vite build",
     "build-docker": "DOCKER_BUILD=true vite build --verbose",
     "docker-build": "docker build . -t $USER/league-page:latest",

@@ -344,9 +344,26 @@
         console.warn('FantasyPros market file not loaded:', e);
       }
 
+      // Load pre-computed historical data if available (fast path).
+      // Falls back to null so buildCapAnalysisData fetches live (slow path).
+      let preloadedHistory = null;
+      try {
+        const histRes = await fetch('/cap-history.json');
+        if (histRes.ok) {
+          const histJson = await histRes.json();
+          if (Array.isArray(histJson.seasonTrends)) {
+            preloadedHistory = histJson.seasonTrends;
+            console.info(`[CapAnalysis] Loaded ${preloadedHistory.length} historical entries from cache (generated ${histJson.generatedAt})`);
+          }
+        }
+      } catch (e) {
+        console.warn('[CapAnalysis] cap-history.json not available, fetching live:', e.message);
+      }
+
       data = await buildCapAnalysisData({
         historyRows, marketValueByName, rookieContracts,
-        valueIndexes, players: nflPlayers, managerMapRaw, valueYear: VALUE_YEAR
+        valueIndexes, players: nflPlayers, managerMapRaw, valueYear: VALUE_YEAR,
+        preloadedHistory
       });
 
       allManagers = [...new Set([
