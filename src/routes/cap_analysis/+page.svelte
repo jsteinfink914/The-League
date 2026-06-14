@@ -46,11 +46,19 @@
   let playerFilterTeam = 'All';
   let playerSearch = '';
 
+  // ── Historical player table state ──────────────────────────────────────────
+  let histPlayerSortKey = 'dollarPerStarterPt';
+  let histPlayerSortDir = 1;
+  let histPlayerFilterPos = 'All';
+  let histPlayerFilterManager = 'All';
+  let histPlayerSearch = '';
+
   // ── Data ───────────────────────────────────────────────────────────────────
   let data = null;
   let allManagers = [];
   let availableYears = [];
   let trendYears = [];
+  let playerHistory = [];
 
   // ── Charts ─────────────────────────────────────────────────────────────────
   let allocationChart = null;
@@ -102,6 +110,37 @@
         : data.seasonTrends.filter((r) => r.year === Number(selectedTrendYear))
       ).sort((a, b) => b.year - a.year || (a[efficiencyKey] ?? Infinity) - (b[efficiencyKey] ?? Infinity))
     : [];
+
+  // ── Historical player table derived ────────────────────────────────────────
+  $: allHistoryPlayers = data
+    ? [
+        ...playerHistory,
+        ...data.playerEfficiency.map((p) => ({ ...p, year: Number(VALUE_YEAR) }))
+      ]
+    : [];
+
+  $: filteredHistoryPlayers = allHistoryPlayers.filter((p) => {
+    const yearMatch = selectedTrendYear === 'All' || p.year === Number(selectedTrendYear);
+    const posMatch  = histPlayerFilterPos === 'All' || p.position === histPlayerFilterPos;
+    const mgrMatch  = histPlayerFilterManager === 'All' || p.manager === histPlayerFilterManager;
+    const srchMatch = !histPlayerSearch || p.name.toLowerCase().includes(histPlayerSearch.toLowerCase());
+    return yearMatch && posMatch && mgrMatch && srchMatch;
+  });
+
+  $: histEffKey = pointsMode === 'starter' ? 'dollarPerStarterPt' : 'dollarPerRosterPt';
+  $: histPtsKey = pointsMode === 'starter' ? 'starterPts' : 'rosterPts';
+
+  $: sortedHistoryPlayers = [...filteredHistoryPlayers].sort((a, b) => {
+    const av = a[histPlayerSortKey] ?? Infinity;
+    const bv = b[histPlayerSortKey] ?? Infinity;
+    if (typeof av === 'string') return histPlayerSortDir * av.localeCompare(bv);
+    return histPlayerSortDir * (av - bv);
+  });
+
+  function setHistPlayerSort(key) {
+    if (histPlayerSortKey === key) histPlayerSortDir *= -1;
+    else { histPlayerSortKey = key; histPlayerSortDir = 1; }
+  }
 
   function setPlayerSort(key) {
     if (playerSortKey === key) playerSortDir *= -1;
@@ -418,6 +457,9 @@
           if (Array.isArray(histJson.seasonTrends)) {
             preloadedHistory = histJson.seasonTrends;
             console.info(`[CapAnalysis] Loaded ${preloadedHistory.length} historical entries from cache (generated ${histJson.generatedAt})`);
+          }
+          if (Array.isArray(histJson.playerHistory)) {
+            playerHistory = histJson.playerHistory;
           }
         }
       } catch (e) {
@@ -942,6 +984,70 @@
                         </span>
                       {:else}
                         <span class="null-val">—</span>
+                      {/if}
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {/if}
+
+      <!-- ── Historical Player Efficiency Table ───────────────────────── -->
+      {#if trendView === 'season'}
+        <div class="table-section">
+          <h3>
+            Player Efficiency — {selectedTrendYear === 'All' ? 'All Seasons' : selectedTrendYear}
+          </h3>
+          <div class="controls" style="margin-bottom: 0.75rem;">
+            <label>Position:
+              <select bind:value={histPlayerFilterPos}>
+                <option>All</option>
+                {#each POSITIONS as p}<option>{p}</option>{/each}
+              </select>
+            </label>
+            <label>Manager:
+              <select bind:value={histPlayerFilterManager}>
+                <option>All</option>
+                {#each allManagers as m}<option>{m}</option>{/each}
+              </select>
+            </label>
+            <label>Search:
+              <input type="text" placeholder="Player name…" bind:value={histPlayerSearch} />
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th on:click={() => setHistPlayerSort('year')}>Year{sortArrow('year', histPlayerSortKey, histPlayerSortDir)}</th>
+                  <th on:click={() => setHistPlayerSort('name')}>Player{sortArrow('name', histPlayerSortKey, histPlayerSortDir)}</th>
+                  <th on:click={() => setHistPlayerSort('position')}>Pos{sortArrow('position', histPlayerSortKey, histPlayerSortDir)}</th>
+                  <th on:click={() => setHistPlayerSort('manager')}>Manager{sortArrow('manager', histPlayerSortKey, histPlayerSortDir)}</th>
+                  <th on:click={() => setHistPlayerSort('capHit')}>Cap Hit{sortArrow('capHit', histPlayerSortKey, histPlayerSortDir)}</th>
+                  <th on:click={() => setHistPlayerSort(histPtsKey)}>{pointsMode === 'starter' ? 'Starter' : 'Roster'} Pts{sortArrow(histPtsKey, histPlayerSortKey, histPlayerSortDir)}</th>
+                  <th on:click={() => setHistPlayerSort(histEffKey)}>$/pt{sortArrow(histEffKey, histPlayerSortKey, histPlayerSortDir)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each sortedHistoryPlayers as p}
+                  {@const effVal = p[histEffKey]}
+                  {@const pts = p[histPtsKey]}
+                  <tr>
+                    <td>{p.year}</td>
+                    <td>{p.name}</td>
+                    <td><span class="pos-badge pos-{p.position}">{p.position}</span></td>
+                    <td>{p.manager}</td>
+                    <td>${p.capHit}</td>
+                    <td>{pts > 0 ? pts.toFixed(1) : '—'}</td>
+                    <td>
+                      {#if effVal != null}
+                        <span class={effVal < 1.5 ? 'eff-good' : effVal < 3 ? 'eff-mid' : 'eff-bad'}>
+                          ${effVal.toFixed(2)}
+                        </span>
+                      {:else}
+                        <span class="null-val">no pts</span>
                       {/if}
                     </td>
                   </tr>

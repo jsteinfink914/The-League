@@ -114,6 +114,8 @@ function buildPlayerPoints(weeklyMatchups) {
   return map;
 }
 
+const POS_SET = new Set(['QB', 'RB', 'WR', 'TE']);
+
 function getCapHit({ pid, nflPlayers, yearIndexes, historyRows, rookieContracts, year }) {
   const sp = nflPlayers[pid];
   if (!sp) return { capHit: 0 };
@@ -122,7 +124,8 @@ function getCapHit({ pid, nflPlayers, yearIndexes, historyRows, rookieContracts,
   const resolved = resolvePlayerValue(fullName, yearIndexes);
   if (!resolved.value) return { capHit: 0 };
 
-  return { capHit: resolved.value };
+  const position = POS_SET.has(sp.position) ? sp.position : 'Other';
+  return { capHit: resolved.value, name: fullName, position };
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
@@ -187,8 +190,9 @@ async function main() {
     })
   );
 
-  // Compute season trends for each historical season
+  // Compute season trends + player history for each historical season
   const seasonTrends = [];
+  const playerHistory = [];
 
   for (const result of results) {
     if (result.status !== 'fulfilled') {
@@ -226,13 +230,23 @@ async function main() {
       const mn = managerMapRaw.get(rid) || `Team ${rid}`;
       if (!teamAggs.has(mn)) continue;
 
-      const { capHit } = getCapHit({ pid, nflPlayers: nflPlayersRaw, yearIndexes: yi, historyRows, rookieContracts, year });
+      const { capHit, name, position } = getCapHit({ pid, nflPlayers: nflPlayersRaw, yearIndexes: yi, historyRows, rookieContracts, year });
       if (!capHit) continue;
 
       const a = teamAggs.get(mn);
-      a.capHit    += capHit;
+      a.capHit     += capHit;
       a.starterPts += pts.starterPts;
       a.rosterPts  += pts.rosterPts;
+
+      const sp = Math.round(pts.starterPts * 10) / 10;
+      const rp = Math.round(pts.rosterPts  * 10) / 10;
+      playerHistory.push({
+        year, manager: mn, name, position, capHit,
+        starterPts: sp,
+        rosterPts:  rp,
+        dollarPerStarterPt: sp > 0 ? Math.round((capHit / sp) * 100) / 100 : null,
+        dollarPerRosterPt:  rp > 0 ? Math.round((capHit / rp) * 100) / 100 : null
+      });
     }
 
     let pushed = 0;
@@ -249,7 +263,7 @@ async function main() {
       });
       pushed++;
     }
-    console.log(`  → ${year}: ${pushed} team entries written`);
+    console.log(`  → ${year}: ${pushed} team entries, ${playerHistory.filter(p => p.year === year).length} player entries written`);
   }
 
   // Write output
@@ -257,12 +271,13 @@ async function main() {
     generatedAt:   new Date().toISOString(),
     currentYear,
     note: 'Historical seasons only. Current season is always fetched live.',
-    seasonTrends
+    seasonTrends,
+    playerHistory
   };
 
   await writeFile(OUT_FILE, JSON.stringify(output, null, 2));
   console.log(`\n✅ Written to static/cap-history.json`);
-  console.log(`   ${seasonTrends.length} total team-season entries across ${historicalSeasons.length} season(s)`);
+  console.log(`   ${seasonTrends.length} team-season entries, ${playerHistory.length} player entries across ${historicalSeasons.length} season(s)`);
 }
 
 main().catch((err) => {
