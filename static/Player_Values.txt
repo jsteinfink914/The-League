@@ -1533,7 +1533,7 @@ Year,Name,Value,Rookie
 2026,Jalen Hurts,42,0
 2026,Kyle Pitts Sr.,41,0
 2026,Jakobi Meyers,40,0
-2026,Jaxson Dart,34,0
+2026,Jaxson Dart,0,0
 2026,Jaylen Warren,40,0
 2026,Tony Pollard,40,0
 2026,Jadarian Price,39,1
@@ -1543,7 +1543,7 @@ Year,Name,Value,Rookie
 2026,Chris Godwin Jr.,36,0
 2026,Dallas Goedert,36,0
 2026,David Montgomery,36,0
-2026,Harold Fannin Jr.,36,0
+2026,Harold Fannin Jr.,0,0
 2026,Jayden Daniels,36,0
 2026,Jayden Reed,36,0
 2026,Jordan Addison,36,0

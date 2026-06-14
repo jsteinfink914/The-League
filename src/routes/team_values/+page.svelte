@@ -6,7 +6,6 @@
   import {
     buildRookieContracts,
     buildValueIndexes,
-    calculateContractValue,
     getContractBreakdown,
     parseFantasyProsMarketCsv,
     resolvePlayerValue
@@ -127,13 +126,9 @@
               rookieContracts
             });
 
-            const displayValue = breakdown.contractYear != null
-              ? calculateContractValue(breakdown.contractYear, breakdown.rookieValue, breakdown.marketValue ?? resolved.value)
-              : resolved.value;
-
             return {
               name: playerName,
-              value: displayValue,
+              value: resolved.value,
               status: breakdown.status,
               label: breakdown.label,
               formula: breakdown.formula,
