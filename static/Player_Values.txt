@@ -1465,6 +1465,7 @@ Year,Name,Value,Rookie
 2025,Will Reichard,0,0
 2025,Will Shipley,0,0
 2025,Zamir White,0,0
+2025,Harold Fannin Jr.,36,1
 2025,Jaxon Dart,0,1
 2026,Puka Nacua,163,0
 2026,Jaxon Smith-Njigba,155,0
@@ -1532,7 +1533,7 @@ Year,Name,Value,Rookie
 2026,Jalen Hurts,42,0
 2026,Kyle Pitts Sr.,41,0
 2026,Jakobi Meyers,40,0
-2026,Jaxson Dart,0,0
+2026,Jaxon Dart,0,0
 2026,Jaylen Warren,40,0
 2026,Tony Pollard,40,0
 2026,Jadarian Price,39,1
