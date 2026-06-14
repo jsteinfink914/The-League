@@ -53,6 +53,10 @@
   let histPlayerFilterManager = 'All';
   let histPlayerSearch = '';
 
+  // ── Position group table state ──────────────────────────────────────────────
+  let posGroupSortKey = 'dollarPerStarterPt';
+  let posGroupSortDir = 1;
+
   // ── Data ───────────────────────────────────────────────────────────────────
   let data = null;
   let allManagers = [];
@@ -65,6 +69,7 @@
   let allocationPctChart = null;
   let trendChart = null;
   let scatterChart = null;
+  let posGroupChart = null;
 
   // ── Helpers: read CSS vars for Chart.js theming ───────────────────────────
   function cssVar(name) {
@@ -140,6 +145,45 @@
   function setHistPlayerSort(key) {
     if (histPlayerSortKey === key) histPlayerSortDir *= -1;
     else { histPlayerSortKey = key; histPlayerSortDir = 1; }
+  }
+
+  // ── Position group derived data ─────────────────────────────────────────────
+  $: positionGroupStats = (() => {
+    const source = selectedTrendYear === 'All'
+      ? allHistoryPlayers
+      : allHistoryPlayers.filter((p) => p.year === Number(selectedTrendYear));
+    const groups = {};
+    for (const p of source) {
+      const pos = POSITIONS.includes(p.position) ? p.position : 'Other';
+      if (!groups[pos]) groups[pos] = { position: pos, capHit: 0, starterPts: 0, rosterPts: 0 };
+      groups[pos].capHit    += p.capHit    || 0;
+      groups[pos].starterPts += p.starterPts || 0;
+      groups[pos].rosterPts  += p.rosterPts  || 0;
+    }
+    return POSITIONS
+      .filter((pos) => groups[pos])
+      .map((pos) => {
+        const g = groups[pos];
+        return {
+          ...g,
+          dollarPerStarterPt: g.starterPts > 0 ? g.capHit / g.starterPts : null,
+          dollarPerRosterPt:  g.rosterPts  > 0 ? g.capHit / g.rosterPts  : null
+        };
+      });
+  })();
+
+  $: posGroupEffKey = pointsMode === 'starter' ? 'dollarPerStarterPt' : 'dollarPerRosterPt';
+  $: posGroupPtsKey = pointsMode === 'starter' ? 'starterPts' : 'rosterPts';
+
+  $: sortedPosGroups = [...positionGroupStats].sort((a, b) => {
+    const av = a[posGroupSortKey] ?? Infinity;
+    const bv = b[posGroupSortKey] ?? Infinity;
+    return posGroupSortDir * (av - bv);
+  });
+
+  function setPosGroupSort(key) {
+    if (posGroupSortKey === key) posGroupSortDir *= -1;
+    else { posGroupSortKey = key; posGroupSortDir = 1; }
   }
 
   function setPlayerSort(key) {
@@ -390,6 +434,66 @@
     });
   }
 
+  function buildPosGroupChart() {
+    if (!data) return;
+    const ctx = document.getElementById('pos-group-chart');
+    if (!ctx) return;
+    posGroupChart?.destroy();
+
+    const ptKey  = pointsMode === 'starter' ? 'dollarPerStarterPt' : 'dollarPerRosterPt';
+    const { textColor, gridColor } = chartTheme();
+    const rows = positionGroupStats.filter((g) => g[ptKey] != null);
+
+    posGroupChart = new Chart(ctx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: rows.map((g) => g.position),
+        datasets: [{
+          label: '$/pt',
+          data: rows.map((g) => g[ptKey]),
+          backgroundColor: rows.map((g) => POS_COLORS[g.position] || POS_COLORS.Other),
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: `$/Fantasy Point by Position${selectedTrendYear !== 'All' ? ` — ${selectedTrendYear}` : ' — All Seasons'}`,
+            color: textColor
+          },
+          tooltip: {
+            callbacks: {
+              label: (c) => {
+                const row = rows[c.dataIndex];
+                const pts = row?.[posGroupPtsKey];
+                return [
+                  `$/pt: $${c.parsed.y.toFixed(2)}`,
+                  `Cap: $${row?.capHit?.toLocaleString()}`,
+                  `Pts: ${pts?.toFixed(1)}`
+                ];
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: textColor },
+            grid:  { color: gridColor }
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: '$ per Fantasy Point', color: textColor },
+            ticks: { color: textColor, callback: (v) => `$${v.toFixed(2)}` },
+            grid:  { color: gridColor }
+          }
+        }
+      }
+    });
+  }
+
   // ── Reactive chart rebuilds ────────────────────────────────────────────────
   $: if (data && activeSection === 'allocation') setTimeout(buildAllocationCharts, 0);
   $: if (data && activeSection === 'allocation' && selectedCapYear) setTimeout(buildAllocationCharts, 0);
@@ -397,6 +501,7 @@
   $: if (data && activeSection === 'trends' && (trendView || pointsMode)) setTimeout(buildTrendChart, 0);
   $: if (data && activeSection === 'trends' && trendView === 'season') setTimeout(buildScatterChart, 0);
   $: if (data && activeSection === 'trends' && trendView === 'season' && (selectedTrendYear || pointsMode)) setTimeout(buildScatterChart, 0);
+  $: if (data && activeSection === 'trends' && trendView === 'season' && positionGroupStats) setTimeout(buildPosGroupChart, 0);
 
   // ── Load ───────────────────────────────────────────────────────────────────
   onMount(async () => {
@@ -976,6 +1081,51 @@
                     <td>{row.year}</td>
                     <td>{row.manager}</td>
                     <td>${row.capHit}</td>
+                    <td>{pts > 0 ? pts.toFixed(1) : '—'}</td>
+                    <td>
+                      {#if effVal != null}
+                        <span class={effVal < 1.5 ? 'eff-good' : effVal < 3 ? 'eff-mid' : 'eff-bad'}>
+                          ${effVal.toFixed(2)}
+                        </span>
+                      {:else}
+                        <span class="null-val">—</span>
+                      {/if}
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {/if}
+
+      <!-- ── Position Group Chart + Table ─────────────────────────────── -->
+      {#if trendView === 'season'}
+        <div class="chart-full" style="max-width: 560px; margin: 0 auto 1.5rem;">
+          <canvas id="pos-group-chart"></canvas>
+        </div>
+
+        <div class="table-section">
+          <h3>
+            $/pt by Position — {selectedTrendYear === 'All' ? 'All Seasons' : selectedTrendYear}
+          </h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th on:click={() => setPosGroupSort('position')}>Position{sortArrow('position', posGroupSortKey, posGroupSortDir)}</th>
+                  <th on:click={() => setPosGroupSort('capHit')}>Total Cap{sortArrow('capHit', posGroupSortKey, posGroupSortDir)}</th>
+                  <th on:click={() => setPosGroupSort(posGroupPtsKey)}>{pointsMode === 'starter' ? 'Starter' : 'Roster'} Pts{sortArrow(posGroupPtsKey, posGroupSortKey, posGroupSortDir)}</th>
+                  <th on:click={() => setPosGroupSort(posGroupEffKey)}>$/pt{sortArrow(posGroupEffKey, posGroupSortKey, posGroupSortDir)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each sortedPosGroups as g}
+                  {@const effVal = g[posGroupEffKey]}
+                  {@const pts = g[posGroupPtsKey]}
+                  <tr>
+                    <td><span class="pos-badge pos-{g.position}">{g.position}</span></td>
+                    <td>${g.capHit.toLocaleString()}</td>
                     <td>{pts > 0 ? pts.toFixed(1) : '—'}</td>
                     <td>
                       {#if effVal != null}
