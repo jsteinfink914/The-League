@@ -56,6 +56,7 @@
   let allocationChart = null;
   let allocationPctChart = null;
   let trendChart = null;
+  let scatterChart = null;
 
   // ── Helpers: read CSS vars for Chart.js theming ───────────────────────────
   function cssVar(name) {
@@ -289,11 +290,74 @@
     }
   }
 
+  function buildScatterChart() {
+    if (!data) return;
+    const ctx = document.getElementById('scatter-chart');
+    if (!ctx) return;
+    scatterChart?.destroy();
+
+    const ptKey = pointsMode === 'starter' ? 'starterPts' : 'rosterPts';
+    const ptLabel = pointsMode === 'starter' ? 'Starter Pts' : 'Roster Pts';
+    const { textColor, gridColor } = chartTheme();
+
+    const rows = selectedTrendYear === 'All'
+      ? data.seasonTrends
+      : data.seasonTrends.filter((r) => r.year === Number(selectedTrendYear));
+
+    const datasets = allManagers.map((mgr, i) => ({
+      label: mgr,
+      data: rows
+        .filter((r) => r.manager === mgr && r.capHit > 0 && r[ptKey] > 0)
+        .map((r) => ({ x: r.capHit, y: r[ptKey], year: r.year })),
+      backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + 'cc',
+      pointRadius: 7,
+      pointHoverRadius: 9
+    }));
+
+    scatterChart = new Chart(ctx.getContext('2d'), {
+      type: 'scatter',
+      data: { datasets },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'right', labels: { color: textColor, boxWidth: 12 } },
+          title: {
+            display: true,
+            text: `${ptLabel} vs Cap Hit${selectedTrendYear !== 'All' ? ` — ${selectedTrendYear}` : ''}`,
+            color: textColor
+          },
+          tooltip: {
+            callbacks: {
+              label: (c) => {
+                const pt = c.raw;
+                return `${c.dataset.label} (${pt.year}): $${pt.x} cap, ${pt.y.toFixed(1)} pts`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Cap Hit ($)', color: textColor },
+            ticks: { color: textColor, callback: (v) => `$${v}` },
+            grid: { color: gridColor }
+          },
+          y: {
+            title: { display: true, text: ptLabel, color: textColor },
+            ticks: { color: textColor },
+            grid: { color: gridColor }
+          }
+        }
+      }
+    });
+  }
+
   // ── Reactive chart rebuilds ────────────────────────────────────────────────
   $: if (data && activeSection === 'allocation') setTimeout(buildAllocationCharts, 0);
   $: if (data && activeSection === 'allocation' && selectedCapYear) setTimeout(buildAllocationCharts, 0);
   $: if (data && activeSection === 'trends') setTimeout(buildTrendChart, 0);
   $: if (data && activeSection === 'trends' && (trendView || pointsMode)) setTimeout(buildTrendChart, 0);
+  $: if (data && activeSection === 'trends' && trendView === 'season') setTimeout(buildScatterChart, 0);
+  $: if (data && activeSection === 'trends' && trendView === 'season' && (selectedTrendYear || pointsMode)) setTimeout(buildScatterChart, 0);
 
   // ── Load ───────────────────────────────────────────────────────────────────
   onMount(async () => {
@@ -838,6 +902,12 @@
       <div class="chart-full">
         <canvas id="trend-chart"></canvas>
       </div>
+
+      {#if trendView === 'season'}
+      <div class="chart-full">
+        <canvas id="scatter-chart"></canvas>
+      </div>
+      {/if}
 
       {#if trendView === 'season'}
         <div class="table-section">
