@@ -70,6 +70,7 @@
   let trendChart = null;
   let scatterChart = null;
   let posGroupChart = null;
+  let capShareChart = null;
 
   // ── Helpers: read CSS vars for Chart.js theming ───────────────────────────
   function cssVar(name) {
@@ -494,6 +495,80 @@
     });
   }
 
+  function buildCapShareChart() {
+    if (!data) return;
+    const ctx = document.getElementById('cap-share-chart');
+    if (!ctx) return;
+    capShareChart?.destroy();
+
+    const ptsKey = pointsMode === 'starter' ? 'starterPts' : 'rosterPts';
+    const ptsLabel = pointsMode === 'starter' ? 'Starter Pts Share' : 'Roster Pts Share';
+    const { textColor, gridColor } = chartTheme();
+
+    const rows = positionGroupStats.filter((g) => g.capHit > 0);
+    const totalCap = rows.reduce((s, g) => s + g.capHit, 0);
+    const totalPts = rows.reduce((s, g) => s + (g[ptsKey] || 0), 0);
+
+    const capPcts = rows.map((g) => totalCap > 0 ? +((g.capHit / totalCap) * 100).toFixed(1) : 0);
+    const ptsPcts = rows.map((g) => totalPts > 0 ? +((g[ptsKey] / totalPts) * 100).toFixed(1) : 0);
+
+    capShareChart = new Chart(ctx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: rows.map((g) => g.position),
+        datasets: [
+          {
+            label: 'Cap Share %',
+            data: capPcts,
+            backgroundColor: rows.map((g) => POS_COLORS[g.position] || POS_COLORS.Other),
+            borderRadius: 4
+          },
+          {
+            label: ptsLabel,
+            data: ptsPcts,
+            backgroundColor: rows.map((g) => (POS_COLORS[g.position] || POS_COLORS.Other) + '66'),
+            borderWidth: 2,
+            borderColor: rows.map((g) => POS_COLORS[g.position] || POS_COLORS.Other),
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top', labels: { color: textColor } },
+          title: {
+            display: true,
+            text: `Cap Share vs Points Share by Position${selectedTrendYear !== 'All' ? ` — ${selectedTrendYear}` : ' — All Seasons'}`,
+            color: textColor
+          },
+          tooltip: {
+            callbacks: {
+              afterBody: (items) => {
+                const i = items[0]?.dataIndex;
+                if (i == null) return '';
+                const diff = ptsPcts[i] - capPcts[i];
+                const sign = diff >= 0 ? '+' : '';
+                const verdict = diff > 2 ? 'underpaid ✓' : diff < -2 ? 'overpaid ✗' : 'roughly fair';
+                return [`Δ ${sign}${diff.toFixed(1)}pp — ${verdict}`];
+              }
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: textColor }, grid: { color: gridColor } },
+          y: {
+            beginAtZero: true,
+            max: 60,
+            title: { display: true, text: 'Share of Total (%)', color: textColor },
+            ticks: { color: textColor, callback: (v) => `${v}%` },
+            grid: { color: gridColor }
+          }
+        }
+      }
+    });
+  }
+
   // ── Reactive chart rebuilds ────────────────────────────────────────────────
   $: if (data && activeSection === 'allocation') setTimeout(buildAllocationCharts, 0);
   $: if (data && activeSection === 'allocation' && selectedCapYear) setTimeout(buildAllocationCharts, 0);
@@ -502,6 +577,7 @@
   $: if (data && activeSection === 'trends' && trendView === 'season') setTimeout(buildScatterChart, 0);
   $: if (data && activeSection === 'trends' && trendView === 'season' && (selectedTrendYear || pointsMode)) setTimeout(buildScatterChart, 0);
   $: if (data && activeSection === 'trends' && trendView === 'season' && positionGroupStats) setTimeout(buildPosGroupChart, 0);
+  $: if (data && activeSection === 'trends' && trendView === 'season' && positionGroupStats) setTimeout(buildCapShareChart, 0);
 
   // ── Load ───────────────────────────────────────────────────────────────────
   onMount(async () => {
@@ -1141,6 +1217,13 @@
               </tbody>
             </table>
           </div>
+        </div>
+      {/if}
+
+      <!-- ── Cap Share vs Points Share Chart ──────────────────────────── -->
+      {#if trendView === 'season'}
+        <div class="chart-full" style="max-width: 640px; margin: 0 auto 2rem;">
+          <canvas id="cap-share-chart"></canvas>
         </div>
       {/if}
 
