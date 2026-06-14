@@ -57,6 +57,14 @@
   let posGroupSortKey = 'dollarPerStarterPt';
   let posGroupSortDir = 1;
 
+  // ── Cap breakdown table state ────────────────────────────────────────────────
+  let capBreakdownSortKey = 'total';
+  let capBreakdownSortDir = -1;
+
+  // ── Season-by-season table state ─────────────────────────────────────────────
+  let seasonSortKey = 'year';
+  let seasonSortDir = -1;
+
   // ── Data ───────────────────────────────────────────────────────────────────
   let data = null;
   let allManagers = [];
@@ -105,8 +113,12 @@
     : [];
 
   $: sortedPlayers = [...filteredPlayers].sort((a, b) => {
-    const av = a[playerSortKey] ?? Infinity;
-    const bv = b[playerSortKey] ?? Infinity;
+    const av = a[playerSortKey];
+    const bv = b[playerSortKey];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'string') return playerSortDir * av.localeCompare(String(bv));
     return playerSortDir * (av - bv);
   });
 
@@ -114,8 +126,18 @@
     ? (selectedTrendYear === 'All'
         ? data.seasonTrends
         : data.seasonTrends.filter((r) => r.year === Number(selectedTrendYear))
-      ).sort((a, b) => b.year - a.year || (a[efficiencyKey] ?? Infinity) - (b[efficiencyKey] ?? Infinity))
+      )
     : [];
+
+  $: sortedSeasonTrends = [...filteredSeasonTrends].sort((a, b) => {
+    const av = a[seasonSortKey];
+    const bv = b[seasonSortKey];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === 'string') return seasonSortDir * av.localeCompare(String(bv));
+    return seasonSortDir * (av - bv);
+  });
 
   // ── Historical player table derived ────────────────────────────────────────
   $: allHistoryPlayers = data
@@ -147,6 +169,44 @@
     if (histPlayerSortKey === key) histPlayerSortDir *= -1;
     else { histPlayerSortKey = key; histPlayerSortDir = 1; }
   }
+
+  function setCapBreakdownSort(key) {
+    if (capBreakdownSortKey === key) capBreakdownSortDir *= -1;
+    else { capBreakdownSortKey = key; capBreakdownSortDir = -1; }
+  }
+
+  function setSeasonSort(key) {
+    if (seasonSortKey === key) seasonSortDir *= -1;
+    else { seasonSortKey = key; seasonSortDir = 1; }
+  }
+
+  // ── Cap breakdown sorted rows ────────────────────────────────────────────────
+  $: sortedCapBreakdown = data
+    ? Object.entries(data.capByPosition[selectedCapYear] || {})
+        .map(([mgr, caps]) => ({
+          manager:   mgr,
+          QB:        caps.QB    || 0,
+          RB:        caps.RB    || 0,
+          WR:        caps.WR    || 0,
+          TE:        caps.TE    || 0,
+          Other:     caps.Other || 0,
+          total:     caps.total || 0,
+          pct_QB:    caps.total ? (caps.QB    / caps.total) * 100 : 0,
+          pct_RB:    caps.total ? (caps.RB    / caps.total) * 100 : 0,
+          pct_WR:    caps.total ? (caps.WR    / caps.total) * 100 : 0,
+          pct_TE:    caps.total ? (caps.TE    / caps.total) * 100 : 0,
+          pct_Other: caps.total ? (caps.Other / caps.total) * 100 : 0,
+        }))
+        .sort((a, b) => {
+          const av = a[capBreakdownSortKey];
+          const bv = b[capBreakdownSortKey];
+          if (av == null && bv == null) return 0;
+          if (av == null) return 1;
+          if (bv == null) return -1;
+          if (typeof av === 'string') return capBreakdownSortDir * av.localeCompare(String(bv));
+          return capBreakdownSortDir * (av - bv);
+        })
+    : [];
 
   // ── Position group derived data ─────────────────────────────────────────────
   $: positionGroupStats = (() => {
@@ -939,22 +999,22 @@
           <table>
             <thead>
               <tr>
-                <th>Manager</th>
-                {#each POSITIONS as pos}<th>{pos}</th>{/each}
-                <th>Total</th>
-                {#each POSITIONS as pos}<th>% {pos}</th>{/each}
+                <th on:click={() => setCapBreakdownSort('manager')}>Manager{sortArrow('manager', capBreakdownSortKey, capBreakdownSortDir)}</th>
+                {#each POSITIONS as pos}<th on:click={() => setCapBreakdownSort(pos)}>{pos}{sortArrow(pos, capBreakdownSortKey, capBreakdownSortDir)}</th>{/each}
+                <th on:click={() => setCapBreakdownSort('total')}>Total{sortArrow('total', capBreakdownSortKey, capBreakdownSortDir)}</th>
+                {#each POSITIONS as pos}<th on:click={() => setCapBreakdownSort(`pct_${pos}`)}>% {pos}{sortArrow(`pct_${pos}`, capBreakdownSortKey, capBreakdownSortDir)}</th>{/each}
               </tr>
             </thead>
             <tbody>
-              {#each Object.entries(data.capByPosition[selectedCapYear] || {}).sort((a,b) => b[1].total - a[1].total) as [mgr, caps]}
+              {#each sortedCapBreakdown as row}
                 <tr>
-                  <td>{mgr}</td>
+                  <td>{row.manager}</td>
                   {#each POSITIONS as pos}
-                    <td>${caps[pos] || 0}</td>
+                    <td>${row[pos]}</td>
                   {/each}
-                  <td><strong>${caps.total || 0}</strong></td>
+                  <td><strong>${row.total}</strong></td>
                   {#each POSITIONS as pos}
-                    <td>{caps.total ? ((caps[pos] / caps.total) * 100).toFixed(1) : '0.0'}%</td>
+                    <td>{row[`pct_${pos}`].toFixed(1)}%</td>
                   {/each}
                 </tr>
               {/each}
@@ -1054,7 +1114,7 @@
                 <th on:click={() => setPlayerSort('capHit')}>Cap Hit{sortArrow('capHit', playerSortKey, playerSortDir)}</th>
                 <th on:click={() => setPlayerSort(ptsKey)}>{pointsMode === 'starter' ? 'Starter' : 'Roster'} Pts{sortArrow(ptsKey, playerSortKey, playerSortDir)}</th>
                 <th on:click={() => setPlayerSort(efficiencyKey)}>$/pt{sortArrow(efficiencyKey, playerSortKey, playerSortDir)}</th>
-                <th>Contract</th>
+                <th on:click={() => setPlayerSort('contractLabel')}>Contract{sortArrow('contractLabel', playerSortKey, playerSortDir)}</th>
               </tr>
             </thead>
             <tbody>
@@ -1142,15 +1202,15 @@
             <table>
               <thead>
                 <tr>
-                  <th>Year</th>
-                  <th>Manager</th>
-                  <th>Cap Hit</th>
-                  <th>{pointsMode === 'starter' ? 'Starter' : 'Roster'} Pts</th>
-                  <th>$/pt</th>
+                  <th on:click={() => setSeasonSort('year')}>Year{sortArrow('year', seasonSortKey, seasonSortDir)}</th>
+                  <th on:click={() => setSeasonSort('manager')}>Manager{sortArrow('manager', seasonSortKey, seasonSortDir)}</th>
+                  <th on:click={() => setSeasonSort('capHit')}>Cap Hit{sortArrow('capHit', seasonSortKey, seasonSortDir)}</th>
+                  <th on:click={() => setSeasonSort(ptsKey)}>{pointsMode === 'starter' ? 'Starter' : 'Roster'} Pts{sortArrow(ptsKey, seasonSortKey, seasonSortDir)}</th>
+                  <th on:click={() => setSeasonSort(efficiencyKey)}>$/pt{sortArrow(efficiencyKey, seasonSortKey, seasonSortDir)}</th>
                 </tr>
               </thead>
               <tbody>
-                {#each filteredSeasonTrends as row}
+                {#each sortedSeasonTrends as row}
                   {@const effVal = row[efficiencyKey]}
                   {@const pts = row[ptsKey]}
                   <tr>
