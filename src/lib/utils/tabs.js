@@ -77,6 +77,21 @@ export const tabs = [
                 dest: '/cap_analysis',
             },
             {
+                icon: 'compare_arrows',
+                label: 'Trade Analysis',
+                dest: '/trade_analysis',
+            },
+            {
+                icon: 'format_list_numbered',
+                label: 'Draft Analysis',
+                dest: '/draft_analysis',
+            },
+            {
+                icon: 'emoji_people',
+                label: 'Manager Overview',
+                dest: '/manager_overview',
+            },
+            {
                 icon: 'swap_horiz',
                 label: 'Conditional Trades',
                 dest: '/conditional',
