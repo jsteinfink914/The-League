@@ -387,7 +387,7 @@
   .loading .sub { color: var(--g666, #666); font-size: 0.9rem; }
   .spinner { width: 40px; height: 40px; border: 4px solid var(--ddd, #ddd); border-top-color: var(--color-primary, #3498db); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .error { background: #fee; border: 1px solid #f99; border-radius: 8px; padding: 1rem; color: #c00; }
+  .error { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.35); border-radius: 8px; padding: 1rem; color: #c0392b; }
   .tab-bar { display: flex; border: 1px solid var(--ddd, #ddd); border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; width: fit-content; }
   .tab-bar button { padding: 0.6rem 1.25rem; border: none; background: var(--fff, #fff); color: var(--g333, #333); cursor: pointer; font-size: 0.9rem; transition: all 0.15s; }
   .tab-bar button.active { background: var(--color-primary, #3498db); color: #fff; }
@@ -400,38 +400,38 @@
   .hint { color: var(--g888, #888); font-size: 0.8rem; margin-top: 0.5rem; }
   .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--ddd, #ddd); margin-bottom: 1.5rem; }
   table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--f5f5f5, #f5f5f5); }
+  thead { background: var(--eee, #eee); }
   th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; color: var(--g555, #555); cursor: pointer; white-space: nowrap; user-select: none; }
   th:hover { color: var(--color-primary, #3498db); }
   td { padding: 0.65rem 1rem; border-top: 1px solid var(--eee, #eee); font-size: 0.9rem; vertical-align: middle; }
   tr { cursor: pointer; }
-  tr:hover td { background: var(--f9f9f9, #f9f9f9); }
+  tr:hover td { background: var(--eee, #f9f9f9); }
   .selected-row td { background: rgba(52, 152, 219, 0.07) !important; }
   .expand-row td { padding: 0; border-top: none; cursor: default; }
   .expand-detail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; padding: 1.25rem 1rem; background: rgba(52, 152, 219, 0.04); border-top: 2px solid rgba(52, 152, 219, 0.18); }
   .detail-col p { margin: 0.3rem 0; font-size: 0.88rem; color: var(--g444, #444); }
   .detail-col p strong { color: var(--g111, #111); }
-  .pending-note { color: #856404 !important; font-style: italic; }
+  .pending-note { color: #9a7000 !important; font-style: italic; }
   .manager-name { font-weight: 700; }
   .rank-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; }
   .rank-badge.big { font-size: 1.15rem; padding: 0.35rem 0.7rem; }
-  .rank-top { background: #d4edda; color: #155724; }
-  .rank-mid { background: #fff3cd; color: #856404; }
-  .rank-bot { background: #f8d7da; color: #721c24; }
+  .rank-top { background: rgba(46, 204, 113, 0.18); color: #27ae60; }
+  .rank-mid { background: rgba(241, 196, 15, 0.18); color: #9a7000; }
+  .rank-bot { background: rgba(231, 76, 60, 0.18); color: #e74c3c; }
   .avg-rank-cell { font-weight: 700; }
   .positive { color: #27ae60; font-weight: 600; }
   .negative { color: #e74c3c; font-weight: 600; }
-  .pending-badge { background: #fff3cd; color: #856404; border-radius: 10px; padding: 0.15rem 0.5rem; font-size: 0.78rem; font-weight: 700; }
+  .pending-badge { background: rgba(241, 196, 15, 0.18); color: #9a7000; border-radius: 10px; padding: 0.15rem 0.5rem; font-size: 0.78rem; font-weight: 700; }
   .radar-wrap { max-width: 700px; margin: 0 auto 2rem; background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 12px; padding: 1.5rem; }
   .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
   .manager-card { background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 14px; overflow: hidden; }
-  .card-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: var(--f5f5f5, #f5f5f5); border-bottom: 1px solid var(--ddd, #ddd); }
+  .card-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: var(--eee, #eee); border-bottom: 1px solid var(--ddd, #ddd); }
   .avg-rank-badge { background: var(--color-primary, #3498db); color: #fff; border-radius: 10px; padding: 0.15rem 0.55rem; font-size: 0.78rem; font-weight: 700; }
   .card-dims { display: grid; grid-template-columns: repeat(3, 1fr); padding: 1rem; gap: 0.5rem; }
   .card-dim { text-align: center; }
   .dim-label { font-size: 0.72rem; color: var(--g666, #666); margin-bottom: 0.35rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
   .dim-sub { font-size: 0.78rem; color: var(--g666, #666); margin-top: 0.35rem; }
   .card-footer { padding: 0.6rem 1.25rem; font-size: 0.82rem; color: var(--g555, #555); border-top: 1px solid var(--eee, #eee); }
-  .card-pending { padding: 0.5rem 1.25rem; font-size: 0.82rem; color: #856404; background: #fffbee; border-top: 1px solid #ffeaa0; }
+  .card-pending { padding: 0.5rem 1.25rem; font-size: 0.82rem; color: #9a7000; background: rgba(241, 196, 15, 0.08); border-top: 1px solid rgba(241, 196, 15, 0.3); }
   @media (max-width: 768px) { .expand-detail { grid-template-columns: 1fr; } .cards-grid { grid-template-columns: 1fr; } }
 </style>

@@ -342,7 +342,7 @@
   .loading { text-align: center; padding: 4rem 1rem; }
   .spinner { width: 40px; height: 40px; border: 4px solid var(--ddd, #ddd); border-top-color: var(--color-primary, #3498db); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .error { background: #fee; border: 1px solid #f99; border-radius: 8px; padding: 1rem; color: #c00; }
+  .error { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.35); border-radius: 8px; padding: 1rem; color: #c0392b; }
   .controls-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
   .mode-toggle, .section-tabs { display: flex; border: 1px solid var(--ddd, #ddd); border-radius: 8px; overflow: hidden; }
   .mode-toggle button, .section-tabs button { padding: 0.5rem 1rem; border: none; background: var(--fff, #fff); color: var(--g333, #333); cursor: pointer; font-size: 0.9rem; transition: all 0.15s; }
@@ -359,11 +359,11 @@
   .filter-row select, .filter-row input { border: 1px solid var(--ddd, #ddd); border-radius: 6px; padding: 0.35rem 0.6rem; background: var(--fff, #fff); color: var(--g333, #333); font-size: 0.9rem; }
   .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--ddd, #ddd); margin-bottom: 1.5rem; }
   table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--f5f5f5, #f5f5f5); }
+  thead { background: var(--eee, #eee); }
   th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; color: var(--g555, #555); cursor: pointer; white-space: nowrap; user-select: none; }
   th:hover { color: var(--color-primary, #3498db); }
   td { padding: 0.65rem 1rem; border-top: 1px solid var(--eee, #eee); font-size: 0.9rem; }
-  tr:hover td { background: var(--f9f9f9, #f9f9f9); }
+  tr:hover td { background: var(--eee, #f9f9f9); }
   .manager-name { font-weight: 600; }
   .pos-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; color: #fff; font-size: 0.8rem; font-weight: 700; }
   .best-pick { font-size: 0.85rem; }

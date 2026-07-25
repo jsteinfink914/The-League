@@ -43,9 +43,9 @@ async function fetchAllTransactions(seasonChain) {
 
 async function fetchSeasonMatchups(seasonID, playoffWeekStart) {
   const weekCount = Math.max(playoffWeekStart - 1, 1);
-  const urls = [];
-  for (let w = 1; w <= weekCount; w++) urls.push(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${w}`);
-  const responses = await Promise.all(urls.map(u => fetch(u)));
+  const responses = await Promise.all(
+    Array.from({ length: weekCount }, (_, i) => fetch(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${i + 1}`))
+  );
   const bodies = await Promise.all(responses.map(r => r.json()));
   return bodies.map((entries, i) => ({ week: i + 1, entries: Array.isArray(entries) ? entries : [] }));
 }
@@ -53,10 +53,7 @@ async function fetchSeasonMatchups(seasonID, playoffWeekStart) {
 async function buildPlayerPointsFromYear(seasonChain, tradeYear) {
   const relevantSeasons = seasonChain.filter(s => s.year >= tradeYear);
   const playerPoints = new Map();
-  const ensure = pid => {
-    if (!playerPoints.has(pid)) playerPoints.set(pid, { starterPts: 0, rosterPts: 0 });
-    return playerPoints.get(pid);
-  };
+  const ensure = pid => { if (!playerPoints.has(pid)) playerPoints.set(pid, { starterPts: 0, rosterPts: 0 }); return playerPoints.get(pid); };
   for (const { seasonID, playoffWeekStart } of relevantSeasons) {
     try {
       const matchups = await fetchSeasonMatchups(seasonID, playoffWeekStart);
@@ -80,10 +77,17 @@ async function fetchAllDraftsData(seasonChain) {
       const draftsInfo = await fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/drafts`);
       for (const draftMeta of draftsInfo) {
         if (draftMeta.status !== 'complete') continue;
-        const draftID = draftMeta.draft_id;
-        const draftPicks = await fetchJson(`https://api.sleeper.app/v1/draft/${draftID}/picks`);
-        const picks = draftPicks.map(p => ({ round: p.round, playerID: p.player_id, originalOwnerRosterID: String(p.roster_id) }));
-        allDrafts.push({ year, draftID, picks, draftType: draftMeta.type });
+        const [officialDraft, draftPicks] = await Promise.all([
+          fetchJson(`https://api.sleeper.app/v1/draft/${draftMeta.draft_id}`),
+          fetchJson(`https://api.sleeper.app/v1/draft/${draftMeta.draft_id}/picks`)
+        ]);
+        const slotToRosterID = officialDraft.slot_to_roster_id || {};
+        const picks = draftPicks.map(p => ({
+          round: p.round,
+          playerID: p.player_id,
+          originalOwnerRosterID: String(slotToRosterID[p.draft_slot] ?? p.roster_id)
+        }));
+        allDrafts.push({ year, draftID: draftMeta.draft_id, picks });
       }
     } catch (e) { console.warn('tradeAnalysis: failed drafts for', seasonID, e); }
   }
@@ -106,21 +110,25 @@ function resolvePickToPlayer(pick, allDrafts) {
 
 export async function buildTradeAnalysisData({ players }) {
   const [teamManagers, seasonChain] = await Promise.all([getLeagueTeamManagers(), collectSeasonChain()]);
-  const { teamManagersMap, currentSeason } = teamManagers;
+  const { teamManagersMap, currentSeason, users } = teamManagers;
 
-  const yearRosterToManager = {};
+  // Build a stable rosterID+year -> canonical name map
+  // Uses users[userID].display_name (set from leagueInfo.managers) so name changes don't split teams
+  const yearRosterToUserID = {};
   for (const [year, rosters] of Object.entries(teamManagersMap)) {
-    yearRosterToManager[year] = {};
+    yearRosterToUserID[year] = {};
     for (const [rosterID, info] of Object.entries(rosters)) {
-      yearRosterToManager[year][String(rosterID)] = info.team?.name || `Team ${rosterID}`;
+      const primaryUserID = info.managers?.[0];
+      yearRosterToUserID[year][String(rosterID)] = primaryUserID || null;
     }
   }
 
-  function getManagerForRoster(rosterID, year) {
-    const y = String(year);
-    if (yearRosterToManager[y]?.[String(rosterID)]) return yearRosterToManager[y][String(rosterID)];
-    for (const yr of Object.keys(yearRosterToManager).sort((a, b) => b - a)) {
-      if (yearRosterToManager[yr]?.[String(rosterID)]) return yearRosterToManager[yr][String(rosterID)];
+  function getCanonicalName(rosterID, year) {
+    // Try the exact year first, then fall back to closest year
+    const yearsToTry = [String(year), ...Object.keys(yearRosterToUserID).sort((a, b) => b - a)];
+    for (const y of yearsToTry) {
+      const userID = yearRosterToUserID[y]?.[String(rosterID)];
+      if (userID && users[userID]?.display_name) return users[userID].display_name;
     }
     return `Team ${rosterID}`;
   }
@@ -154,7 +162,8 @@ export async function buildTradeAnalysisData({ players }) {
     const sides = {};
     for (const rid of rosterIDs) {
       sides[String(rid)] = {
-        rosterID: String(rid), manager: getManagerForRoster(rid, effectiveYear),
+        rosterID: String(rid),
+        manager: getCanonicalName(rid, effectiveYear),
         players: [], picks: [], pendingPickCount: 0,
         playerDetails: [], pickDetails: [],
         starterPts: 0, rosterPts: 0, netStarterSurplus: 0, netRosterSurplus: 0

@@ -1126,6 +1126,7 @@ Year,Name,Value,Rookie
 2024,Will Shipley,0,1
 2024,Zach Ertz,0,0
 2024,Zay Jones,0,0
+2024,Jalen Coker,0,1
 2025,Ja'Marr Chase,165,0
 2025,Justin Jefferson,132,0
 2025,Saquon Barkley,130,0

@@ -29,6 +29,20 @@
   let logFilterYear = 'All';
   let logSearch = '';
 
+  // Top 3 best / worst per manager
+  $: tradeHighlights = (() => {
+    if (!data || logFilterManager === 'All') return null;
+    const mgr = logFilterManager;
+    const sides = data.trades
+      .flatMap(t => t.sides.filter(s => s.manager === mgr).map(s => ({ trade: t, side: s })));
+    const netKey2 = pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus';
+    const sorted = [...sides].sort((a, b) => b.side[netKey2] - a.side[netKey2]);
+    return {
+      best: sorted.slice(0, 3),
+      worst: sorted.slice(-3).reverse()
+    };
+  })();
+
   // Charts
   let barChart = null;
   let posChart = null;
@@ -310,6 +324,32 @@
           </label>
         </div>
         <p class="result-count">{filteredTrades.length} trades shown</p>
+
+        {#if tradeHighlights}
+          <div class="highlights-row">
+            <div class="highlights-box best-box">
+              <h3>🏆 Best Trades ({logFilterManager})</h3>
+              {#each tradeHighlights.best as { trade, side }}
+                <div class="highlight-item">
+                  <span class="h-date">{trade.date}</span>
+                  <span class="h-assets">{side.playerDetails.map(p => p.name).concat(side.pickDetails.filter(p => p.resolvedName).map(p => p.resolvedName)).join(', ') || '—'}</span>
+                  <span class="h-net positive">+{side[pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus']} pts</span>
+                </div>
+              {/each}
+            </div>
+            <div class="highlights-box worst-box">
+              <h3>📉 Worst Trades ({logFilterManager})</h3>
+              {#each tradeHighlights.worst as { trade, side }}
+                <div class="highlight-item">
+                  <span class="h-date">{trade.date}</span>
+                  <span class="h-assets">{side.playerDetails.map(p => p.name).concat(side.pickDetails.filter(p => p.resolvedName).map(p => p.resolvedName)).join(', ') || '—'}</span>
+                  <span class="h-net negative">{side[pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus']} pts</span>
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/if}
+
         <div class="trade-log">
           {#each filteredTrades as trade}
             <div class="trade-card">
@@ -378,7 +418,7 @@
   .loading .sub { color: var(--g666, #666); font-size: 0.9rem; }
   .spinner { width: 40px; height: 40px; border: 4px solid var(--ddd, #ddd); border-top-color: var(--color-primary, #3498db); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .error { background: #fee; border: 1px solid #f99; border-radius: 8px; padding: 1rem; color: #c00; }
+  .error { background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.35); border-radius: 8px; padding: 1rem; color: #c0392b; }
   .controls-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
   .mode-toggle, .section-tabs { display: flex; gap: 0; border: 1px solid var(--ddd, #ddd); border-radius: 8px; overflow: hidden; }
   .mode-toggle button, .section-tabs button { padding: 0.5rem 1rem; border: none; background: var(--fff, #fff); color: var(--g333, #333); cursor: pointer; font-size: 0.9rem; transition: all 0.15s; }
@@ -396,17 +436,17 @@
   .result-count { color: var(--g666, #666); font-size: 0.85rem; margin-bottom: 0.75rem; }
   .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--ddd, #ddd); margin-bottom: 1.5rem; }
   table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--f5f5f5, #f5f5f5); }
+  thead { background: var(--eee, #eee); }
   th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; color: var(--g555, #555); cursor: pointer; white-space: nowrap; user-select: none; }
   th:hover { color: var(--color-primary, #3498db); }
   td { padding: 0.65rem 1rem; border-top: 1px solid var(--eee, #eee); font-size: 0.9rem; }
-  tr:hover td { background: var(--f9f9f9, #f9f9f9); }
+  tr:hover td { background: var(--eee, #f9f9f9); }
   .manager-name { font-weight: 600; }
   .positive { color: #27ae60; font-weight: 600; }
   .negative { color: #e74c3c; font-weight: 600; }
-  .pending-badge { background: #fff3cd; color: #856404; border-radius: 12px; padding: 0.2rem 0.5rem; font-size: 0.78rem; font-weight: 600; }
+  .pending-badge { background: rgba(241, 196, 15, 0.18); color: #9a7000; border-radius: 12px; padding: 0.2rem 0.5rem; font-size: 0.78rem; font-weight: 600; }
   .pos-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; color: #fff; font-size: 0.8rem; font-weight: 700; }
-  .manager-pos-detail { background: var(--f5f5f5, #f5f5f5); border-radius: 12px; padding: 1.25rem; }
+  .manager-pos-detail { background: var(--eee, #eee); border-radius: 12px; padding: 1.25rem; }
   .pos-bars { display: flex; flex-direction: column; gap: 0.75rem; }
   .pos-bar-row { display: grid; grid-template-columns: 60px 1fr auto; gap: 0.75rem; align-items: center; }
   .pos-label { font-weight: 700; font-size: 0.85rem; }
@@ -415,10 +455,10 @@
   .bar-val { font-size: 0.85rem; color: var(--g555, #555); white-space: nowrap; }
   .trade-log { display: flex; flex-direction: column; gap: 1rem; }
   .trade-card { background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 12px; overflow: hidden; }
-  .trade-header { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem 1rem; background: var(--f5f5f5, #f5f5f5); border-bottom: 1px solid var(--ddd, #ddd); }
+  .trade-header { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem 1rem; background: var(--eee, #eee); border-bottom: 1px solid var(--ddd, #ddd); }
   .trade-date { color: var(--g555, #555); font-size: 0.85rem; }
   .trade-year-badge { background: var(--color-primary, #3498db); color: #fff; border-radius: 10px; padding: 0.1rem 0.5rem; font-size: 0.75rem; font-weight: 700; }
-  .pending-indicator { color: #856404; font-size: 0.82rem; }
+  .pending-indicator { color: #9a7000; font-size: 0.82rem; }
   .trade-sides { display: grid; gap: 0; }
   .trade-side { padding: 1rem; border-right: 1px solid var(--eee, #eee); }
   .trade-side:last-child { border-right: none; }
@@ -436,10 +476,21 @@
   .asset-pts { color: var(--g555, #555); white-space: nowrap; font-weight: 600; }
   .pick-row.pending { opacity: 0.7; }
   .pending-name { display: flex; align-items: center; gap: 0.35rem; }
-  .pending-tag { background: #fff3cd; color: #856404; border-radius: 8px; padding: 0.1rem 0.4rem; font-size: 0.72rem; font-weight: 700; }
+  .pending-tag { background: rgba(241, 196, 15, 0.18); color: #9a7000; border-radius: 8px; padding: 0.1rem 0.4rem; font-size: 0.72rem; font-weight: 700; }
   .pick-via { color: var(--g888, #888); font-size: 0.78rem; }
+  .highlights-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+  .highlights-box { border-radius: 10px; border: 1px solid var(--ddd, #ddd); padding: 1rem; }
+  .best-box { border-left: 3px solid #27ae60; }
+  .worst-box { border-left: 3px solid #e74c3c; }
+  .highlights-box h3 { font-size: 0.95rem; margin: 0 0 0.75rem; }
+  .highlight-item { display: flex; align-items: baseline; gap: 0.5rem; font-size: 0.82rem; padding: 0.3rem 0; border-top: 1px solid var(--eee, #eee); }
+  .highlight-item:first-of-type { border-top: none; }
+  .h-date { color: var(--g555, #555); white-space: nowrap; flex-shrink: 0; }
+  .h-assets { flex: 1; color: var(--g333, #333); }
+  .h-net { white-space: nowrap; font-weight: 700; flex-shrink: 0; }
   .empty { text-align: center; padding: 2rem; color: var(--g888, #888); }
   @media (max-width: 768px) {
+    .highlights-row { grid-template-columns: 1fr; }
     .chart-row { grid-template-columns: 1fr; }
     .trade-sides { grid-template-columns: 1fr !important; }
     .trade-side { border-right: none; border-top: 1px solid var(--eee, #eee); }
