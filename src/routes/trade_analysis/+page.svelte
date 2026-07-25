@@ -80,20 +80,39 @@
       })
     : [];
 
-  $: positionGroupData = (() => {
+  let posMgrSortKey = 'total';
+  let posMgrSortDir = -1;
+  function setPosMgrSort(key) {
+    if (posMgrSortKey === key) posMgrSortDir *= -1;
+    else { posMgrSortKey = key; posMgrSortDir = -1; }
+  }
+
+  $: posMgrRows = (() => {
     if (!data) return [];
-    const source = selectedPosManager === 'All'
-      ? data.teamSummary
-      : data.teamSummary.filter(t => t.manager === selectedPosManager);
-    const agg = {};
-    for (const pos of POSITIONS) agg[pos] = { position: pos, starterPts: 0, rosterPts: 0, count: 0 };
-    for (const t of source) {
+    return data.teamSummary.map(t => {
+      const row = { manager: t.manager };
+      let total = 0;
       for (const pos of POSITIONS) {
-        const pb = t.posBreakdown?.[pos];
-        if (pb) { agg[pos].starterPts += pb.starterPts; agg[pos].rosterPts += pb.rosterPts; agg[pos].count += pb.count; }
+        const v = t.posBreakdown?.[pos]?.[ptsKey] || 0;
+        row[pos] = Math.round(v * 10) / 10;
+        total += v;
       }
+      row.total = Math.round(total * 10) / 10;
+      return row;
+    });
+  })();
+
+  $: sortedPosMgr = [...posMgrRows].sort((a, b) => {
+    if (posMgrSortKey === 'manager') return posMgrSortDir * a.manager.localeCompare(b.manager);
+    return posMgrSortDir * ((a[posMgrSortKey] ?? 0) - (b[posMgrSortKey] ?? 0));
+  });
+
+  $: posMgrMaxes = (() => {
+    const out = {};
+    for (const pos of [...POSITIONS, 'total']) {
+      out[pos] = Math.max(...(posMgrRows.map(r => r[pos] || 0)), 1);
     }
-    return Object.values(agg).filter(p => p.count > 0).sort((a, b) => b[ptsKey] - a[ptsKey]);
+    return out;
   })();
 
   function setTeamSort(key) {
@@ -130,18 +149,17 @@
     if (!el || !data) return;
     if (posChart) posChart.destroy();
     const { textColor, gridColor } = chartTheme();
-    const source = selectedPosManager === 'All' ? data.teamSummary : data.teamSummary.filter(t => t.manager === selectedPosManager);
-    const managers = source.map(t => t.manager);
+    const sorted = [...data.teamSummary].sort((a, b) => b[receivedKey] - a[receivedKey]);
     const datasets = POSITIONS.map(pos => ({
       label: pos,
-      data: source.map(t => Math.round((t.posBreakdown?.[pos]?.[ptsKey] || 0) * 10) / 10),
+      data: sorted.map(t => Math.round((t.posBreakdown?.[pos]?.[ptsKey] || 0) * 10) / 10),
       backgroundColor: POS_COLORS[pos] + '99',
       borderColor: POS_COLORS[pos],
       borderWidth: 1
     }));
     posChart = new Chart(el, {
       type: 'bar',
-      data: { labels: managers, datasets },
+      data: { labels: sorted.map(t => t.manager), datasets },
       options: { responsive: true, plugins: { legend: { labels: { color: textColor } } }, scales: { x: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } }, y: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } } } }
     });
   }
@@ -250,57 +268,48 @@
     {:else if activeSection === 'position'}
       <div class="section">
         <h2>Position Group Breakdown</h2>
-        <div class="filter-row">
-          <label>Manager:
-            <select bind:value={selectedPosManager}>
-              <option value="All">All Managers</option>
-              {#each data.managers as m}<option value={m}>{m}</option>{/each}
-            </select>
-          </label>
-        </div>
+        <p class="section-note">Points produced by assets acquired in trades, split by position. Click any column header to sort.</p>
         <div class="chart-box wide"><canvas id="trade-pos-chart"></canvas></div>
         <div class="table-wrap">
-          <table>
+          <table class="pos-matrix">
             <thead>
               <tr>
-                <th>Position</th>
-                <th on:click={() => setPosSort(ptsKey)}>{pointsMode === 'starter' ? 'Starter Pts' : 'Roster Pts'}{sortArrow(ptsKey, posSortKey, posSortDir)}</th>
-                <th on:click={() => setPosSort('count')}>Players/Picks{sortArrow('count', posSortKey, posSortDir)}</th>
-                <th>Avg Pts Each</th>
+                <th class="sticky-col" on:click={() => setPosMgrSort('manager')}>Manager{posMgrSortKey === 'manager' ? (posMgrSortDir === 1 ? ' ▲' : ' ▼') : ''}</th>
+                {#each POSITIONS as pos}
+                  <th on:click={() => setPosMgrSort(pos)} style="border-top: 3px solid {POS_COLORS[pos]}">
+                    {pos}{posMgrSortKey === pos ? (posMgrSortDir === 1 ? ' ▲' : ' ▼') : ''}
+                  </th>
+                {/each}
+                <th on:click={() => setPosMgrSort('total')}>Total{posMgrSortKey === 'total' ? (posMgrSortDir === 1 ? ' ▲' : ' ▼') : ''}</th>
               </tr>
             </thead>
             <tbody>
-              {#each [...positionGroupData].sort((a,b) => posSortDir * (b[posSortKey] - a[posSortKey])) as pg}
+              {#each sortedPosMgr as row}
                 <tr>
-                  <td><span class="pos-badge" style="background:{POS_COLORS[pg.position]}">{pg.position}</span></td>
-                  <td>{Math.round(pg[ptsKey])}</td>
-                  <td>{pg.count}</td>
-                  <td>{pg.count > 0 ? Math.round((pg[ptsKey] / pg.count) * 10) / 10 : '—'}</td>
+                  <td class="sticky-col manager-name">{row.manager}</td>
+                  {#each POSITIONS as pos}
+                    {@const pct = posMgrMaxes[pos] > 0 ? (row[pos] / posMgrMaxes[pos]) : 0}
+                    <td class="heat-cell" style="background: linear-gradient(to right, {POS_COLORS[pos]}26 0%, {POS_COLORS[pos]}26 {pct * 100}%, transparent {pct * 100}%)">
+                      {row[pos] || '—'}
+                    </td>
+                  {/each}
+                  <td class="heat-cell total-col" style="background: linear-gradient(to right, rgba(52,152,219,0.15) 0%, rgba(52,152,219,0.15) {posMgrMaxes.total > 0 ? (row.total / posMgrMaxes.total) * 100 : 0}%, transparent {posMgrMaxes.total > 0 ? (row.total / posMgrMaxes.total) * 100 : 0}%)">
+                    <strong>{row.total}</strong>
+                  </td>
                 </tr>
               {/each}
             </tbody>
+            <tfoot>
+              <tr class="totals-row">
+                <td class="sticky-col"><strong>League total</strong></td>
+                {#each POSITIONS as pos}
+                  <td><strong>{Math.round(posMgrRows.reduce((s, r) => s + (r[pos] || 0), 0))}</strong></td>
+                {/each}
+                <td><strong>{Math.round(posMgrRows.reduce((s, r) => s + (r.total || 0), 0))}</strong></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
-        {#if selectedPosManager !== 'All'}
-          {@const mgr = data.teamSummary.find(t => t.manager === selectedPosManager)}
-          {#if mgr}
-            <div class="manager-pos-detail">
-              <h3>{selectedPosManager} — Position Breakdown</h3>
-              <div class="pos-bars">
-                {#each POSITIONS as pos}
-                  {@const pb = mgr.posBreakdown?.[pos]}
-                  {#if pb && pb.count > 0}
-                    <div class="pos-bar-row">
-                      <span class="pos-label" style="color:{POS_COLORS[pos]}">{pos}</span>
-                      <div class="bar-track"><div class="bar-fill" style="width:{Math.min(100, (pb[ptsKey] / Math.max(...POSITIONS.map(p => mgr.posBreakdown?.[p]?.[ptsKey] || 0))) * 100)}%;background:{POS_COLORS[pos]}"></div></div>
-                      <span class="bar-val">{Math.round(pb[ptsKey])} pts ({pb.count} assets)</span>
-                    </div>
-                  {/if}
-                {/each}
-              </div>
-            </div>
-          {/if}
-        {/if}
       </div>
 
     {:else if activeSection === 'log'}
@@ -446,13 +455,14 @@
   .negative { color: #e74c3c; font-weight: 600; }
   .pending-badge { background: rgba(241, 196, 15, 0.18); color: #9a7000; border-radius: 12px; padding: 0.2rem 0.5rem; font-size: 0.78rem; font-weight: 600; }
   .pos-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; color: #fff; font-size: 0.8rem; font-weight: 700; }
-  .manager-pos-detail { background: var(--eee, #eee); border-radius: 12px; padding: 1.25rem; }
-  .pos-bars { display: flex; flex-direction: column; gap: 0.75rem; }
-  .pos-bar-row { display: grid; grid-template-columns: 60px 1fr auto; gap: 0.75rem; align-items: center; }
-  .pos-label { font-weight: 700; font-size: 0.85rem; }
-  .bar-track { background: var(--ddd, #ddd); border-radius: 4px; height: 12px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
-  .bar-val { font-size: 0.85rem; color: var(--g555, #555); white-space: nowrap; }
+  .section-note { color: var(--g555, #555); font-size: 0.85rem; margin-bottom: 1rem; }
+  .pos-matrix th { cursor: pointer; user-select: none; }
+  .pos-matrix th:hover { color: var(--color-primary, #3498db); }
+  .sticky-col { position: sticky; left: 0; background: var(--fff, #fff); z-index: 1; }
+  thead .sticky-col { background: var(--eee, #eee); }
+  .heat-cell { font-weight: 500; white-space: nowrap; }
+  .total-col { border-left: 2px solid var(--ddd, #ddd); }
+  tfoot .totals-row td { border-top: 2px solid var(--ddd, #ddd); background: var(--eee, #eee); font-size: 0.88rem; }
   .trade-log { display: flex; flex-direction: column; gap: 1rem; }
   .trade-card { background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 12px; overflow: hidden; }
   .trade-header { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem 1rem; background: var(--eee, #eee); border-bottom: 1px solid var(--ddd, #ddd); }
