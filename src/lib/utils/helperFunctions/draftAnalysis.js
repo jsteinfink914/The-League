@@ -25,27 +25,26 @@ async function collectSeasonChain() {
 
 async function fetchSeasonMatchups(seasonID, playoffWeekStart) {
   const weekCount = Math.max(playoffWeekStart - 1, 1);
-  const urls = [];
-  for (let w = 1; w <= weekCount; w++) urls.push(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${w}`);
-  const responses = await Promise.all(urls.map(u => fetch(u)));
+  const responses = await Promise.all(
+    Array.from({ length: weekCount }, (_, i) => fetch(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${i + 1}`))
+  );
   const bodies = await Promise.all(responses.map(r => r.json()));
   return bodies.map((entries, i) => ({ week: i + 1, entries: Array.isArray(entries) ? entries : [] }));
 }
 
-function accumulateMatchupPoints(matchups, playerPoints) {
+function accumulatePoints(matchups, map) {
   for (const { entries } of matchups) {
     for (const entry of entries) {
       const starters = entry.starters || [];
       const starterPtsArr = entry.starters_points || [];
       for (const [pid, pts] of Object.entries(entry.players_points || {})) {
-        if (!playerPoints.has(pid)) playerPoints.set(pid, { starterPts: 0, rosterPts: 0 });
-        playerPoints.get(pid).rosterPts += pts || 0;
+        if (!map.has(pid)) map.set(pid, { starterPts: 0, rosterPts: 0 });
+        map.get(pid).rosterPts += pts || 0;
       }
       starters.forEach((pid, idx) => {
-        if (pid) {
-          if (!playerPoints.has(pid)) playerPoints.set(pid, { starterPts: 0, rosterPts: 0 });
-          playerPoints.get(pid).starterPts += starterPtsArr[idx] || 0;
-        }
+        if (!pid) return;
+        if (!map.has(pid)) map.set(pid, { starterPts: 0, rosterPts: 0 });
+        map.get(pid).starterPts += starterPtsArr[idx] || 0;
       });
     }
   }
@@ -53,15 +52,16 @@ function accumulateMatchupPoints(matchups, playerPoints) {
 
 export async function buildDraftAnalysisData({ players }) {
   const [teamManagers, seasonChain] = await Promise.all([getLeagueTeamManagers(), collectSeasonChain()]);
-  const { teamManagersMap, currentSeason } = teamManagers;
+  const { teamManagersMap } = teamManagers;
 
   function getManagerName(rosterID, year) {
+    const rid = String(rosterID);
     const y = String(year);
-    if (teamManagersMap[y]?.[String(rosterID)]) return teamManagersMap[y][String(rosterID)].team?.name || `Team ${rosterID}`;
+    if (teamManagersMap[y]?.[rid]) return teamManagersMap[y][rid].team?.name || `Team ${rid}`;
     for (const yr of Object.keys(teamManagersMap).sort((a, b) => b - a)) {
-      if (teamManagersMap[yr]?.[String(rosterID)]) return teamManagersMap[yr][String(rosterID)].team?.name || `Team ${rosterID}`;
+      if (teamManagersMap[yr]?.[rid]) return teamManagersMap[yr][rid].team?.name || `Team ${rid}`;
     }
-    return `Team ${rosterID}`;
+    return `Team ${rid}`;
   }
 
   function getPlayerInfo(pid) {
@@ -71,81 +71,90 @@ export async function buildDraftAnalysisData({ players }) {
     return { name: `${p.first_name} ${p.last_name}`, position: POSITIONS.includes(pos) ? pos : 'Other' };
   }
 
-  // Build all-time player points map (all seasons)
-  const allTimePlayerPoints = new Map();
-  for (const { seasonID, playoffWeekStart } of seasonChain) {
-    try {
-      const matchups = await fetchSeasonMatchups(seasonID, playoffWeekStart);
-      accumulateMatchupPoints(matchups, allTimePlayerPoints);
-    } catch (e) { console.warn('draftAnalysis: matchup fetch failed', seasonID, e); }
-  }
-
-  // Also build per-season player points for "points from draft year forward" calculation
-  // We'll store cumulative points from each year onward
-  const seasonYears = seasonChain.map(s => s.year).sort((a, b) => a - b);
+  // Build per-season points maps (reused across all drafts)
   const perSeasonPoints = new Map(); // year -> Map<pid, {starterPts, rosterPts}>
   for (const { year, seasonID, playoffWeekStart } of seasonChain) {
     const m = new Map();
     try {
       const matchups = await fetchSeasonMatchups(seasonID, playoffWeekStart);
-      accumulateMatchupPoints(matchups, m);
-    } catch (e) { console.warn('draftAnalysis: season pts failed', seasonID, e); }
+      accumulatePoints(matchups, m);
+    } catch (e) { console.warn('draftAnalysis: matchup fetch failed', seasonID, e); }
     perSeasonPoints.set(year, m);
   }
 
-  // For a player drafted in draftYear: points = sum of perSeasonPoints for year >= draftYear
   function getPlayerPointsFromYear(pid, draftYear) {
     let starterPts = 0, rosterPts = 0;
     for (const [year, map] of perSeasonPoints) {
       if (year >= draftYear) {
-        const pts = map.get(pid) || { starterPts: 0, rosterPts: 0 };
-        starterPts += pts.starterPts;
-        rosterPts += pts.rosterPts;
+        const pts = map.get(pid);
+        if (pts) { starterPts += pts.starterPts; rosterPts += pts.rosterPts; }
       }
     }
     return { starterPts: Math.round(starterPts * 10) / 10, rosterPts: Math.round(rosterPts * 10) / 10 };
   }
 
-  // Fetch annual drafts (skip startup = lots of rounds in earliest year)
   const earliestYear = Math.min(...seasonChain.map(s => s.year));
   const enrichedDrafts = [];
 
   for (const { seasonID, year } of seasonChain) {
     try {
       const draftsInfo = await fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/drafts`);
+
       for (const draftMeta of draftsInfo) {
         if (draftMeta.status !== 'complete') continue;
+
         const rounds = draftMeta.settings?.rounds || 0;
-        // Skip startup drafts (identified by having many rounds, typically 20+, in the first year)
+        // Skip startup drafts (many rounds in the earliest year)
         if (year === earliestYear && rounds > 10) continue;
 
         const draftID = draftMeta.draft_id;
-        const [tradedPicks, draftPicks] = await Promise.all([
+        const [officialDraft, tradedPicks, draftPicks] = await Promise.all([
+          fetchJson(`https://api.sleeper.app/v1/draft/${draftID}`),
           fetchJson(`https://api.sleeper.app/v1/draft/${draftID}/traded_picks`),
-          fetchJson(`https://api.sleeper.app/v1/draft/${draftID}/picks`)
+          fetchJson(`https://api.sleeper.app/v1/draft/${draftID}/picks`),
         ]);
 
-        const tradeMap = new Map();
-        for (const tp of tradedPicks) tradeMap.set(`${tp.round}_${tp.roster_id}`, String(tp.owner_id));
+        // slot_to_roster_id maps draft slot (string key) -> roster_id (number)
+        // This tells us which roster originally owned each slot
+        const slotToRosterID = officialDraft.slot_to_roster_id || {};
 
+        // Build a map: (round, originalOwnerRosterID) -> currentOwnerRosterID
+        // Use traded_picks where roster_id = original owner, owner_id = current owner
+        const tradeMap = new Map(); // key: `${round}_${originalRosterID}` -> currentOwnerRosterID
+        for (const tp of tradedPicks) {
+          // Only record actually-traded picks (owner changed)
+          if (String(tp.owner_id) !== String(tp.roster_id)) {
+            tradeMap.set(`${tp.round}_${String(tp.roster_id)}`, String(tp.owner_id));
+          }
+        }
+
+        // Process each actual pick made in the draft
         const picks = draftPicks.map(p => {
-          const actualOwner = tradeMap.get(`${p.round}_${p.roster_id}`) ?? String(p.roster_id);
-          const wasTraded = actualOwner !== String(p.roster_id);
+          // draft_slot tells us which slot this pick was made in (1-based)
+          const slot = p.draft_slot;
+          // Look up the ORIGINAL owner of this slot from the draft order
+          const originalOwnerRosterID = String(slotToRosterID[slot] ?? p.roster_id);
+          // Check if this pick was traded away
+          const tradeKey = `${p.round}_${originalOwnerRosterID}`;
+          const currentOwnerRosterID = tradeMap.get(tradeKey) ?? originalOwnerRosterID;
+          const wasTraded = currentOwnerRosterID !== originalOwnerRosterID;
+
           const info = getPlayerInfo(p.player_id);
           const pts = getPlayerPointsFromYear(p.player_id, year);
+
           return {
             round: p.round,
-            slot: p.draft_slot,
+            slot,
             playerID: p.player_id,
             playerName: info.name,
             position: info.position,
-            originalOwnerRosterID: String(p.roster_id),
-            actualOwnerRosterID: actualOwner,
-            originalManager: wasTraded ? getManagerName(p.roster_id, year) : null,
-            manager: getManagerName(actualOwner, year),
+            originalOwnerRosterID,
+            actualOwnerRosterID: currentOwnerRosterID,
+            originalManager: wasTraded ? getManagerName(originalOwnerRosterID, year) : null,
+            manager: getManagerName(currentOwnerRosterID, year),
             wasTraded,
             starterPts: pts.starterPts,
-            rosterPts: pts.rosterPts
+            rosterPts: pts.rosterPts,
           };
         });
 
