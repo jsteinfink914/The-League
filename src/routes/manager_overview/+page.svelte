@@ -46,18 +46,36 @@
   function buildCombined() {
     if (!capData || !tradeData || !draftData) return [];
 
+    // Aggregate cap efficiency across ALL historical seasons per manager
+    const careerCapMap = new Map();
+    for (const entry of capData.seasonTrends || []) {
+      if (!entry.manager) continue;
+      if (!careerCapMap.has(entry.manager)) careerCapMap.set(entry.manager, { capHit: 0, starterPts: 0, rosterPts: 0 });
+      const a = careerCapMap.get(entry.manager);
+      a.capHit += entry.capHit || 0;
+      a.starterPts += entry.starterPts || 0;
+      a.rosterPts += entry.rosterPts || 0;
+    }
+    const careerCapEfficiency = [...careerCapMap.entries()].map(([manager, a]) => ({
+      manager,
+      capHit: a.capHit,
+      starterPts: Math.round(a.starterPts * 10) / 10,
+      rosterPts: Math.round(a.rosterPts * 10) / 10,
+      dollarPerStarterPt: a.starterPts > 0 ? Math.round((a.capHit / a.starterPts) * 100) / 100 : null,
+    }));
+
     const allManagers = [...new Set([
-      ...capData.teamEfficiency.map(t => t.manager),
+      ...careerCapEfficiency.map(t => t.manager),
       ...tradeData.teamSummary.map(t => t.manager),
       ...draftData.teamSummary.map(t => t.manager)
     ])].sort();
 
-    const capRanks = rankArray(capData.teamEfficiency.filter(t => t.dollarPerStarterPt != null), 'dollarPerStarterPt', true);
+    const capRanks = rankArray(careerCapEfficiency.filter(t => t.dollarPerStarterPt != null), 'dollarPerStarterPt', true);
     const tradeRanks = rankArray(tradeData.teamSummary, 'netStarterSurplus', false);
     const draftRanks = rankArray(draftData.teamSummary, 'totalStarterPts', false);
 
     return allManagers.map(mgr => {
-      const cap = capData.teamEfficiency.find(t => t.manager === mgr);
+      const cap = careerCapEfficiency.find(t => t.manager === mgr);
       const trade = tradeData.teamSummary.find(t => t.manager === mgr);
       const draft = draftData.teamSummary.find(t => t.manager === mgr);
 
@@ -275,7 +293,7 @@
                           <h4>⚡ Cap Efficiency</h4>
                           <p>Rank: <strong>#{row.capRank ?? '—'}</strong></p>
                           <p>$/Starter Pt: <strong>{row.dollarPerStarterPt != null ? `$${row.dollarPerStarterPt}` : '—'}</strong></p>
-                          <p>Starter Pts (cap year): <strong>{Math.round(row.capStarterPts)}</strong></p>
+                          <p>Starter Pts (career): <strong>{Math.round(row.capStarterPts)}</strong></p>
                         </div>
                         <div class="detail-col">
                           <h4>🔄 Trade Outcomes</h4>
