@@ -5,11 +5,11 @@ Index,Name
 4,Jeff
 5,Jake
 6,Dev
-7,Christian
+7,Chi
 8,Sam
 9,Marini
 10,Rafa
-11,Coop
+11,Cooper
 12,Vinnie
 13,Ska
 14,Mctombs

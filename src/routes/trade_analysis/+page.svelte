@@ -43,6 +43,36 @@
     };
   })();
 
+  // Most traded players
+  let mostTradedSortKey = 'tradeCount';
+  let mostTradedSortDir = -1;
+  let mostTradedFilterPos = 'All';
+  $: mostTradedPlayers = (() => {
+    if (!data) return [];
+    const counts = new Map(); // playerID -> { name, position, tradeCount, starterPts, rosterPts, managers: Set }
+    for (const trade of data.trades) {
+      for (const side of trade.sides) {
+        for (const pd of side.playerDetails || []) {
+          if (!counts.has(pd.playerID)) {
+            counts.set(pd.playerID, { playerID: pd.playerID, name: pd.name, position: pd.position, tradeCount: 0, starterPts: 0, rosterPts: 0, managers: new Set() });
+          }
+          const e = counts.get(pd.playerID);
+          e.tradeCount++;
+          e.starterPts = Math.round((e.starterPts + pd.starterPts) * 10) / 10;
+          e.rosterPts = Math.round((e.rosterPts + pd.rosterPts) * 10) / 10;
+          e.managers.add(side.manager);
+        }
+      }
+    }
+    return [...counts.values()]
+      .map(e => ({ ...e, managerCount: e.managers.size, managers: [...e.managers].sort().join(', ') }))
+      .filter(e => mostTradedFilterPos === 'All' || e.position === mostTradedFilterPos);
+  })();
+  $: sortedMostTraded = [...mostTradedPlayers].sort((a, b) => {
+    if (mostTradedSortKey === 'name') return mostTradedSortDir * a.name.localeCompare(b.name);
+    return mostTradedSortDir * ((a[mostTradedSortKey] ?? 0) - (b[mostTradedSortKey] ?? 0));
+  });
+
   // Charts
   let barChart = null;
   let posChart = null;
@@ -224,6 +254,7 @@
       <div class="section-tabs">
         <button class:active={activeSection === 'team'} on:click={() => activeSection = 'team'}>Team View</button>
         <button class:active={activeSection === 'position'} on:click={() => activeSection = 'position'}>Position Groups</button>
+        <button class:active={activeSection === 'players'} on:click={() => activeSection = 'players'}>Most Traded</button>
         <button class:active={activeSection === 'log'} on:click={() => activeSection = 'log'}>Trade Log</button>
       </div>
     </div>
@@ -308,6 +339,48 @@
                 <td><strong>{Math.round(posMgrRows.reduce((s, r) => s + (r.total || 0), 0))}</strong></td>
               </tr>
             </tfoot>
+          </table>
+        </div>
+      </div>
+
+    {:else if activeSection === 'players'}
+      <div class="section">
+        <h2>Most Traded Players</h2>
+        <div class="filter-row">
+          <label>Position:
+            <select bind:value={mostTradedFilterPos}>
+              <option value="All">All Positions</option>
+              {#each POSITIONS as pos}<option value={pos}>{pos}</option>{/each}
+            </select>
+          </label>
+          <span class="result-count">{sortedMostTraded.length} players</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="rank-col">#</th>
+                <th on:click={() => { if (mostTradedSortKey === 'name') mostTradedSortDir *= -1; else { mostTradedSortKey = 'name'; mostTradedSortDir = 1; } }}>Player{mostTradedSortKey === 'name' ? (mostTradedSortDir === 1 ? ' ▲' : ' ▼') : ''}</th>
+                <th>Pos</th>
+                <th on:click={() => { if (mostTradedSortKey === 'tradeCount') mostTradedSortDir *= -1; else { mostTradedSortKey = 'tradeCount'; mostTradedSortDir = -1; } }}>Times Traded{mostTradedSortKey === 'tradeCount' ? (mostTradedSortDir === 1 ? ' ▲' : ' ▼') : ''}</th>
+                <th on:click={() => { if (mostTradedSortKey === 'managerCount') mostTradedSortDir *= -1; else { mostTradedSortKey = 'managerCount'; mostTradedSortDir = -1; } }}>Managers Involved{mostTradedSortKey === 'managerCount' ? (mostTradedSortDir === 1 ? ' ▲' : ' ▼') : ''}</th>
+                <th on:click={() => { if (mostTradedSortKey === (pointsMode === 'starter' ? 'starterPts' : 'rosterPts')) mostTradedSortDir *= -1; else { mostTradedSortKey = pointsMode === 'starter' ? 'starterPts' : 'rosterPts'; mostTradedSortDir = -1; } }}>Pts Produced{mostTradedSortKey === (pointsMode === 'starter' ? 'starterPts' : 'rosterPts') ? (mostTradedSortDir === 1 ? ' ▲' : ' ▼') : ''}</th>
+                <th>Traded By</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each sortedMostTraded as player, i}
+                <tr class:pos-qb={player.position === 'QB'} class:pos-rb={player.position === 'RB'} class:pos-wr={player.position === 'WR'} class:pos-te={player.position === 'TE'}>
+                  <td class="rank-col">{i + 1}</td>
+                  <td><strong>{player.name}</strong></td>
+                  <td><span class="pos-badge" style="background: {POS_COLORS[player.position] || POS_COLORS.Other}">{player.position}</span></td>
+                  <td><strong>{player.tradeCount}</strong></td>
+                  <td>{player.managerCount}</td>
+                  <td>{pointsMode === 'starter' ? player.starterPts : player.rosterPts}</td>
+                  <td class="managers-cell">{player.managers}</td>
+                </tr>
+              {/each}
+            </tbody>
           </table>
         </div>
       </div>
@@ -498,6 +571,8 @@
   .h-date { color: var(--g555, #555); white-space: nowrap; flex-shrink: 0; }
   .h-assets { flex: 1; color: var(--g333, #333); }
   .h-net { white-space: nowrap; font-weight: 700; flex-shrink: 0; }
+  .rank-col { width: 2.5rem; text-align: center; color: var(--g555, #555); }
+  .managers-cell { font-size: 0.82rem; color: var(--g555, #555); max-width: 260px; }
   .empty { text-align: center; padding: 2rem; color: var(--g888, #888); }
   @media (max-width: 768px) {
     .highlights-row { grid-template-columns: 1fr; }

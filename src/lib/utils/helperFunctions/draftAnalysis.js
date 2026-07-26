@@ -52,14 +52,16 @@ function accumulatePoints(matchups, map) {
 
 export async function buildDraftAnalysisData({ players }) {
   const [teamManagers, seasonChain] = await Promise.all([getLeagueTeamManagers(), collectSeasonChain()]);
-  const { teamManagersMap } = teamManagers;
+  const { teamManagersMap, users } = teamManagers;
 
   function getManagerName(rosterID, year) {
     const rid = String(rosterID);
-    const y = String(year);
-    if (teamManagersMap[y]?.[rid]) return teamManagersMap[y][rid].team?.name || `Team ${rid}`;
-    for (const yr of Object.keys(teamManagersMap).sort((a, b) => b - a)) {
-      if (teamManagersMap[yr]?.[rid]) return teamManagersMap[yr][rid].team?.name || `Team ${rid}`;
+    const yearsToTry = [String(year), ...Object.keys(teamManagersMap).sort((a, b) => b - a)];
+    for (const y of yearsToTry) {
+      const info = teamManagersMap[y]?.[rid];
+      if (!info) continue;
+      const primaryUserID = info.managers?.[0];
+      if (primaryUserID && users[primaryUserID]?.display_name) return users[primaryUserID].display_name;
     }
     return `Team ${rid}`;
   }
