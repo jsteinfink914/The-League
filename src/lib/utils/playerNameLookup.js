@@ -137,11 +137,22 @@ export function calculateContractValue(contractYear, rookieValue, marketValue) {
 
 export const CONTRACT_STATUS_LABELS = {
   none: '',
-  rookie_year: 'Rookie year',
-  rookie_y1_2: 'Rookie deal (yr 1–2)',
-  rookie_y3: 'Rookie deal (yr 3 blend)',
+  rookie_year: 'Rookie year (Year 1)',
+  rookie_y3: 'Rookie deal (Year 3 blend)',
   market: 'Market'
 };
+
+function getContractLabel(status, contractYear) {
+  if (status === 'rookie_y1_2') {
+    return `Rookie deal (Year ${contractYear})`;
+  }
+
+  if (status === 'market' && contractYear != null) {
+    return `Market (Year ${contractYear})`;
+  }
+
+  return CONTRACT_STATUS_LABELS[status] ?? '';
+}
 
 /**
  * @param {string} csvText Raw FantasyPros export (rank,name,$value per line)
@@ -233,7 +244,7 @@ export function getContractBreakdown({
   if (currentRow?.Rookie === 1) {
     return {
       status: 'rookie_year',
-      label: CONTRACT_STATUS_LABELS.rookie_year,
+      label: getContractLabel('rookie_year', 1),
       formula: `Rookie year (${capYearNum} entry): $${capValue}`,
       contractYear: 1,
       rookieEntryYear: capYearNum,
@@ -246,7 +257,7 @@ export function getContractBreakdown({
   if (!contract) {
     return {
       status: 'market',
-      label: CONTRACT_STATUS_LABELS.market,
+      label: getContractLabel('market'),
       formula: `Market value: $${capValue}`,
       contractYear: null,
       rookieEntryYear: null,
@@ -261,7 +272,7 @@ export function getContractBreakdown({
   if (contractYear <= 2) {
     return {
       status: 'rookie_y1_2',
-      label: CONTRACT_STATUS_LABELS.rookie_y1_2,
+      label: getContractLabel('rookie_y1_2', contractYear),
       formula: `Year ${contractYear} rookie deal: $${capValue} (entry ${contract.RookieYear})`,
       contractYear,
       rookieEntryYear: contract.RookieYear,
@@ -275,7 +286,7 @@ export function getContractBreakdown({
       const blended = calculateContractValue(3, rookieValue, marketValue);
       return {
         status: 'rookie_y3',
-        label: CONTRACT_STATUS_LABELS.rookie_y3,
+        label: getContractLabel('rookie_y3', contractYear),
         formula: `Year 3 blend: ($${rookieValue} + $${marketValue}) / 2 = $${blended}`,
         contractYear,
         rookieEntryYear: contract.RookieYear,
@@ -286,8 +297,8 @@ export function getContractBreakdown({
 
     return {
       status: 'rookie_y3',
-      label: CONTRACT_STATUS_LABELS.rookie_y3,
-      formula: `Year 3 blended cap: $${capValue} (league rule)`,
+      label: 'Rookie deal (Year 3; market unavailable)',
+      formula: `Year 3 blend unavailable: no Fantasy Pros market value (current $${capValue})`,
       contractYear,
       rookieEntryYear: contract.RookieYear,
       rookieValue,
@@ -297,8 +308,8 @@ export function getContractBreakdown({
 
   return {
     status: 'market',
-    label: CONTRACT_STATUS_LABELS.market,
-    formula: `Year ${contractYear}+ market value: $${capValue}`,
+    label: getContractLabel('market', contractYear),
+    formula: `Year ${contractYear} market value: $${capValue}`,
     contractYear,
     rookieEntryYear: contract.RookieYear,
     rookieValue,

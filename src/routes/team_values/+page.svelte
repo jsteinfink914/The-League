@@ -379,10 +379,10 @@
   <div class="rules-legend">
     <strong>Cap contract rules ({valueYear})</strong>
     <ul>
-      <li><strong>Rookie year</strong> — league-entry year: locked rookie value</li>
-      <li><strong>Rookie deal (yr 1–2)</strong> — years 1–2 since entry: same rookie value</li>
-      <li><strong>Rookie deal (yr 3 blend)</strong> — year 3: average of rookie value and Fantasy Pros market</li>
-      <li><strong>Market</strong> — year 4+ or no rookie row: full Fantasy Pros market value</li>
+        <li><strong>Rookie year (Year 1)</strong> — league-entry year: locked rookie value</li>
+        <li><strong>Rookie deal (Year 2)</strong> — second year since entry: same rookie value</li>
+        <li><strong>Rookie deal (Year 3 blend)</strong> — average of rookie value and Fantasy Pros market</li>
+        <li><strong>Market (Year 4+)</strong> — fourth year and later: full Fantasy Pros market value</li>
     </ul>
   </div>
   <div class="chart-container">

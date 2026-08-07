@@ -1582,7 +1582,7 @@ Year,Name,Value,Rookie
 2026,Mark Andrews,22,0
 2026,Baker Mayfield,21,0
 2026,Jacory Croskey-Merritt,21,0
-2026,Jalen Coker,21,0
+2026,Jalen Coker,11,0
 2026,Jared Goff,21,0
 2026,Justice Hill,21,0
 2026,Rashid Shaheed,21,0

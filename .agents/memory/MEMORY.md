@@ -1,0 +1,1 @@
+- [Team value contract labels](team-value-contract-labels.md) — display exact contract years and derive formulas from the same generated value rules.
