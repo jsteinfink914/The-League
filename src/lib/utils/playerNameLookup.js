@@ -147,10 +147,6 @@ function getContractLabel(status, contractYear) {
     return `Rookie deal (Year ${contractYear})`;
   }
 
-  if (status === 'market' && contractYear != null) {
-    return `Market (Year ${contractYear})`;
-  }
-
   return CONTRACT_STATUS_LABELS[status] ?? '';
 }
 
