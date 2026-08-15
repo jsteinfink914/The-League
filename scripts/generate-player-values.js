@@ -362,15 +362,25 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
 
 function readFantasyProsValues(filePath) {
   const text = fs.readFileSync(filePath, 'utf8');
-  const parsed = Papa.parse(text, { skipEmptyLines: true });
+  const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+  const fields = parsed.meta.fields || [];
+  const nameField = fields.find((field) => /^(player|name)$/i.test(String(field).trim())) || fields[1];
+  // The FantasyPros export contains both projected Points and auction Value.
+  // Always prefer the explicitly named value column so a column-order change
+  // cannot silently turn projections into dollar values.
+  const valueField = fields.find((field) => /^(value|auction value|\$ value)$/i.test(String(field).trim()));
+  const rankField = fields.find((field) => /^(#|rank|overall)$/i.test(String(field).trim())) || fields[0];
+
+  if (!nameField || !valueField) {
+    fail(`FantasyPros input must include a player-name column and a Value column: ${relative(filePath)}.`);
+  }
+
   const rows = [];
 
-  for (const columns of parsed.data) {
-    if (!Array.isArray(columns) || columns.length < 3) continue;
-
-    const rank = Number(String(columns[0]).trim());
-    const displayName = String(columns[1] || '').trim();
-    const value = parseDollarValue(columns[2]);
+  for (const row of parsed.data) {
+    const rank = Number(String(row[rankField] ?? '').trim());
+    const displayName = String(row[nameField] ?? '').trim();
+    const value = parseDollarValue(row[valueField]);
 
     if (!Number.isFinite(rank) || !displayName || !Number.isFinite(value)) continue;
 
@@ -383,6 +393,13 @@ function readFantasyProsValues(filePath) {
 
   if (!rows.length) {
     fail(`Could not parse any FantasyPros rows from ${relative(filePath)}.`);
+  }
+
+  const duplicateNames = rows
+    .map((row) => row.Name)
+    .filter((name, index, names) => names.indexOf(name) !== index);
+  if (duplicateNames.length) {
+    fail(`FantasyPros input has duplicate player names after cleanup: ${[...new Set(duplicateNames)].join(', ')}.`);
   }
 
   return rows;
@@ -463,7 +480,10 @@ async function fetchSleeperPlayers(filePath) {
 }
 
 function cleanFantasyProsName(name) {
-  return name.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  // FantasyPros appends team/position and, for injured players, a status such
+  // as `DTD` immediately after that parenthetical. Neither belongs in the
+  // stable player name used by the Sleeper mapping and rookie-contract logic.
+  return name.replace(/\s*\([^)]*\)(?:[A-Za-z]+)?\s*$/, '').trim();
 }
 
 function parseDollarValue(value) {

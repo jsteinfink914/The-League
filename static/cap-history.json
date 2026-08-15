@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-14T12:38:12.517Z",
+  "generatedAt": "2026-07-26T18:35:50.983Z",
   "currentYear": 2026,
   "note": "Historical seasons only. Current season is always fetched live.",
   "seasonTrends": [
@@ -59,7 +59,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "capHit": 490.5,
       "starterPts": 1181.2,
       "rosterPts": 1535.5,
@@ -95,7 +95,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "capHit": 532,
       "starterPts": 1278.1,
       "rosterPts": 1564.7,
@@ -203,7 +203,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "capHit": 513,
       "starterPts": 1546.2,
       "rosterPts": 2168.5,
@@ -239,7 +239,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "capHit": 248.5,
       "starterPts": 1136.2,
       "rosterPts": 1753.2,
@@ -347,7 +347,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "capHit": 497,
       "starterPts": 1302.7,
       "rosterPts": 1558.2,
@@ -383,7 +383,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "capHit": 325,
       "starterPts": 1132.7,
       "rosterPts": 1636.7,
@@ -429,11 +429,11 @@
     {
       "year": 2023,
       "manager": "Coyne",
-      "capHit": 545,
-      "starterPts": 1237.8,
-      "rosterPts": 1524,
+      "capHit": 534,
+      "starterPts": 1219.4,
+      "rosterPts": 1461.5,
       "dollarPerStarterPt": 0.44,
-      "dollarPerRosterPt": 0.36
+      "dollarPerRosterPt": 0.37
     },
     {
       "year": 2022,
@@ -491,10 +491,10 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
-      "capHit": 536,
-      "starterPts": 1189.2,
-      "rosterPts": 1355.3,
+      "manager": "Chi",
+      "capHit": 519,
+      "starterPts": 1162.8,
+      "rosterPts": 1293,
       "dollarPerStarterPt": 0.45,
       "dollarPerRosterPt": 0.4
     },
@@ -527,7 +527,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "capHit": 461,
       "starterPts": 1082.4,
       "rosterPts": 1260.2,
@@ -583,7 +583,7 @@
   "playerHistory": [
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Evan McPherson",
       "position": "Other",
       "capHit": 1,
@@ -836,7 +836,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Jordan Mason",
       "position": "RB",
       "capHit": 23,
@@ -1353,7 +1353,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "T.J. Hockenson",
       "position": "TE",
       "capHit": 33,
@@ -1364,7 +1364,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Josh Jacobs",
       "position": "RB",
       "capHit": 100,
@@ -1375,7 +1375,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Deebo Samuel",
       "position": "WR",
       "capHit": 54,
@@ -1386,7 +1386,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Tua Tagovailoa",
       "position": "QB",
       "capHit": 1,
@@ -1408,7 +1408,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Wan'Dale Robinson",
       "position": "WR",
       "capHit": 21,
@@ -1419,7 +1419,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Garrett Wilson",
       "position": "WR",
       "capHit": 75,
@@ -1430,7 +1430,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Puka Nacua",
       "position": "WR",
       "capHit": 59,
@@ -1441,7 +1441,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Quentin Johnston",
       "position": "WR",
       "capHit": 11.5,
@@ -1452,7 +1452,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Braelon Allen",
       "position": "RB",
       "capHit": 5,
@@ -1474,7 +1474,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Jaydon Blue",
       "position": "RB",
       "capHit": 9,
@@ -1496,7 +1496,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Kaleb Johnson",
       "position": "RB",
       "capHit": 38,
@@ -1507,7 +1507,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Jacory Croskey-Merritt",
       "position": "RB",
       "capHit": 21,
@@ -1727,7 +1727,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "James Conner",
       "position": "RB",
       "capHit": 72,
@@ -1936,7 +1936,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Matthew Stafford",
       "position": "QB",
       "capHit": 1,
@@ -1947,7 +1947,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Chris Godwin",
       "position": "WR",
       "capHit": 38,
@@ -1958,7 +1958,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Calvin Ridley",
       "position": "WR",
       "capHit": 65,
@@ -1969,7 +1969,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Courtland Sutton",
       "position": "WR",
       "capHit": 70,
@@ -1991,7 +1991,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Justice Hill",
       "position": "RB",
       "capHit": 4,
@@ -2002,7 +2002,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Jerry Jeudy",
       "position": "WR",
       "capHit": 63,
@@ -2013,7 +2013,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "J.K. Dobbins",
       "position": "RB",
       "capHit": 25,
@@ -2024,7 +2024,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Jake Ferguson",
       "position": "TE",
       "capHit": 13,
@@ -2035,7 +2035,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Trey McBride",
       "position": "TE",
       "capHit": 72,
@@ -2046,7 +2046,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Brock Purdy",
       "position": "QB",
       "capHit": 31,
@@ -2057,7 +2057,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Zay Flowers",
       "position": "WR",
       "capHit": 48,
@@ -2068,7 +2068,7 @@
     },
     {
       "year": 2025,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Bhayshul Tuten",
       "position": "RB",
       "capHit": 6,
@@ -2233,7 +2233,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Aaron Jones",
       "position": "RB",
       "capHit": 55,
@@ -2255,7 +2255,7 @@
     },
     {
       "year": 2025,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Trevor Lawrence",
       "position": "QB",
       "capHit": 8,
@@ -2926,7 +2926,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Josh Jacobs",
       "position": "RB",
       "capHit": 75,
@@ -3289,7 +3289,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Wan'Dale Robinson",
       "position": "WR",
       "capHit": 6.5,
@@ -3476,7 +3476,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Jared Goff",
       "position": "QB",
       "capHit": 17,
@@ -3487,7 +3487,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Chris Godwin",
       "position": "WR",
       "capHit": 61,
@@ -3520,7 +3520,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "T.J. Hockenson",
       "position": "TE",
       "capHit": 18,
@@ -3531,7 +3531,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Deebo Samuel",
       "position": "WR",
       "capHit": 82,
@@ -3542,7 +3542,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Devin Singletary",
       "position": "RB",
       "capHit": 38,
@@ -3553,7 +3553,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Tua Tagovailoa",
       "position": "QB",
       "capHit": 14,
@@ -3564,7 +3564,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Jerry Jeudy",
       "position": "WR",
       "capHit": 30,
@@ -3575,7 +3575,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Darnell Mooney",
       "position": "WR",
       "capHit": 17,
@@ -3586,7 +3586,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Najee Harris",
       "position": "RB",
       "capHit": 52,
@@ -3597,7 +3597,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Garrett Wilson",
       "position": "WR",
       "capHit": 57.5,
@@ -3608,7 +3608,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Quentin Johnston",
       "position": "WR",
       "capHit": 18,
@@ -3619,7 +3619,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Kendre Miller",
       "position": "RB",
       "capHit": 1,
@@ -3630,7 +3630,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Braelon Allen",
       "position": "RB",
       "capHit": 5,
@@ -3641,7 +3641,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Troy Franklin",
       "position": "WR",
       "capHit": 2,
@@ -3652,7 +3652,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "New York Jets",
       "position": "Other",
       "capHit": 2,
@@ -4048,7 +4048,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Brock Purdy",
       "position": "QB",
       "capHit": 14.5,
@@ -4081,7 +4081,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Matthew Stafford",
       "position": "QB",
       "capHit": 11,
@@ -4103,7 +4103,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Calvin Ridley",
       "position": "WR",
       "capHit": 60,
@@ -4114,7 +4114,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Courtland Sutton",
       "position": "WR",
       "capHit": 34,
@@ -4125,7 +4125,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Jakobi Meyers",
       "position": "WR",
       "capHit": 26,
@@ -4147,7 +4147,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Antonio Gibson",
       "position": "RB",
       "capHit": 15,
@@ -4158,7 +4158,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Evan McPherson",
       "position": "Other",
       "capHit": 1,
@@ -4169,7 +4169,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Jake Ferguson",
       "position": "TE",
       "capHit": 19.5,
@@ -4180,7 +4180,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Jalen Tolbert",
       "position": "WR",
       "capHit": 5,
@@ -4191,7 +4191,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Trey McBride",
       "position": "TE",
       "capHit": 25.5,
@@ -4202,7 +4202,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Zay Flowers",
       "position": "WR",
       "capHit": 25,
@@ -4213,7 +4213,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Roschon Johnson",
       "position": "RB",
       "capHit": 6,
@@ -4224,7 +4224,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "San Francisco 49ers",
       "position": "Other",
       "capHit": 2,
@@ -4587,7 +4587,7 @@
     },
     {
       "year": 2024,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Alexander Mattison",
       "position": "RB",
       "capHit": 4,
@@ -4829,7 +4829,7 @@
     },
     {
       "year": 2024,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Deshaun Watson",
       "position": "QB",
       "capHit": 17,
@@ -5049,7 +5049,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Damien Harris",
       "position": "RB",
       "capHit": 13,
@@ -5060,7 +5060,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Jerry Jeudy",
       "position": "WR",
       "capHit": 69,
@@ -5643,7 +5643,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Brandon McManus",
       "position": "Other",
       "capHit": 1,
@@ -5808,7 +5808,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "T.J. Hockenson",
       "position": "TE",
       "capHit": 55,
@@ -5819,7 +5819,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Deebo Samuel",
       "position": "WR",
       "capHit": 76,
@@ -5830,7 +5830,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Devin Singletary",
       "position": "RB",
       "capHit": 14,
@@ -5852,7 +5852,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Antonio Gibson",
       "position": "RB",
       "capHit": 32,
@@ -5863,7 +5863,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Darnell Mooney",
       "position": "WR",
       "capHit": 17,
@@ -5874,18 +5874,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coyne",
-      "name": "Kenneth Gainwell",
-      "position": "RB",
-      "capHit": 11,
-      "starterPts": 18.5,
-      "rosterPts": 62.5,
-      "dollarPerStarterPt": 0.59,
-      "dollarPerRosterPt": 0.18
-    },
-    {
-      "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Garrett Wilson",
       "position": "WR",
       "capHit": 83,
@@ -5896,7 +5885,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Kendre Miller",
       "position": "RB",
       "capHit": 1,
@@ -5907,7 +5896,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "New York Jets",
       "position": "Other",
       "capHit": 1,
@@ -6116,7 +6105,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Jared Goff",
       "position": "QB",
       "capHit": 19,
@@ -6171,7 +6160,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Darius Slayton",
       "position": "WR",
       "capHit": 2,
@@ -6325,7 +6314,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Brandin Cooks",
       "position": "WR",
       "capHit": 38,
@@ -6336,7 +6325,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Ezekiel Elliott",
       "position": "RB",
       "capHit": 13,
@@ -6347,7 +6336,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Michael Thomas",
       "position": "WR",
       "capHit": 33,
@@ -6380,7 +6369,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Dallas Goedert",
       "position": "TE",
       "capHit": 34,
@@ -6391,7 +6380,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Jakobi Meyers",
       "position": "WR",
       "capHit": 25,
@@ -6402,7 +6391,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Justin Herbert",
       "position": "QB",
       "capHit": 47,
@@ -6413,7 +6402,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Elijah Mitchell",
       "position": "RB",
       "capHit": 18,
@@ -6424,7 +6413,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Evan McPherson",
       "position": "Other",
       "capHit": 1,
@@ -6435,7 +6424,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Zay Flowers",
       "position": "WR",
       "capHit": 25,
@@ -6446,7 +6435,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Roschon Johnson",
       "position": "RB",
       "capHit": 6,
@@ -6457,7 +6446,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "New England Patriots",
       "position": "Other",
       "capHit": 2,
@@ -6468,7 +6457,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "San Francisco 49ers",
       "position": "Other",
       "capHit": 2,
@@ -6842,7 +6831,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Calvin Ridley",
       "position": "WR",
       "capHit": 73,
@@ -6908,7 +6897,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Najee Harris",
       "position": "RB",
       "capHit": 83,
@@ -7084,7 +7073,7 @@
     },
     {
       "year": 2023,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Matthew Stafford",
       "position": "QB",
       "capHit": 8,
@@ -7117,7 +7106,7 @@
     },
     {
       "year": 2023,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Dalvin Cook",
       "position": "RB",
       "capHit": 31,
@@ -7931,7 +7920,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Dallas Goedert",
       "position": "TE",
       "capHit": 31,
@@ -7942,7 +7931,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Elijah Mitchell",
       "position": "RB",
       "capHit": 69,
@@ -7986,7 +7975,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "DeVante Parker",
       "position": "WR",
       "capHit": 21,
@@ -7997,7 +7986,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Christian McCaffrey",
       "position": "RB",
       "capHit": 162,
@@ -8008,7 +7997,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "D'Onta Foreman",
       "position": "RB",
       "capHit": 3,
@@ -8019,7 +8008,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Kyler Murray",
       "position": "QB",
       "capHit": 51,
@@ -8030,7 +8019,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Deebo Samuel",
       "position": "WR",
       "capHit": 102,
@@ -8041,7 +8030,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Clyde Edwards-Helaire",
       "position": "RB",
       "capHit": 56,
@@ -8052,7 +8041,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Darnell Mooney",
       "position": "WR",
       "capHit": 52,
@@ -8074,7 +8063,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Garrett Wilson",
       "position": "WR",
       "capHit": 16,
@@ -8459,7 +8448,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Russell Gage",
       "position": "WR",
       "capHit": 22,
@@ -8514,7 +8503,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Allen Robinson",
       "position": "WR",
       "capHit": 45,
@@ -8525,7 +8514,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Brandin Cooks",
       "position": "WR",
       "capHit": 68,
@@ -8547,7 +8536,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Ezekiel Elliott",
       "position": "RB",
       "capHit": 80,
@@ -8558,7 +8547,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Michael Thomas",
       "position": "WR",
       "capHit": 57,
@@ -8602,7 +8591,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Rashaad Penny",
       "position": "RB",
       "capHit": 48,
@@ -8613,7 +8602,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Justin Herbert",
       "position": "QB",
       "capHit": 54,
@@ -8624,7 +8613,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "KJ Hamler",
       "position": "WR",
       "capHit": 5,
@@ -8635,7 +8624,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "Evan McPherson",
       "position": "Other",
       "capHit": 1,
@@ -8646,7 +8635,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "New England Patriots",
       "position": "Other",
       "capHit": 1,
@@ -8657,7 +8646,7 @@
     },
     {
       "year": 2022,
-      "manager": "Coop",
+      "manager": "Cooper",
       "name": "San Francisco 49ers",
       "position": "Other",
       "capHit": 2,
@@ -8844,7 +8833,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "T.J. Hockenson",
       "position": "TE",
       "capHit": 25,
@@ -8907,17 +8896,6 @@
       "rosterPts": 194.9,
       "dollarPerStarterPt": 0.3,
       "dollarPerRosterPt": 0.3
-    },
-    {
-      "year": 2022,
-      "manager": "Christian",
-      "name": "Kenneth Gainwell",
-      "position": "RB",
-      "capHit": 17,
-      "starterPts": 26.5,
-      "rosterPts": 62.3,
-      "dollarPerStarterPt": 0.64,
-      "dollarPerRosterPt": 0.27
     },
     {
       "year": 2022,
@@ -9416,7 +9394,7 @@
     },
     {
       "year": 2022,
-      "manager": "Christian",
+      "manager": "Chi",
       "name": "Marlon Mack",
       "position": "RB",
       "capHit": 9,
