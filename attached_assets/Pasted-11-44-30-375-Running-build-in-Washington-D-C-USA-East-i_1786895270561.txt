@@ -1,0 +1,25 @@
+11:44:30.375 Running build in Washington, D.C., USA (East) – iad1
+11:44:30.376 Build machine configuration: 2 cores, 8 GB
+11:44:30.507 Cloning github.com/jsteinfink914/The-League (Branch: master, Commit: 15858b9)
+11:44:31.500 Cloning completed: 993.000ms
+11:44:31.607 Skipping build cache since Node.js version changed from "20.x" to "24.x"
+11:44:32.557 Running "vercel build"
+11:44:32.579 Vercel CLI 58.1.0
+11:44:33.095 Warning: Due to "engines": { "node": "24.x" } in your `package.json` file, the Node.js Version defined in your Project Settings ("20.x") will not apply, Node.js Version "24.x" will be used instead. Learn More: https://vercel.link/node-version
+11:44:33.104 Installing dependencies...
+11:44:35.410 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+11:44:35.588 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+11:44:35.744 npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+11:44:36.531 npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+11:44:36.573 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+11:44:40.441 npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+11:45:45.091 npm error code ENOTFOUND
+11:45:45.092 npm error syscall getaddrinfo
+11:45:45.092 npm error errno ENOTFOUND
+11:45:45.092 npm error network request to http://package-firewall.replit.local/npm/playwright-core/-/playwright-core-1.62.1.tgz failed, reason: getaddrinfo ENOTFOUND package-firewall.replit.local
+11:45:45.092 npm error network This is a problem related to network connectivity.
+11:45:45.092 npm error network In most cases you are behind a proxy or have bad network settings.
+11:45:45.092 npm error network
+11:45:45.093 npm error network If you are behind a proxy, please make sure that the 'proxy' config is set properly.  See: 'npm help config'
+11:45:45.095 npm error A complete log of this run can be found in: /vercel/.npm/_logs/2026-08-16T15_44_33_230Z-debug-0.log
+11:45:45.167 Error: Command "npm install" exited with 1
