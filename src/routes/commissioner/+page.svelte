@@ -118,6 +118,32 @@
     }
   }
 
+  // ── diff viewer ───────────────────────────────────────────────────────────
+  let diffOpen = false;
+  let diffLoading = false;
+  let diffData = null;
+  let diffError = null;
+
+  async function toggleDiff() {
+    diffOpen = !diffOpen;
+    if (diffOpen && !diffData) await loadDiff();
+  }
+
+  async function loadDiff() {
+    diffLoading = true;
+    diffError = null;
+    try {
+      const res = await fetch(`/api/commissioner/diff?year=${YEAR}`);
+      const data = await res.json();
+      if (data.ok) diffData = data;
+      else diffError = data.error || 'Unknown error';
+    } catch (e) {
+      diffError = e.message;
+    } finally {
+      diffLoading = false;
+    }
+  }
+
   // ── step 4 – audit ────────────────────────────────────────────────────────
   async function runAudit() {
     auditRunning = true;
@@ -335,6 +361,44 @@
     gap: .75rem;
     margin-top: .75rem;
     flex-wrap: wrap;
+  }
+
+  /* ── Diff viewer ────────────────────────────────────────────── */
+  .diff-toggle {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: none;
+    border: 1px solid var(--ccc);
+    border-radius: 4px;
+    padding: .4rem .9rem;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--g333);
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .diff-toggle:hover { background: var(--f3f3f3); }
+
+  .diff-section { margin-top: 1.25rem; }
+
+  .diff-group-label {
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--g999);
+    margin: 1rem 0 .35rem;
+  }
+
+  .delta-pos { color: #3a9c3a; font-weight: 700; }
+  .delta-neg { color: #c0392b; font-weight: 700; }
+  .delta-zero { color: var(--g999); }
+
+  .diff-empty {
+    font-size: .875rem;
+    color: var(--g555);
+    padding: .5rem 0;
   }
 
   /* ── Mobile ─────────────────────────────────────────────────── */
@@ -564,6 +628,93 @@
       <p class="status-ok" style="margin-top:.75rem">✓ No roster issues found</p>
     {/if}
   </div>
+
+  <!-- ─── VALUE DIFF ─────────────────────────────────────────────────────── -->
+  {#if state.playerValues.exists}
+  <div class="card">
+    <div class="card-header">
+      <div class="step-badge" style="background:var(--g555)">↕</div>
+      <h2>Value Diff</h2>
+    </div>
+    <p class="meta">Compare current <code>Player_Values.txt</code> against the last committed version before pushing.</p>
+
+    <button class="diff-toggle" on:click={toggleDiff}>
+      {diffOpen ? '▲ Hide diff' : '▼ Review changes vs last commit'}
+    </button>
+
+    {#if diffOpen}
+      <div class="diff-section">
+        {#if diffLoading}
+          <p class="status-info">Loading diff…</p>
+        {:else if diffError}
+          <p class="status-err">✗ {diffError}</p>
+        {:else if diffData}
+          {@const total = diffData.changed.length + diffData.added.length + diffData.removed.length}
+          {#if total === 0}
+            <p class="diff-empty">✓ No changes from last commit — nothing new to push.</p>
+          {:else}
+
+            {#if diffData.changed.length > 0}
+              <p class="diff-group-label">Changed ({diffData.changed.length})</p>
+              <div class="table-wrap">
+              <table class="review issue-table">
+                <thead><tr><th>Player</th><th>Was</th><th>Now</th><th>Δ</th></tr></thead>
+                <tbody>
+                  {#each diffData.changed as r}
+                    <tr>
+                      <td>{r.name}{#if r.rookie} <span class="pill pill-ok" style="font-size:.65rem">R</span>{/if}</td>
+                      <td>${r.oldValue}</td>
+                      <td>${r.newValue}</td>
+                      <td class="{r.delta > 0 ? 'delta-pos' : r.delta < 0 ? 'delta-neg' : 'delta-zero'}">
+                        {r.delta > 0 ? '+' : ''}{r.delta}
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+              </div>
+            {/if}
+
+            {#if diffData.added.length > 0}
+              <p class="diff-group-label">Added ({diffData.added.length})</p>
+              <div class="table-wrap">
+              <table class="review issue-table">
+                <thead><tr><th>Player</th><th>Value</th></tr></thead>
+                <tbody>
+                  {#each diffData.added as r}
+                    <tr>
+                      <td>{r.name}{#if r.rookie} <span class="pill pill-ok" style="font-size:.65rem">R</span>{/if}</td>
+                      <td class="delta-pos">${r.value}</td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+              </div>
+            {/if}
+
+            {#if diffData.removed.length > 0}
+              <p class="diff-group-label">Removed ({diffData.removed.length})</p>
+              <div class="table-wrap">
+              <table class="review issue-table">
+                <thead><tr><th>Player</th><th>Was</th></tr></thead>
+                <tbody>
+                  {#each diffData.removed as r}
+                    <tr>
+                      <td>{r.name}</td>
+                      <td class="delta-neg">${r.value}</td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+              </div>
+            {/if}
+
+          {/if}
+        {/if}
+      </div>
+    {/if}
+  </div>
+  {/if}
 
   {/if}<!-- end loading -->
 </div>
