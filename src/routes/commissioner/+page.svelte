@@ -46,7 +46,7 @@
   // ── step 1 – fetch ─────────────────────────────────────────────────────────
   async function runFetch() {
     fetchRunning = true;
-    fetchLog = 'Opening FantasyPros auction calculator…';
+    fetchLog = 'Opening FantasyPros auction calculator… (then rebuilding rookie list from Sleeper)';
     fetchOk = null;
     try {
       const res = await fetch('/api/commissioner/fetch', {

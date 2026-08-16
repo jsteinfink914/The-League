@@ -41,10 +41,25 @@ export async function POST({ request }) {
     return json({ ok: false, error: 'Invalid year.' }, { status: 400 });
   }
 
-  const result = await run(
+  // Step A: pull fresh auction values from FantasyPros
+  const fetchResult = await run(
     `node scripts/fetch-fantasypros-values.js --year ${year}`,
     120_000
   );
 
-  return json(result, { status: result.ok ? 200 : 500 });
+  if (!fetchResult.ok) {
+    return json(fetchResult, { status: 500 });
+  }
+
+  // Step B: rebuild rookie review file from current Sleeper rosters
+  const prepareResult = await run(
+    `node scripts/generate-player-values.js prepare --year ${year} --fetch-sleeper`,
+    60_000
+  );
+
+  return json({
+    ok: prepareResult.ok,
+    output: fetchResult.output + '\n\n--- Rookie review rebuild ---\n' + prepareResult.output,
+    error: prepareResult.ok ? null : prepareResult.error
+  }, { status: prepareResult.ok ? 200 : 500 });
 }
