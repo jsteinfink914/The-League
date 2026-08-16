@@ -33,7 +33,14 @@ function run(cmd, timeoutMs = 120_000) {
   });
 }
 
+const DEV_ONLY = json(
+  { ok: false, error: 'Commissioner tools only run in the Replit dev environment, not in production.' },
+  { status: 503 }
+);
+
 export async function POST({ request }) {
+  if (process.env.VERCEL) return DEV_ONLY;
+
   const body = await request.json().catch(() => ({}));
   const year = Number(body.year ?? 2026);
 
