@@ -1,344 +1,335 @@
 #,Overall,Points,Value
-1,Puka Nacua (LAR - WR),281,$149
-2,Jahmyr Gibbs (DET - RB),337,$148
-3,Bijan Robinson (ATL - RB),330,$144
-4,Ja'Marr Chase (CIN - WR),275,$143
-5,Jaxon Smith-Njigba (SEA - WR),269,$138
-6,Amon-Ra St. Brown (DET - WR),261,$132
-7,Christian McCaffrey (SF - RB),296,$122
-8,Jonathan Taylor (IND - RB),288,$117
-9,Drake London (ATL - WR),238,$113
-10,Derrick Henry (BAL - RB),264,$102
-11,CeeDee Lamb (DAL - WR),225,$102
-12,Rashee Rice (KC - WR)DTD,224,$101
-13,De'Von Achane (MIA - RB)DTD,259,$99
-14,Justin Jefferson (MIN - WR),220,$98
-15,James Cook III (BUF - RB),254,$95
-16,Ashton Jeanty (LV - RB),248,$92
-17,A.J. Brown (NE - WR),213,$92
-18,George Pickens (DAL - WR),211,$91
-19,Chase Brown (CIN - RB),245,$90
-20,Saquon Barkley (PHI - RB),245,$90
-21,Chris Olave (NO - WR),210,$90
-22,Nico Collins (HOU - WR),207,$88
-23,Josh Jacobs (GB - RB),239,$86
-24,Omarion Hampton (LAC - RB),238,$85
-25,Zay Flowers (BAL - WR),203,$84
-26,Trey McBride (ARI - TE),202,$84
-27,Josh Allen (BUF - QB),372,$82
-28,Breece Hall (NYJ - RB),230,$80
-29,Kenneth Walker III (KC - RB),229,$80
-30,Jeremiyah Love (ARI - RB),228,$80
-31,Garrett Wilson (NYJ - WR),196,$79
-32,Brock Bowers (LV - TE),196,$78
-33,Kyren Williams (LAR - RB),223,$76
-34,DeVonta Smith (PHI - WR),193,$76
-35,Cam Skattebo (NYG - RB)DTD,221,$75
-36,Emeka Egbuka (TB - WR),191,$74
-37,Javonte Williams (DAL - RB),218,$73
-38,Tetairoa McMillan (CAR - WR)DTD,188,$72
-39,Davante Adams (LAR - WR),188,$72
-40,Malik Nabers (NYG - WR)DTD,187,$71
-41,Tee Higgins (CIN - WR),186,$70
-42,Travis Etienne Jr. (NO - RB),212,$69
-43,Jameson Williams (DET - WR),185,$69
-44,Bucky Irving (TB - RB)DTD,207,$66
-45,D'Andre Swift (CHI - RB),205,$65
-46,Terry McLaurin (WAS - WR),179,$64
-47,Rome Odunze (CHI - WR),178,$64
-48,Alec Pierce (IND - WR)DTD,175,$61
-49,Quinshon Judkins (CLE - RB)DTD,198,$60
-50,Ladd McConkey (LAC - WR)DTD,174,$60
-51,DJ Moore (BUF - WR),173,$60
-52,Jaylen Waddle (DEN - WR),172,$59
-53,Bhayshul Tuten (JAC - RB),194,$58
-54,Luther Burden III (CHI - WR),172,$58
-55,Courtland Sutton (DEN - WR),170,$57
-56,Colston Loveland (CHI - TE),170,$55
-57,Mike Evans (SF - WR),164,$52
-58,Marvin Harrison Jr. (ARI - WR),164,$52
-59,TreVeyon Henderson (NE - RB),183,$51
-60,Christian Watson (GB - WR),163,$51
-61,DK Metcalf (PIT - WR),163,$51
-62,Drake Maye (NE - QB),327,$48
-63,David Montgomery (HOU - RB),177,$47
-64,Lamar Jackson (BAL - QB),325,$46
-65,Jayden Daniels (WAS - QB),324,$46
-66,Tony Pollard (TEN - RB),175,$46
-67,Tyler Warren (IND - TE),160,$46
-68,Jadarian Price (SEA - RB),174,$45
-69,Jaylen Warren (PIT - RB),172,$44
-70,Jalen Hurts (PHI - QB),320,$43
-71,Kyle Pitts Sr. (ATL - TE),156,$43
-72,Rico Dowdle (PIT - RB),170,$42
-73,Chuba Hubbard (CAR - RB),169,$42
-74,Rhamondre Stevenson (NE - RB),167,$41
-75,Jakobi Meyers (JAC - WR),150,$41
-76,Michael Pittman Jr. (PIT - WR),150,$40
-77,Parker Washington (JAC - WR),148,$39
-78,Carnell Tate (TEN - WR),148,$39
-79,Harold Fannin Jr. (CLE - TE)DTD,151,$39
-80,Brian Thomas Jr. (JAC - WR),147,$38
-81,Wan'Dale Robinson (TEN - WR),147,$38
-82,J.K. Dobbins (DEN - RB),162,$37
-83,Jaxson Dart (NYG - QB),312,$36
-84,Jayden Reed (GB - WR),145,$36
-85,Sam LaPorta (DET - TE)DTD,148,$36
-86,Joe Burrow (CIN - QB),311,$35
-87,Quentin Johnston (LAC - WR),143,$35
-88,RJ Harvey (DEN - RB),155,$34
-89,Chris Godwin Jr. (TB - WR),142,$34
-90,Dallas Goedert (PHI - TE),147,$34
-91,Travis Kelce (KC - TE),146,$34
-92,Jordan Addison (MIN - WR),141,$33
-93,Jordyn Tyson (NO - WR),141,$33
-94,Michael Wilson (ARI - WR),140,$33
-95,Brock Purdy (SF - QB),306,$32
-96,Dak Prescott (DAL - QB),306,$32
-97,Xavier Worthy (KC - WR)DTD,140,$32
-98,Rachaad White (WAS - RB),148,$31
-99,Aaron Jones Sr. (MIN - RB),147,$31
-100,Ricky Pearsall (SF - WR),139,$31
-101,Tucker Kraft (GB - TE)DTD,142,$31
-102,Trevor Lawrence (JAC - QB),304,$30
-103,Patrick Mahomes II (KC - QB)DTD,304,$30
-104,Kyle Monangai (CHI - RB),144,$30
-105,George Kittle (SF - TE)DTD,142,$30
-106,Kenny Gainwell (TB - RB),141,$29
-107,Khalil Shakir (BUF - WR),136,$29
-108,Romeo Doubs (NE - WR),135,$29
-109,Josh Downs (IND - WR),134,$28
-110,Makai Lemon (PHI - WR)DTD,134,$28
-111,Justin Herbert (LAC - QB),300,$27
-112,Caleb Williams (CHI - QB),300,$27
-113,Jacory Croskey-Merritt (WAS - RB),138,$27
-114,Rashid Shaheed (SEA - WR),132,$27
-115,John Metchie III (CAR - WR),130,$26
-116,Bo Nix (DEN - QB)DTD,298,$25
-117,Blake Corum (LAR - RB),133,$25
-118,Matthew Golden (GB - WR),128,$25
-119,Calvin Ridley (TEN - WR),128,$25
-120,Mark Andrews (BAL - TE),136,$25
-121,Jordan Mason (MIN - RB),131,$24
-122,Matthew Stafford (LAR - QB),294,$23
-123,Isaiah Likely (NYG - TE),134,$23
-124,Jalen Coker (CAR - WR),124,$22
-125,Theo Wease Jr. (MIA - WR),121,$21
-126,Dalton Kincaid (BUF - TE),131,$21
-127,Jonathon Brooks (CAR - RB),121,$20
-128,Jake Ferguson (DAL - TE),131,$20
-129,Jerry Jeudy (CLE - WR)DTD,118,$19
-130,KC Concepcion (CLE - WR),118,$19
-131,Jared Goff (DET - QB),287,$18
-132,Tre Tucker (LV - WR),117,$18
-133,Tyler Shough (NO - QB),286,$17
-134,Tyjae Spears (TEN - RB),113,$17
-135,Zach Charbonnet (SEA - RB)DTD,113,$17
-136,Rashod Bateman (BAL - WR),114,$17
-137,Jayden Higgins (HOU - WR),113,$17
-138,Woody Marks (HOU - RB),112,$16
-139,Hunter Henry (NE - TE),125,$16
-140,Baker Mayfield (TB - QB),282,$15
-141,Jalen McMillan (TB - WR),110,$15
-142,Kyler Murray (MIN - QB),280,$14
-143,Alvin Kamara (NO - RB),106,$14
-144,Isiah Pacheco (DET - RB),105,$14
-145,Jauan Jennings (MIN - WR),110,$14
-146,Tyrone Tracy Jr. (NYG - RB),104,$13
-147,Juwan Johnson (NO - TE),122,$13
-148,Brenton Strange (JAC - TE),121,$13
-149,Jalen Nailor (LV - WR),105,$12
-150,Daniel Jones (IND - QB)DTD,275,$11
-151,Justice Hill (BAL - RB),99,$11
-152,Antonio Williams (WAS - WR),104,$11
-153,Denzel Boston (CLE - WR),102,$10
-154,Tank Dell (HOU - WR),101,$10
-155,Cooper Kupp (SEA - WR),101,$10
-156,Dalton Schultz (HOU - TE),116,$10
-157,Malik Willis (MIA - QB),270,$9
-158,Chris Rodriguez Jr. (JAC - RB)DTD,92,$9
-159,Dylan Sampson (CLE - RB),90,$9
-160,Brian Robinson Jr. (ATL - RB),90,$9
-161,Samaje Perine (CIN - RB),87,$8
-162,Tyler Allgeier (ARI - RB),87,$8
-163,AJ Dillon (CAR - RB),86,$8
-164,Jordan James (SF - RB),85,$8
-165,Braelon Allen (NYJ - RB),85,$8
-166,Ty Johnson (BUF - RB),84,$8
-167,Omar Cooper Jr. (NYJ - WR),97,$8
-168,Jordan Love (GB - QB),267,$7
-169,Sam Darnold (SEA - QB),266,$7
-170,Adonai Mitchell (NYJ - WR),96,$7
-171,Germie Bernard (PIT - WR),96,$7
-172,Emari Demercado (KC - RB),74,$6
-173,T.J. Hockenson (MIN - TE),109,$6
-174,Kaelon Black (SF - RB),71,$5
-175,Mike Washington Jr. (LV - RB),70,$5
-176,"Travis Hunter (JAC - WR,CB)DTD",91,$5
-177,Darnell Mooney (NYG - WR),89,$5
-178,Bub Means (NO - WR),87,$5
-179,Pat Freiermuth (PIT - TE),107,$5
-180,C.J. Stroud (HOU - QB),261,$4
-181,Tank Bigsby (PHI - RB),66,$4
-182,Keaton Mitchell (LAC - RB),65,$4
-183,Kayshon Boutte (NE - WR),85,$4
-184,Christian Kirk (SF - WR),85,$4
-185,Malik Washington (MIA - WR),85,$4
-186,Darius Slayton (NYG - WR)DTD,85,$4
-187,Greg Dulcich (MIA - TE),106,$4
-188,Malik Davis (DAL - RB),62,$3
-189,Adam Randall (BAL - RB),61,$3
-190,Jaylin Noel (HOU - WR),82,$3
-191,Ja'Kobi Lane (BAL - WR),81,$3
-192,Kenyon Sadiq (NYJ - TE)DTD,105,$3
-193,Houston Texans (HOU - DST),121,$3
-194,Denver Broncos (DEN - DST),118,$3
-195,Chris Brooks (GB - RB),59,$2
-196,MarShawn Lloyd (GB - RB),58,$2
-197,Kimani Vidal (LAC - RB),55,$2
-198,Tyquan Thornton (KC - WR),80,$2
-199,Tory Horton (SEA - WR)DTD,79,$2
-200,Troy Franklin (DEN - WR),78,$2
-201,Nick Westbrook-Ikhine (IND - WR),78,$2
-202,Devaughn Vele (NO - WR),77,$2
-203,Pittsburgh Steelers (PIT - DST),113,$2
-204,Minnesota Vikings (MIN - DST),113,$2
-205,Seattle Seahawks (SEA - DST),111,$2
-206,Los Angeles Chargers (LAC - DST),108,$2
-207,Buffalo Bills (BUF - DST),108,$2
-208,Detroit Lions (DET - DST),107,$2
-209,Los Angeles Rams (LAR - DST),107,$2
-210,Atlanta Falcons (ATL - DST),104,$2
-211,Bryce Young (CAR - QB),249,$1
-212,James Conner (ARI - RB)DTD,53,$1
-213,De'Zhaun Stribling (SF - WR),75,$1
-214,Cade Otton (TB - TE),101,$1
-215,AJ Barner (SEA - TE)DTD,100,$1
-216,Chicago Bears (CHI - DST),102,$1
-217,Philadelphia Eagles (PHI - DST),102,$1
-218,Baltimore Ravens (BAL - DST),102,$1
-219,Cleveland Browns (CLE - DST),101,$1
-220,New Orleans Saints (NO - DST),101,$1
-221,Cincinnati Bengals (CIN - DST),99,$1
-222,Brandon Aubrey (DAL - K),153,$1
-223,Jason Myers (SEA - K),150,$1
-224,Ka'imi Fairbairn (HOU - K),144,$1
-225,Cameron Dicker (LAC - K),144,$1
-226,Harrison Mevis (LAR - K),137,$1
-227,Jake Bates (DET - K),136,$1
-228,Chase McLaughlin (TB - K),133,$1
-229,Cairo Santos (CHI - K),133,$1
-230,Eddy Pineiro (SF - K),133,$1
-231,Tyler Loop (BAL - K),132,$1
-232,Harrison Butker (KC - K),132,$1
-233,Cam Little (JAC - K),130,$1
-234,Will Reichard (MIN - K),130,$1
-235,Evan McPherson (CIN - K),129,$1
-236,Nick Folk (ATL - K),129,$1
-237,Wil Lutz (DEN - K),128,$1
-238,Chig Okonkwo (WAS - TE),100,$0
-239,Oronde Gadsden II (LAC - TE),99,$0
-240,Jacksonville Jaguars (JAC - DST),99,$0
-241,New England Patriots (NE - DST),98,$0
-242,Tampa Bay Buccaneers (TB - DST),97,$0
-243,Tennessee Titans (TEN - DST),95,$0
-244,Green Bay Packers (GB - DST),95,$0
-245,Hollywood Brown (PHI - WR),74,$0
-246,Andrei Iosivas (CIN - WR),73,$0
-247,Trey Smack (GB - K),125,$0
-248,Tyler Bass (BUF - K),124,$0
-249,Charlie Smyth (NO - K),123,$0
-250,Jake Moody (WAS - K),121,$0
-251,Andy Borregales (NE - K),121,$0
-252,Washington Commanders (WAS - DST),94,$0
-253,Indianapolis Colts (IND - DST),94,$0
-254,Kansas City Chiefs (KC - DST),93,$0
-255,New York Giants (NYG - DST),92,$0
-256,Dallas Cowboys (DAL - DST),91,$0
-257,Arizona Cardinals (ARI - DST),91,$0
-258,Miami Dolphins (MIA - DST),90,$0
-259,Las Vegas Raiders (LV - DST),90,$0
-260,San Francisco 49ers (SF - DST),88,$0
-261,Carolina Panthers (CAR - DST),86,$0
-262,New York Jets (NYJ - DST),86,$0
-263,Ryan Flournoy (DAL - WR),73,$0
-264,Isaac TeSlaa (DET - WR),72,$0
-265,Jack Bech (LV - WR),72,$0
-266,Tre' Harris (LAC - WR),72,$0
-267,Jalen Tolbert (MIA - WR),72,$0
-268,Chris Bell (MIA - WR),71,$0
-269,Caleb Douglas (MIA - WR),71,$0
-270,Dyami Brown (WAS - WR),70,$0
-271,Emanuel Wilson (SEA - RB),47,$0
-272,Jaylen Wright (MIA - RB),47,$0
-273,Jake Elliott (PHI - K),120,$0
-274,Chris Boswell (PIT - K),118,$0
-275,Jason Sanders (NYJ - K),117,$0
-276,Terrance Ferguson (LAR - TE),95,$0
-277,Ted Hurst III (TB - WR),68,$0
-278,Jahan Dotson (ATL - WR),68,$0
-279,Dontayvion Wicks (PHI - WR),65,$0
-280,Jawhar Jordan (HOU - RB),45,$0
-281,Kyle Juszczyk (SF - RB),43,$0
-282,Jaydon Blue (DAL - RB),42,$0
-283,Zane Gonzalez (MIA - K),115,$0
-284,Joey Slye (TEN - K),114,$0
-285,Mike Gesicki (CIN - TE),91,$0
-286,Evan Engram (DEN - TE),90,$0
-287,Zachariah Branch (ATL - WR),65,$0
-288,Elic Ayomanor (TEN - WR),63,$0
-289,Ashton Dulin (IND - WR),63,$0
-290,Chimere Dike (TEN - WR),62,$0
-291,Kendre Miller (NO - RB),39,$0
-292,George Holani (SEA - RB),37,$0
-293,Geno Smith (NYJ - QB),233,$0
-294,Jacoby Brissett (ARI - QB),232,$0
-295,Cam Ward (TEN - QB),232,$0
-296,Chad Ryland (ARI - K),112,$0
-297,Gunnar Helm (TEN - TE),87,$0
-298,Van Jefferson (WAS - WR),61,$0
-299,Pat Bryant (DEN - WR),58,$0
-300,LeQuint Allen Jr. (JAC - RB),35,$0
-301,Frank Gore Jr. (BUF - RB),34,$0
-302,Roschon Johnson (CHI - RB),33,$0
-303,Ollie Gordon II (MIA - RB),33,$0
-304,Isaiah Davis (NYJ - RB),33,$0
-305,Ty Chandler (NO - RB),32,$0
-306,Ray Davis (BUF - RB),32,$0
-307,Emmett Johnson (KC - RB),32,$0
-308,DJ Giddens (IND - RB),32,$0
-309,Olamide Zaccheaus (ATL - WR),58,$0
-310,Xavier Legette (CAR - WR),57,$0
-311,Savion Williams (GB - WR),57,$0
-312,Joshua Palmer (BUF - WR),56,$0
-313,Xavier Hutchinson (HOU - WR),56,$0
-314,Marvin Mims Jr. (DEN - WR),55,$0
-315,KaVontae Turpin (DAL - WR),55,$0
-316,Austin Ekeler ( - RB),30,$0
-317,Sean Tucker (TB - RB),30,$0
-318,Jonah Coleman (DEN - RB),29,$0
-319,Brashard Smith (KC - RB),27,$0
-320,Cedric Tillman (CLE - WR),51,$0
-321,Calvin Austin III (NYG - WR),51,$0
-322,Trevor Etienne (CAR - RB),26,$0
-323,Phil Mafah (DAL - RB),26,$0
-324,Devin Singletary (NYG - RB),25,$0
-325,Jam Miller (NE - RB),25,$0
-326,Elijah Mitchell (PHI - RB),25,$0
-327,Aaron Rodgers (PIT - QB),223,$0
-328,David Njoku (LAC - TE),76,$0
-329,Mason Taylor (NYJ - TE),75,$0
-330,Colby Parkinson (LAR - TE),75,$0
-331,Michael Mayer (LV - TE),70,$0
-332,Dawson Knox (BUF - TE),65,$0
-333,Theo Johnson (NYG - TE),63,$0
-334,Darnell Washington (PIT - TE),59,$0
-335,Tyler Higbee (LAR - TE),58,$0
-336,Fernando Mendoza (LV - QB),193,$0
-337,Cole Kmet (CHI - TE),53,$0
-338,Ja'Tavion Sanders (CAR - TE),53,$0
-339,Noah Fant (NO - TE),51,$0
-340,Tommy Tremble (CAR - TE),50,$0
-341,Tua Tagovailoa (ATL - QB),164,$0
-342,Deshaun Watson (CLE - QB),136,$0
-343,Shedeur Sanders (CLE - QB),109,$0
+1,Jahmyr Gibbs (DET - RB),147,$147
+2,Puka Nacua (LAR - WR)DTD,147,$147
+3,Bijan Robinson (ATL - RB),144,$144
+4,Ja'Marr Chase (CIN - WR),142,$142
+5,Jaxon Smith-Njigba (SEA - WR),137,$137
+6,Amon-Ra St. Brown (DET - WR),131,$131
+7,Christian McCaffrey (SF - RB)DTD,121,$121
+8,Jonathan Taylor (IND - RB),117,$117
+9,Drake London (ATL - WR),112,$112
+10,Derrick Henry (BAL - RB),101,$101
+11,CeeDee Lamb (DAL - WR),101,$101
+12,Rashee Rice (KC - WR),101,$101
+13,Justin Jefferson (MIN - WR),100,$100
+14,De'Von Achane (MIA - RB),98,$98
+15,James Cook III (BUF - RB),95,$95
+16,Ashton Jeanty (LV - RB),91,$91
+17,Chase Brown (CIN - RB),90,$90
+18,A.J. Brown (NE - WR),90,$90
+19,George Pickens (DAL - WR),90,$90
+20,Chris Olave (NO - WR),90,$90
+21,Saquon Barkley (PHI - RB),88,$88
+22,Nico Collins (HOU - WR),87,$87
+23,Kenneth Walker III (KC - RB),83,$83
+24,Zay Flowers (BAL - WR)DTD,83,$83
+25,Trey McBride (ARI - TE),81,$81
+26,Josh Allen (BUF - QB),80,$80
+27,Josh Jacobs (GB - RB)DTD,80,$80
+28,Breece Hall (NYJ - RB),80,$80
+29,Malik Nabers (NYG - WR)DTD,80,$80
+30,Omarion Hampton (LAC - RB),79,$79
+31,Jeremiyah Love (ARI - RB),78,$78
+32,Brock Bowers (LV - TE),78,$78
+33,Garrett Wilson (NYJ - WR),76,$76
+34,Kyren Williams (LAR - RB),75,$75
+35,DeVonta Smith (PHI - WR)DTD,75,$75
+36,Tetairoa McMillan (CAR - WR),75,$75
+37,Cam Skattebo (NYG - RB),74,$74
+38,Emeka Egbuka (TB - WR)DTD,74,$74
+39,Javonte Williams (DAL - RB),72,$72
+40,Davante Adams (LAR - WR),71,$71
+41,Tee Higgins (CIN - WR),70,$70
+42,Jameson Williams (DET - WR),69,$69
+43,Travis Etienne Jr. (NO - RB),67,$67
+44,D'Andre Swift (CHI - RB),65,$65
+45,Ladd McConkey (LAC - WR),65,$65
+46,Rome Odunze (CHI - WR),65,$65
+47,Bucky Irving (TB - RB),63,$63
+48,Terry McLaurin (WAS - WR),61,$61
+49,Quinshon Judkins (CLE - RB),60,$60
+50,Alec Pierce (IND - WR)PUP,60,$60
+51,DJ Moore (BUF - WR),60,$60
+52,Jaylen Waddle (DEN - WR)DTD,59,$59
+53,Luther Burden III (CHI - WR)DTD,58,$58
+54,Mike Evans (SF - WR)DTD,57,$57
+55,Colston Loveland (CHI - TE),57,$57
+56,Bhayshul Tuten (JAC - RB),56,$56
+57,Christian Watson (GB - WR),54,$54
+58,Courtland Sutton (DEN - WR),53,$53
+59,Marvin Harrison Jr. (ARI - WR),52,$52
+60,DK Metcalf (PIT - WR)DTD,51,$51
+61,David Montgomery (HOU - RB),49,$49
+62,TreVeyon Henderson (NE - RB),47,$47
+63,Tyler Warren (IND - TE),47,$47
+64,Tony Pollard (TEN - RB),45,$45
+65,Jadarian Price (SEA - RB),45,$45
+66,Jaylen Warren (PIT - RB),45,$45
+67,Lamar Jackson (BAL - QB),44,$44
+68,Drake Maye (NE - QB),43,$43
+69,Parker Washington (JAC - WR),43,$43
+70,Kyle Pitts Sr. (ATL - TE),43,$43
+71,Jayden Daniels (WAS - QB),42,$42
+72,Brian Thomas Jr. (JAC - WR),42,$42
+73,Jalen Hurts (PHI - QB),41,$41
+74,Michael Pittman Jr. (PIT - WR)DTD,41,$41
+75,Carnell Tate (TEN - WR),39,$39
+76,Harold Fannin Jr. (CLE - TE),39,$39
+77,Rico Dowdle (PIT - RB),38,$38
+78,Rhamondre Stevenson (NE - RB),38,$38
+79,Chuba Hubbard (CAR - RB)DTD,38,$38
+80,J.K. Dobbins (DEN - RB)DTD,37,$37
+81,Sam LaPorta (DET - TE),37,$37
+82,Jayden Reed (GB - WR),36,$36
+83,Jakobi Meyers (JAC - WR),36,$36
+84,Deebo Samuel Sr. (SF - WR),36,$36
+85,Quentin Johnston (LAC - WR),35,$35
+86,Michael Wilson (ARI - WR),35,$35
+87,Dallas Goedert (PHI - TE),35,$35
+88,RJ Harvey (DEN - RB),34,$34
+89,Chris Godwin Jr. (TB - WR),34,$34
+90,Jordan Addison (MIN - WR)DTD,34,$34
+91,Tucker Kraft (GB - TE),34,$34
+92,Joe Burrow (CIN - QB),33,$33
+93,Jaxson Dart (NYG - QB),33,$33
+94,Jordyn Tyson (NO - WR),33,$33
+95,Wan'Dale Robinson (TEN - WR),33,$33
+96,Travis Kelce (KC - TE),33,$33
+97,Xavier Worthy (KC - WR)DTD,32,$32
+98,Josh Downs (IND - WR)DTD,32,$32
+99,Brock Purdy (SF - QB),31,$31
+100,Rachaad White (WAS - RB),31,$31
+101,Matthew Golden (GB - WR),31,$31
+102,George Kittle (SF - TE)PUP,31,$31
+103,Dak Prescott (DAL - QB),30,$30
+104,Trevor Lawrence (JAC - QB),30,$30
+105,Kyle Monangai (CHI - RB),30,$30
+106,Aaron Jones Sr. (MIN - RB),30,$30
+107,Kenny Gainwell (TB - RB),29,$29
+108,Patrick Mahomes II (KC - QB)DTD,28,$28
+109,Caleb Williams (CHI - QB),28,$28
+110,KC Concepcion (CLE - WR),28,$28
+111,Stefon Diggs (WAS - WR),28,$28
+112,Rashid Shaheed (SEA - WR),28,$28
+113,Romeo Doubs (NE - WR),28,$28
+114,Jacory Croskey-Merritt (WAS - RB),27,$27
+115,Jonathon Brooks (CAR - RB),27,$27
+116,Khalil Shakir (BUF - WR),27,$27
+117,Makai Lemon (PHI - WR)DTD,26,$26
+118,Calvin Ridley (TEN - WR),26,$26
+119,Justin Herbert (LAC - QB),25,$25
+120,Blake Corum (LAR - RB),25,$25
+121,Jalen Coker (CAR - WR),25,$25
+122,Bo Nix (DEN - QB),24,$24
+123,Jordan Mason (MIN - RB),24,$24
+124,Isaiah Likely (NYG - TE),24,$24
+125,Mark Andrews (BAL - TE),23,$23
+126,Rashod Bateman (BAL - WR),22,$22
+127,Dalton Kincaid (BUF - TE),22,$22
+128,Matthew Stafford (LAR - QB),21,$21
+129,Jayden Higgins (HOU - WR),21,$21
+130,Denzel Boston (CLE - WR),21,$21
+131,Jake Ferguson (DAL - TE),21,$21
+132,Jerry Jeudy (CLE - WR),20,$20
+133,De'Zhaun Stribling (SF - WR),20,$20
+134,Tre Tucker (LV - WR),20,$20
+135,Tank Dell (HOU - WR)DTD,19,$19
+136,Alvin Kamara (NO - RB),17,$17
+137,Tyjae Spears (TEN - RB)DTD,17,$17
+138,Zach Charbonnet (SEA - RB)PUP,17,$17
+139,Jared Goff (DET - QB),16,$16
+140,Woody Marks (HOU - RB),16,$16
+141,Jalen McMillan (TB - WR)DTD,16,$16
+142,Jauan Jennings (MIN - WR),16,$16
+143,Tyler Shough (NO - QB),15,$15
+144,Jalen Nailor (LV - WR),15,$15
+145,Tyrone Tracy Jr. (NYG - RB),14,$14
+146,Isiah Pacheco (DET - RB)DTD,14,$14
+147,Hunter Henry (NE - TE),14,$14
+148,Baker Mayfield (TB - QB),13,$13
+149,Juwan Johnson (NO - TE),13,$13
+150,Brenton Strange (JAC - TE),13,$13
+151,Kyler Murray (MIN - QB),12,$12
+152,Justice Hill (BAL - RB),11,$11
+153,Cooper Kupp (SEA - WR),11,$11
+154,Daniel Jones (IND - QB),10,$10
+155,Dalton Schultz (HOU - TE),10,$10
+156,Chris Rodriguez Jr. (JAC - RB),9,$9
+157,Dylan Sampson (CLE - RB),9,$9
+158,Brian Robinson Jr. (ATL - RB),9,$9
+159,AJ Dillon (CAR - RB),9,$9
+160,Malik Willis (MIA - QB),8,$8
+161,Samaje Perine (CIN - RB),8,$8
+162,Tyler Allgeier (ARI - RB),8,$8
+163,Ty Johnson (BUF - RB),8,$8
+164,Jordan James (SF - RB)DTD,8,$8
+165,Ja'Kobi Lane (BAL - WR),8,$8
+166,Tank Bigsby (PHI - RB),7,$7
+167,Braelon Allen (NYJ - RB),7,$7
+168,Adonai Mitchell (NYJ - WR),7,$7
+169,Jordan Love (GB - QB),6,$6
+170,Keaton Mitchell (LAC - RB),6,$6
+171,Mike Washington Jr. (LV - RB),6,$6
+172,Emari Demercado (KC - RB),6,$6
+173,Omar Cooper Jr. (NYJ - WR),6,$6
+174,"Travis Hunter (JAC - WR,CB)",6,$6
+175,T.J. Hockenson (MIN - TE),6,$6
+176,Sam Darnold (SEA - QB),5,$5
+177,MarShawn Lloyd (GB - RB),5,$5
+178,Germie Bernard (PIT - WR),5,$5
+179,Kayshon Boutte (NE - WR),5,$5
+180,Bub Means (NO - WR),5,$5
+181,Pat Freiermuth (PIT - TE),5,$5
+182,Kaelon Black (SF - RB),4,$4
+183,Antonio Williams (WAS - WR),4,$4
+184,Darnell Mooney (NYG - WR),4,$4
+185,Malik Washington (MIA - WR),4,$4
+186,Greg Dulcich (MIA - TE),4,$4
+187,C.J. Stroud (HOU - QB),3,$3
+188,Malik Davis (DAL - RB),3,$3
+189,Tyquan Thornton (KC - WR),3,$3
+190,Kenyon Sadiq (NYJ - TE)DTD,3,$3
+191,Houston Texans (HOU - DST),3,$3
+192,Denver Broncos (DEN - DST),3,$3
+193,Chris Brooks (GB - RB),2,$2
+194,Adam Randall (BAL - RB),2,$2
+195,Zachariah Branch (ATL - WR),2,$2
+196,Tory Horton (SEA - WR),2,$2
+197,Troy Franklin (DEN - WR),2,$2
+198,Darius Slayton (NYG - WR),2,$2
+199,Devaughn Vele (NO - WR),2,$2
+200,Christian Kirk (SF - WR)DTD,2,$2
+201,Minnesota Vikings (MIN - DST),2,$2
+202,Pittsburgh Steelers (PIT - DST),2,$2
+203,Seattle Seahawks (SEA - DST),2,$2
+204,Los Angeles Chargers (LAC - DST),2,$2
+205,Detroit Lions (DET - DST),2,$2
+206,Los Angeles Rams (LAR - DST),2,$2
+207,Buffalo Bills (BUF - DST),2,$2
+208,Bryce Young (CAR - QB),1,$1
+209,Kimani Vidal (LAC - RB),1,$1
+210,James Conner (ARI - RB)DTD,1,$1
+211,Xavier Legette (CAR - WR),1,$1
+212,Dontayvion Wicks (PHI - WR),1,$1
+213,Cade Otton (TB - TE),1,$1
+214,AJ Barner (SEA - TE),1,$1
+215,Philadelphia Eagles (PHI - DST),1,$1
+216,Atlanta Falcons (ATL - DST),1,$1
+217,Baltimore Ravens (BAL - DST),1,$1
+218,Chicago Bears (CHI - DST),1,$1
+219,Cleveland Browns (CLE - DST),1,$1
+220,New Orleans Saints (NO - DST),1,$1
+221,Jacksonville Jaguars (JAC - DST),1,$1
+222,Brandon Aubrey (DAL - K),1,$1
+223,Jason Myers (SEA - K),1,$1
+224,Ka'imi Fairbairn (HOU - K),1,$1
+225,Cameron Dicker (LAC - K),1,$1
+226,Harrison Mevis (LAR - K),1,$1
+227,Jake Bates (DET - K),1,$1
+228,Cairo Santos (CHI - K),1,$1
+229,Blake Grupe (IND - K),1,$1
+230,Chase McLaughlin (TB - K),1,$1
+231,Eddy Pineiro (SF - K),1,$1
+232,Tyler Loop (BAL - K),1,$1
+233,Harrison Butker (KC - K),1,$1
+234,Cam Little (JAC - K),1,$1
+235,Will Reichard (MIN - K),1,$1
+236,Evan McPherson (CIN - K),1,$1
+237,Nick Folk (ATL - K),1,$1
+238,Wil Lutz (DEN - K),-1,$0
+239,Trey Smack (GB - K),-1,$0
+240,Chig Okonkwo (WAS - TE),-1,$0
+241,Cincinnati Bengals (CIN - DST),-1,$0
+242,New England Patriots (NE - DST),-1,$0
+243,Terrance Ferguson (LAR - TE),-1,$0
+244,Tampa Bay Buccaneers (TB - DST),-1,$0
+245,Tennessee Titans (TEN - DST),-1,$0
+246,Green Bay Packers (GB - DST),-1,$0
+247,Ryan Flournoy (DAL - WR),-1,$0
+248,Isaac TeSlaa (DET - WR),-1,$0
+249,Tyler Bass (BUF - K),-2,$0
+250,Charlie Smyth (NO - K),-2,$0
+251,Oronde Gadsden II (LAC - TE),-2,$0
+252,Washington Commanders (WAS - DST),-2,$0
+253,Indianapolis Colts (IND - DST),-2,$0
+254,Kansas City Chiefs (KC - DST),-2,$0
+255,New York Giants (NYG - DST),-2,$0
+256,Dallas Cowboys (DAL - DST),-2,$0
+257,Miami Dolphins (MIA - DST),-2,$0
+258,Las Vegas Raiders (LV - DST),-2,$0
+259,Arizona Cardinals (ARI - DST),-2,$0
+260,San Francisco 49ers (SF - DST),-2,$0
+261,Carolina Panthers (CAR - DST),-2,$0
+262,Tre' Harris (LAC - WR),-2,$0
+263,Jalen Tolbert (MIA - WR),-2,$0
+264,Caleb Douglas (MIA - WR),-2,$0
+265,Chris Bell (MIA - WR),-2,$0
+266,Hollywood Brown (PHI - WR),-2,$0
+267,Emanuel Wilson (SEA - RB),-2,$0
+268,Jaylen Wright (MIA - RB),-2,$0
+269,Drew Stevens (WAS - K),-3,$0
+270,Jake Elliott (PHI - K),-3,$0
+271,Andy Borregales (NE - K),-3,$0
+272,Chris Boswell (PIT - K),-3,$0
+273,Jason Sanders (NYJ - K),-3,$0
+274,New York Jets (NYJ - DST),-3,$0
+275,Ted Hurst III (TB - WR),-3,$0
+276,Ashton Dulin (IND - WR),-3,$0
+277,Andrei Iosivas (CIN - WR),-3,$0
+278,Jack Bech (LV - WR),-3,$0
+279,Jawhar Jordan (HOU - RB),-3,$0
+280,Kyle Juszczyk (SF - RB),-3,$0
+281,Jaydon Blue (DAL - RB),-3,$0
+282,Jake Moody (WAS - K),-4,$0
+283,Riley Patterson (MIA - K),-4,$0
+284,Joey Slye (TEN - K),-4,$0
+285,Mike Gesicki (CIN - TE),-4,$0
+286,Evan Engram (DEN - TE),-4,$0
+287,Darren Waller (CAR - TE),-4,$0
+288,Elic Ayomanor (TEN - WR),-4,$0
+289,Chimere Dike (TEN - WR),-4,$0
+290,Isaiah Davis (NYJ - RB),-4,$0
+291,LeQuint Allen Jr. (JAC - RB),-4,$0
+292,Chad Ryland (ARI - K),-5,$0
+293,Gunnar Helm (TEN - TE),-5,$0
+294,Jahan Dotson (ATL - WR),-5,$0
+295,Jaylin Noel (HOU - WR),-5,$0
+296,Pat Bryant (DEN - WR),-5,$0
+297,Sean Tucker (TB - RB),-5,$0
+298,Jonah Coleman (DEN - RB),-5,$0
+299,Frank Gore Jr. (BUF - RB),-5,$0
+300,Roschon Johnson (CHI - RB),-5,$0
+301,Ollie Gordon II (MIA - RB),-5,$0
+302,Ray Davis (BUF - RB),-5,$0
+303,Emmett Johnson (KC - RB),-5,$0
+304,DJ Giddens (IND - RB),-5,$0
+305,Phil Mafah (DAL - RB),-5,$0
+306,Ty Chandler (NO - RB),-5,$0
+307,Geno Smith (NYJ - QB),-6,$0
+308,Jacoby Brissett (ARI - QB),-6,$0
+309,Savion Williams (GB - WR),-6,$0
+310,Joshua Palmer (BUF - WR),-6,$0
+311,Marvin Mims Jr. (DEN - WR),-6,$0
+312,KaVontae Turpin (DAL - WR),-6,$0
+313,Olamide Zaccheaus (ATL - WR),-6,$0
+314,Austin Ekeler ( - RB),-6,$0
+315,George Holani (SEA - RB),-6,$0
+316,Brashard Smith (KC - RB),-6,$0
+317,Cam Ward (TEN - QB),-7,$0
+318,Zavion Thomas (CHI - WR),-7,$0
+319,Elijah Mitchell ( - RB),-7,$0
+320,Mason Taylor (NYJ - TE),-8,$0
+321,Aaron Rodgers (PIT - QB),-9,$0
+322,David Njoku (LAC - TE),-9,$0
+323,Colby Parkinson (LAR - TE),-9,$0
+324,Michael Mayer (LV - TE),-10,$0
+325,Dawson Knox (BUF - TE),-11,$0
+326,Theo Johnson (NYG - TE),-12,$0
+327,Darnell Washington (PIT - TE),-13,$0
+328,Tyler Higbee (LAR - TE),-13,$0
+329,Cole Kmet (CHI - TE),-15,$0
+330,Noah Fant (NO - TE),-15,$0
+331,Fernando Mendoza (LV - QB),-16,$0
+332,Tua Tagovailoa (ATL - QB),-23,$0
+333,Deshaun Watson (CLE - QB),-30,$0
+334,Shedeur Sanders (CLE - QB),-37,$0
