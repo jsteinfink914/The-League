@@ -1,0 +1,54 @@
+name: Refresh Player Values
+
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Season year'
+        required: true
+        default: '2026'
+        type: string
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Fetch FantasyPros auction values
+        run: node scripts/fetch-fantasypros-values.js --year ${{ inputs.year }}
+
+      - name: Rebuild rookie review from Sleeper
+        run: node scripts/generate-player-values.js prepare --year ${{ inputs.year }} --fetch-sleeper
+
+      - name: Generate player values
+        run: node scripts/generate-player-values.js generate --year ${{ inputs.year }}
+
+      - name: Commit and push updated values
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add \
+            static/Player_Values.txt \
+            "static/fantasypros-${{ inputs.year }}.csv" \
+            "data/player-values/raw/fantasypros-${{ inputs.year }}.csv" \
+            "data/player-values/raw/sleeper-players-${{ inputs.year }}.json" \
+            "data/player-values/review/rookies-${{ inputs.year }}.csv" \
+            "data/player-values/review/unmatched-rookies-${{ inputs.year }}.csv" || true
+          git diff --cached --quiet && echo "Nothing changed." && exit 0
+          git commit -m "chore: refresh player values $(date +%Y-%m-%d)"
+          git push
