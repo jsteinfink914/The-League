@@ -46,6 +46,7 @@
   "scripts": {
     "dev": "vite dev",
     "gen-cap-history": "node scripts/generate-cap-history.js",
+    "values:fetch": "node scripts/fetch-fantasypros-values.js",
     "build": "vite build",
     "build-docker": "DOCKER_BUILD=true vite build --verbose",
     "docker-build": "docker build . -t $USER/league-page:latest",
@@ -92,6 +93,7 @@
     "fast-xml-parser": "^4.2.5",
     "fuzzyjs": "^5.0.1",
     "pg": "^8.21.0",
+    "playwright": "^1.62.1",
     "svelte": "4.2.20"
   }
 }

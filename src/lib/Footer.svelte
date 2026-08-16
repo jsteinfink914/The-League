@@ -89,6 +89,22 @@
 		color: #920505;
 	}
 
+	.commish-link {
+		display: inline-block;
+		margin-left: .25rem;
+	}
+
+	.commish-link a {
+		color: transparent;
+		font-size: .6rem;
+		text-decoration: none;
+		user-select: none;
+	}
+
+	.commish-link a:hover {
+		color: #bbb;
+	}
+
 	.updateNotice {
 		color: var(--g999);
 		font-style: italic;
@@ -125,6 +141,9 @@
 	</div>
 	<!-- PLEASE DO NOT REMOVE THE COPYRIGHT -->
 	<span class="copyright">&copy; 2021 - {year} <a href="https://github.com/nmelhado/league-page">League Page</a></span>
+	<span class="commish-link">
+		<a href="/commissioner" tabindex="-1" aria-hidden="true">·</a>
+	</span>
 	<br />
 	<!-- PLEASE DO NOT REMOVE THE BUILT BY -->
 	<span class="creator">Built by <a href="http://www.nmelhado.com/">Nicholas Melhado</a><br /></span>

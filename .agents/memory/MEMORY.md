@@ -1,1 +1,2 @@
 - [Team value contract labels](team-value-contract-labels.md) — display exact contract years and derive formulas from the same generated value rules.
+- [FantasyPros fetch automation](fantasypros-fetch.md) — Playwright iframe quirks, rank-cell empty-after-Calculate bug, Chromium system deps, commissioner page structure.

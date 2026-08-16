@@ -4,14 +4,24 @@ This folder holds the yearly inputs and review files used to generate `static/Pl
 
 ## Annual workflow
 
-1. Open the FantasyPros auction calculator.
-2. Use these settings:
-   - Half PPR
-   - 16 teams
-   - $500 budget
-3. Copy the table into `data/player-values/raw/fantasypros-YYYY.csv`.
-4. Let the script fetch Sleeper's NFL player JSON, or save it yourself to `data/player-values/raw/sleeper-players-YYYY.json`.
-5. Run:
+1. Fetch the FantasyPros auction calculator table directly:
+
+```bash
+npm run values:fetch -- --year YYYY
+```
+
+The command uses a browser session to select Half PPR, 16 teams, a $500
+budget, and Overall Rankings. It verifies those settings and requires a
+complete-looking result table before atomically replacing
+`data/player-values/raw/fantasypros-YYYY.csv`. It does not log in or store
+credentials. Use `--output /tmp/fantasypros-YYYY.csv` to test a fetch without
+changing the project input.
+
+If FantasyPros changes the calculator UI, blocks automation, or returns an
+incomplete table, the command exits without replacing the existing CSV.
+
+2. Let the script fetch Sleeper's NFL player JSON, or save it yourself to `data/player-values/raw/sleeper-players-YYYY.json`.
+3. Run:
 
 ```bash
 npm run values:prepare -- --year YYYY --fantasypros data/player-values/raw/fantasypros-YYYY.csv --fetch-sleeper
@@ -25,15 +35,15 @@ npm run values:prepare -- --year YYYY --fantasypros data/player-values/raw/fanta
 
 If you skip both `--fetch-sleeper` and `--sleeper`, the script will create an empty rookie review file for manual entry.
 
-6. Review `data/player-values/review/rookies-YYYY.csv`.
-7. Add missing name mappings to `static/fp_sleeper_mapping.txt` if needed.
-8. Generate the static app file:
+5. Review `data/player-values/review/rookies-YYYY.csv`.
+6. Add missing name mappings to `static/fp_sleeper_mapping.txt` if needed.
+7. Generate the static app file:
 
 ```bash
 npm run values:generate -- --year YYYY --fantasypros data/player-values/raw/fantasypros-YYYY.csv
 ```
 
-9. Audit league rosters for name mismatches (run after generate, before relying on team values):
+8. Audit league rosters for name mismatches (run after generate, before relying on team values):
 
 ```bash
 npm run values:audit -- --year YYYY --fetch-sleeper
