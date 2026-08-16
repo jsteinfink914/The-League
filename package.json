@@ -52,7 +52,7 @@
     "docker-build": "docker build . -t $USER/league-page:latest",
     "docker-run": "npm run docker-build && docker run -p 3000:3000 $USER/league-page:latest",
     "preview": "vite preview",
-    "prepare": "npm run smui-theme-light && npm run smui-theme-dark",
+    "build:theme": "npm run smui-theme-light && npm run smui-theme-dark",
     "values:prepare": "node scripts/generate-player-values.js prepare",
     "values:generate": "node scripts/generate-player-values.js generate",
     "values:audit": "node scripts/generate-player-values.js audit",
