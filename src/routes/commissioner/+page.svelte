@@ -151,12 +151,13 @@
 </script>
 
 <style>
+  /* ── Layout ─────────────────────────────────────────────────── */
   .page {
     max-width: 860px;
     margin: 2rem auto;
     padding: 0 1.5rem 4rem;
     font-family: inherit;
-    color: var(--g333, #333);
+    color: var(--g333);
   }
 
   h1 {
@@ -165,11 +166,12 @@
     border-bottom: 2px solid #920505;
     padding-bottom: .5rem;
     margin-bottom: 2rem;
+    color: var(--g333);
   }
 
   .card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: var(--fff);
+    border: 1px solid var(--ddd);
     border-radius: 6px;
     padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
@@ -199,14 +201,26 @@
     font-size: 1.1rem;
     font-weight: 600;
     margin: 0;
+    color: var(--g333);
   }
 
   .meta {
     font-size: .8rem;
-    color: #888;
+    color: var(--g999);
     margin: 0 0 1rem;
   }
 
+  /* ── Code ───────────────────────────────────────────────────── */
+  code {
+    font-size: .82em;
+    background: var(--f3f3f3);
+    color: var(--g333);
+    border-radius: 3px;
+    padding: .1em .35em;
+    word-break: break-all;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────────── */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -218,14 +232,20 @@
     font-weight: 600;
     cursor: pointer;
     transition: opacity .15s;
+    white-space: nowrap;
   }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
-  .btn-primary { background: #920505; color: #fff; }
-  .btn-secondary { background: #f0f0f0; color: #333; border: 1px solid #ccc; }
-  .btn-success { background: #2d7a2d; color: #fff; }
+  .btn-primary  { background: #920505; color: #fff; }
+  .btn-secondary {
+    background: var(--eee);
+    color: var(--g333);
+    border: 1px solid var(--ccc);
+  }
+  .btn-success  { background: #2d7a2d; color: #fff; }
 
+  /* ── Log output ─────────────────────────────────────────────── */
   .log {
-    background: #1e1e1e;
+    background: #111;
     color: #d4d4d4;
     font-family: monospace;
     font-size: .75rem;
@@ -236,51 +256,69 @@
     max-height: 220px;
     overflow-y: auto;
     margin-top: .75rem;
+    border: 1px solid var(--ddd);
   }
 
-  .status-ok   { color: #2d7a2d; font-weight: 600; font-size: .85rem; }
-  .status-err  { color: #920505; font-weight: 600; font-size: .85rem; }
-  .status-info { color: #555;    font-size: .85rem; }
+  /* ── Status text ─────────────────────────────────────────────── */
+  .status-ok   { color: #3a9c3a; font-weight: 600; font-size: .85rem; }
+  .status-err  { color: #c0392b; font-weight: 600; font-size: .85rem; }
+  .status-info { color: var(--g555); font-size: .85rem; }
+
+  /* ── Tables ─────────────────────────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: .25rem;
+  }
 
   table.review {
     width: 100%;
     border-collapse: collapse;
     font-size: .85rem;
+    min-width: 380px;
   }
   table.review th {
     text-align: left;
     padding: .4rem .6rem;
-    border-bottom: 2px solid #e0e0e0;
-    color: #555;
+    border-bottom: 2px solid var(--ddd);
+    color: var(--g555);
     font-weight: 600;
+    white-space: nowrap;
+    background: var(--fff);
   }
   table.review td {
     padding: .35rem .6rem;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--eee);
+    color: var(--g333);
   }
-  table.review tr:hover td { background: #fafafa; }
+  table.review tr:hover td { background: var(--f8f8f8); }
   table.review input[type=number] {
     width: 70px;
     padding: .25rem .4rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--ccc);
     border-radius: 3px;
     font-size: .85rem;
+    background: var(--fff);
+    color: var(--g333);
   }
 
+  /* ── Pills — rgba so they work in both light & dark ─────────── */
   .pill {
     display: inline-block;
     padding: .15rem .5rem;
     border-radius: 12px;
     font-size: .75rem;
     font-weight: 600;
+    white-space: nowrap;
   }
-  .pill-ok  { background: #e8f5e9; color: #2d7a2d; }
-  .pill-warn { background: #fff3e0; color: #c55a00; }
-  .pill-err  { background: #fdecea; color: #920505; }
+  .pill-ok   { background: rgba(45, 122, 45,  .15); color: #3a9c3a; }
+  .pill-warn { background: rgba(197, 90,  0,  .15); color: #c55a00; }
+  .pill-err  { background: rgba(146,   5,  5, .15); color: #c0392b; }
 
   .issue-table { font-size: .8rem; }
   .issue-table td { vertical-align: top; }
 
+  /* ── Spinner ─────────────────────────────────────────────────── */
   .spinner {
     display: inline-block;
     width: 14px; height: 14px;
@@ -296,6 +334,18 @@
     align-items: center;
     gap: .75rem;
     margin-top: .75rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── Mobile ─────────────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .page    { padding: 0 .75rem 3rem; margin: 1rem auto; }
+    h1       { font-size: 1.2rem; }
+    .card    { padding: .9rem 1rem; }
+    .btn     { font-size: .8rem; padding: .45rem .85rem; }
+    table.review         { font-size: .78rem; }
+    table.review th,
+    table.review td      { padding: .28rem .4rem; }
   }
 </style>
 
@@ -349,12 +399,13 @@
     </div>
     <p class="meta">
       {rookieRows.length} rookie{rookieRows.length === 1 ? '' : 's'} detected
-      {#if state.rookiesReview.mtime}· last updated {fmt(state.rookiesReview.mtime)}{/if}
+      {#if state.rookiesReview.mtime}· last generated {fmt(state.rookiesReview.mtime)}{/if}
     </p>
 
     {#if rookieRows.length === 0}
-      <p class="status-info">No rookies in the review file yet. Run <strong>Refresh</strong> first (with Sleeper auto-detection).</p>
+      <p class="status-info">No rookies found yet — run <strong>Generate</strong> (step 3) to populate this list.</p>
     {:else}
+      <div class="table-wrap">
       <table class="review">
         <thead>
           <tr>
@@ -383,6 +434,7 @@
           {/each}
         </tbody>
       </table>
+      </div>
 
       <div class="save-row">
         <button
@@ -404,6 +456,7 @@
         <summary style="cursor:pointer; font-size:.85rem; color:#555;">
           {state.unmatchedRookies.rows.length} unmatched rookie candidates (add to fp_sleeper_mapping.txt if needed)
         </summary>
+        <div class="table-wrap">
         <table class="review issue-table" style="margin-top:.5rem">
           <thead><tr><th>Sleeper</th><th>Suggested FP Name</th><th>Suggested Value</th><th>Confidence</th></tr></thead>
           <tbody>
@@ -417,6 +470,7 @@
             {/each}
           </tbody>
         </table>
+        </div>
       </details>
     {/if}
   </div>
@@ -484,6 +538,7 @@
         <span class="pill pill-warn">{state.auditIssues.rows.length} issue{state.auditIssues.rows.length === 1 ? '' : 's'} flagged</span>
         — add missing rows to <code>static/fp_sleeper_mapping.txt</code> then re-generate.
       </p>
+      <div class="table-wrap">
       <table class="review issue-table" style="margin-top:.5rem">
         <thead>
           <tr>
@@ -504,6 +559,7 @@
           {/each}
         </tbody>
       </table>
+      </div>
     {:else if state.auditIssues.exists}
       <p class="status-ok" style="margin-top:.75rem">✓ No roster issues found</p>
     {/if}
