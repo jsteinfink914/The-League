@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
 
   let years = [];
-  let selectedYear = "2025";
+  let selectedYear = "";
   let data = [];
 
   // For team comparison
@@ -30,7 +30,10 @@
       skipEmptyLines: true,
       complete: (result) => {
         data = result.data;
-        years = [...new Set(data.map(row => row.Year))].sort();
+        years = [...new Set(data.map(row => row.Year))]
+          .filter(Boolean)
+          .sort((a, b) => Number(b) - Number(a));
+        selectedYear = years[0] || "";
         updateData();
       }
     });
@@ -106,6 +109,26 @@
   max-width: 1200px; /* Optional: limit the maximum width */
   padding: 20px;
   box-sizing: border-box; /* Include padding in width */
+}
+
+.calculator-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px 20px 0;
+  box-sizing: border-box;
+  font-weight: 600;
+}
+
+.calculator-controls select {
+  padding: 6px 10px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background: white;
+  color: #222;
+  font: inherit;
 }
 
 .team {
@@ -204,6 +227,15 @@
 </style>
 
 <div class="container">
+  <div class="calculator-controls">
+    <label for="value-year">Value year</label>
+    <select id="value-year" bind:value={selectedYear} on:change={updateData} disabled={years.length === 0}>
+      {#each years as year}
+        <option value={year}>{year}{year === years[0] ? ' (current)' : ''}</option>
+      {/each}
+    </select>
+  </div>
+
   <div class="team-container">
     <!-- Team 1 -->
     <div class="team">
