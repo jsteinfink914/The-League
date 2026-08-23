@@ -1,3 +1,5 @@
+import Papa from 'papaparse';
+
 export function normalizeName(name) {
   return String(name)
     .toLowerCase()
@@ -156,16 +158,21 @@ function getContractLabel(status, contractYear) {
  */
 export function parseFantasyProsMarketCsv(csvText) {
   const map = new Map();
-  const lines = String(csvText).split(/\r?\n/);
+  const parsed = Papa.parse(String(csvText), { header: true, skipEmptyLines: true });
+  const fields = parsed.meta.fields || [];
+  const nameField =
+    fields.find((field) => /^(player|name|overall)$/i.test(String(field).trim())) || fields[1];
+  const valueField = fields.find((field) =>
+    /^(value|auction value|\$ value)$/i.test(String(field).trim())
+  );
 
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const columns = line.split(',');
-    if (columns.length < 3) continue;
+  // The export also contains a Points column, which may be negative or differ
+  // from the auction value. Never fall back to that positional column.
+  if (!nameField || !valueField) return map;
 
-    const displayName = String(columns[1] || '').trim();
-    const value = Number(String(columns[2]).replace(/[$,\s]/g, ''));
-
+  for (const row of parsed.data) {
+    const displayName = String(row[nameField] || '').trim();
+    const value = Number(String(row[valueField] || '').replace(/[$,\s]/g, ''));
     if (!displayName || !Number.isFinite(value)) continue;
 
     // FantasyPros may append injury status immediately after the team/position,
