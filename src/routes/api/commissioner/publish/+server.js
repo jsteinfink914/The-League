@@ -1,7 +1,18 @@
 import { json } from '@sveltejs/kit';
 import { exec } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import Papa from 'papaparse';
 
 const ROOT = process.cwd();
+
+function unresolvedAuditIssues(year) {
+  const auditPath = path.join(ROOT, 'data', 'player-values', 'review', `unmatched-roster-${year}.csv`);
+  if (!fs.existsSync(auditPath)) return { exists: false, blocking: [] };
+  const parsed = Papa.parse(fs.readFileSync(auditPath, 'utf8'), { header: true, skipEmptyLines: true });
+  const blocking = parsed.data.filter((row) => !row.Severity || row.Severity === 'blocking');
+  return { exists: true, blocking };
+}
 
 function run(cmd, timeoutMs = 60_000) {
   return new Promise((resolve) => {
@@ -22,6 +33,20 @@ export async function POST({ request }) {
 
   if (!Number.isInteger(year) || year < 2000 || year > 2100) {
     return json({ ok: false, error: 'Invalid year.' }, { status: 400 });
+  }
+  const audit = unresolvedAuditIssues(year);
+  if (!audit.exists) {
+    return json({ ok: false, error: 'Run the roster audit before publishing.' }, { status: 409 });
+  }
+  if (audit.blocking.length) {
+    return json(
+      {
+        ok: false,
+        error: `Publishing is blocked by ${audit.blocking.length} unresolved player-value issue(s).`,
+        issues: audit.blocking
+      },
+      { status: 409 }
+    );
   }
 
   // Stage only the generated value files — not scripts, config, etc.

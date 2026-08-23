@@ -10,11 +10,17 @@
 	let players;
 	let transactions;
     let leagueTeamManagers;
+let partial = false;
+let failedWeeks = [];
+let loadError = '';
 
 	onMount(async () => {
+try {
 		const [transactionsData, playersData, leagueTeamManagersData] = await waitForAll(getLeagueTransactions(true),loadPlayers(null), getLeagueTeamManagers());
 		players = playersData.players;
 		transactions = transactionsData.transactions;
+partial = Boolean(transactionsData.partial);
+failedWeeks = transactionsData.failedWeeks || [];
         leagueTeamManagers = leagueTeamManagersData;
 		loading = false;
 
@@ -27,6 +33,11 @@
 			const newPlayersData = await loadPlayers(true);
 			players = newPlayersData.players;
 		}
+} catch (error) {
+loadError = error.message || 'League transactions could not be loaded.';
+} finally {
+loading = false;
+}
 	})
 </script>
 
@@ -60,6 +71,14 @@
 	.nothingYet {
 		margin: 5em 0;
 	}
+
+.partial {
+margin: 1rem auto;
+padding: .75rem;
+border: 1px solid #c58b00;
+background: #fff7df;
+color: #6b4a00;
+}
 </style>
 
 <div class="transactions">
@@ -67,6 +86,12 @@
 		<p>Loading league transactions...</p>
 		<LinearProgress indeterminate />
 	{:else}
+{#if loadError}
+<p class="partial" role="alert">{loadError} <button type="button" on:click={() => window.location.reload()}>Retry</button></p>
+{:else}
+{#if partial}
+<p class="partial" role="status">Some transaction weeks could not be loaded ({failedWeeks.join(', ')}). Showing available transactions; refresh to retry.</p>
+{/if}
 		<!-- waiver -->
 		{#if transactions.waivers.length}
 			<h5>Recent Waiver Moves</h5>
@@ -95,4 +120,5 @@
 			<p class="nothingYet">No trades have been made yet...</p>
 		{/if}
 	{/if}
+{/if}
 </div>

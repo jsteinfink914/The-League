@@ -1,11 +1,15 @@
 import { getLeagueData } from './leagueData';
 import { leagueID } from '$lib/utils/leagueInfo';
 import { getNflState } from './nflState';
+import { fetchJson, allSettledWithConcurrency } from './request';
 import { get } from 'svelte/store';
 import {transactionsStore} from '$lib/stores';
 import { browser } from '$app/environment';
 import { getLeagueTeamManagers } from './leagueTeamManagers';
-import { fetchJsonWithTimeout, mapWithConcurrency } from './network';
+import { createTransactionRequests } from './transactionRequests';
+
+const TRANSACTIONS_CACHE_KEY = `league-transactions:v1:${leagueID}`;
+const TRANSACTIONS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 export const getLeagueTransactions = async (preview, refresh = false) => {
 	const transactionsStoreVal = get(transactionsStore);
@@ -15,42 +19,67 @@ export const getLeagueTransactions = async (preview, refresh = false) => {
 			transactions: checkPreview(preview, transactionsStoreVal.transactions),
 			totals: transactionsStoreVal.totals,
 			stale: false,
-			partial: transactionsStoreVal.partial ?? false
+      partial: Boolean(transactionsStoreVal.partial),
+      failedWeeks: transactionsStoreVal.failedWeeks || []
 		};
 	}
 
 	// if this isn't a refresh data call, check if there are already transactions stored in localStorage
 	if(!refresh && browser) {
-		let localTransactions = await JSON.parse(localStorage.getItem("transactions"));
+let localTransactions = null;
+try {
+  const cached = JSON.parse(localStorage.getItem(TRANSACTIONS_CACHE_KEY) || 'null');
+  if (cached?.expiresAt > Date.now() && cached.payload?.transactions && cached.payload?.totals) {
+    localTransactions = cached.payload;
+  } else if (cached) {
+    localStorage.removeItem(TRANSACTIONS_CACHE_KEY);
+  }
+} catch {
+  localStorage.removeItem(TRANSACTIONS_CACHE_KEY);
+}
 		// check if transactions have been saved to localStorage before
 		if(localTransactions) {
 			localTransactions.transactions = checkPreview(preview, localTransactions.transactions);
-			localTransactions.stale = true;
-			return localTransactions;
+			return { ...localTransactions, stale: true };
 		}
 	}
 
 	// gather supporting info simultaneously
-	const nflState = await getNflState().catch((err) => { console.error(err); });
+let nflState = null;
+let partial = false;
+try {
+  nflState = await getNflState();
+} catch (error) {
+  partial = true;
+  console.warn('NFL state unavailable; loading the full transaction window.', error);
+}
 	
 	let week = 18;
-	if(nflState.season_type == 'regular') {
+if(nflState?.season_type == 'regular') {
 		week = nflState.week;
 	}
 
-	const {transactionsData, currentSeason, partial} = await combThroughTransactions(week, leagueID);
+const {transactionsData, currentSeason, failedWeeks} = await combThroughTransactions(week, leagueID);
+partial = partial || failedWeeks.length > 0;
 
 	const { transactions, totals } = await digestTransactions({transactionsData, currentSeason});
 
 	const transactionPackage = {
 		transactions,
-		totals,
-		partial
+ totals,
+ partial,
+ failedWeeks
 	};
 
     if(browser) {
 	    // update localStorage
-        localStorage.setItem("transactions", JSON.stringify(transactionPackage));
+        localStorage.setItem(
+          TRANSACTIONS_CACHE_KEY,
+          JSON.stringify({
+            expiresAt: Date.now() + TRANSACTIONS_CACHE_TTL_MS,
+            payload: transactionPackage
+          })
+        );
     
         // update the store
         transactionsStore.update(() => transactionPackage);
@@ -59,8 +88,10 @@ export const getLeagueTransactions = async (preview, refresh = false) => {
 	return {
 		transactions: checkPreview(preview, transactions),
 		totals,
-		stale: false,
-		partial
+		stale: false
+,
+partial,
+failedWeeks
 	};
 }
 
@@ -96,7 +127,7 @@ const combThroughTransactions = async (week, currentLeagueID) => {
 
 	while(currentLeagueID && currentLeagueID != 0) {
 		// gather supporting info simultaneously
-		const leagueData = await getLeagueData(currentLeagueID);
+const leagueData = await getLeagueData(currentLeagueID);
 
 		leagueIDs.push(currentLeagueID);
 
@@ -107,44 +138,28 @@ const combThroughTransactions = async (week, currentLeagueID) => {
 		currentLeagueID = leagueData.previous_league_id;
 	}
 
-	const transactionRequests = [];
+const transactionRequests = createTransactionRequests(
+  leagueIDs,
+  week,
+  (seasonID, requestWeek) =>
+    fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/transactions/${requestWeek}`, { compress: true })
+);
+const failedWeeks = [];
 
-	for(const singleLeagueID of leagueIDs) {
-		while(week > 0) {
-			transactionRequests.push({ leagueID: singleLeagueID, week });
-			week--;
-		}
-		week = 18;
-	}
-
-	const transactionsDataJson = await mapWithConcurrency(transactionRequests, 5, async (request) => {
-		try {
-			const data = await fetchJsonWithTimeout(
-				`https://api.sleeper.app/v1/league/${request.leagueID}/transactions/${request.week}`,
-				{compress: true}
-			);
-			return { data, failed: false };
-		} catch (error) {
-			console.warn(`Unable to load transactions for league ${request.leagueID}, week ${request.week}:`, error);
-			return { data: [], failed: true };
-		}
-	});
-
-	if (transactionsDataJson.every((result) => result.failed)) {
-		throw new Error('Transaction history could not be loaded. Please try again.');
-	}
+const results = await allSettledWithConcurrency(transactionRequests.map((request) => request.load));
+const transactionsDataJson = [];
+results.forEach((result, index) => {
+  if (result.status === 'fulfilled') transactionsDataJson.push(result.value);
+  else failedWeeks.push(`${transactionRequests[index].seasonID}: week ${transactionRequests[index].week}`);
+});
 
 	let transactionsData = [];
 
 	for(const transactionDataJson of transactionsDataJson) {
-		transactionsData = transactionsData.concat(transactionDataJson.data);
+		transactionsData = transactionsData.concat(transactionDataJson);
 	}
 
-	return {
-		transactionsData,
-		currentSeason,
-		partial: transactionsDataJson.some((result) => result.failed)
-	};
+return {transactionsData, currentSeason, failedWeeks};
 }
 
 const digestTransactions = async ({transactionsData, currentSeason}) => {

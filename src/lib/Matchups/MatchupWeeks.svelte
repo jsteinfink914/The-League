@@ -4,7 +4,7 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
 
-    export let queryWeek, players, matchupWeeks, year, week, regularSeasonLength, selection, leagueTeamManagers;
+    export let queryWeek, players, matchupWeeks, failedWeeks, year, week, regularSeasonLength, selection, leagueTeamManagers;
 
     let displayWeek = queryWeek * 1 || 1;
 
@@ -35,8 +35,12 @@
 
     const processDisplayMatchup = (newWeek) => {
         const matchup = matchupWeeks[newWeek-1];
-        const allMatchups = matchup.matchups;
         matchupArray = [];
+        if (!matchup || matchup.unavailable) {
+            rand = Math.random();
+            return;
+        }
+        const allMatchups = matchup.matchups;
         for (const key in allMatchups) {
             matchupArray.push(allMatchups[key]);
         }
@@ -118,7 +122,10 @@
             <span class="spacer" />
         {/if}
     </div>
+    {#if failedWeeks.includes(displayWeek)}
+        <p>This week's matchup data is temporarily unavailable. Refresh to retry.</p>
+    {/if}
     {#each matchupArray as matchup, ix (rand * (ix + 1))}
-        <Matchup {ix} {matchup} {players} {displayWeek} bind:active={active} {leagueTeamManagers} />
+        <Matchup {ix} {matchup} {players} {displayWeek} {year} bind:active={active} {leagueTeamManagers} />
     {/each}
 </div>

@@ -10,7 +10,7 @@
 	import { getLeagueTransactions, loadPlayers } from '$lib/utils/helper';
 	import WaiverTransaction from './WaiverTransaction.svelte';
 
-	export let show, playersInfo, query, queryPage, transactions, stale, partial = false, perPage, postUpdate=false, leagueTeamManagers;
+export let show, playersInfo, query, queryPage, transactions, stale, partial = false, failedWeeks = [], perPage, postUpdate=false, leagueTeamManagers;
 	const oldQuery = query;
 	let page = queryPage || 0;
 
@@ -18,6 +18,7 @@
 		const newTransactions = await getLeagueTransactions(false, true);
 		transactions = newTransactions.transactions;
 		partial = newTransactions.partial;
+		failedWeeks = newTransactions.failedWeeks || [];
 	}
 
 	if(stale) {
@@ -154,6 +155,14 @@
 		overflow-y: hidden;
 	}
 
+.partial {
+margin: 1rem auto;
+padding: .75rem;
+border: 1px solid #c58b00;
+background: #fff7df;
+color: #6b4a00;
+}
+
     @media (max-width: 1000px) {
     }
 
@@ -214,9 +223,9 @@
 </style>
 
 <div class="transactionsParent">
-	{#if partial}
-		<p class="partial-warning" role="status">Some historical transaction data could not be loaded. Counts and totals may be incomplete; refresh to try again.</p>
-	{/if}
+{#if partial}
+<p class="partial" role="status">Some transaction weeks could not be loaded ({failedWeeks.join(', ')}). Showing available transactions; refresh to retry.</p>
+{/if}
 	<div class="buttons {show == "trade" ? "" : "invis-buttons"}">
 		<Button class="{show == "trade" ? "disabled" : ""}" color="primary" on:click={() => setShow("trade")} variant="{show == "trade" ? "raised" : "outlined"}" touch>
 			<Label>Trades</Label>
@@ -282,7 +291,7 @@
 
 		<Pagination {perPage} total={totalTransactions} bind:page={page} target={top} scroll={false} />
 		<div class="transactions-child">
-			{#each displayTransactions as transaction (transaction.id)}
+{#each displayTransactions as transaction, index (`${transaction.id}-${index}`)}
                 {#if transaction.type == "waiver"}
 				    <WaiverTransaction {players} {transaction} {leagueTeamManagers} />
                 {:else}

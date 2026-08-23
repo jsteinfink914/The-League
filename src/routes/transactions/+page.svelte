@@ -2,6 +2,7 @@
 	import LinearProgress from '@smui/linear-progress';
 	import { TransactionsPage } from '$lib/components'
     import { waitForAll } from '$lib/utils/helper';
+    import { getTransactionLoadError } from '$lib/Transactions/transactionLoadState';
 
     export let data;
     const {show, query, page, playersData, transactionsData, leagueTeamManagersData} = data;
@@ -36,8 +37,16 @@
             <p>Loading league transactions...</p>
             <LinearProgress indeterminate />
         </div>
-    {:then [{transactions, currentTeams, stale, partial}, playersInfo, leagueTeamManagers]}
-        <TransactionsPage {playersInfo} {stale} {partial} {transactions} {currentTeams} {show} {query} queryPage={page} {perPage} postUpdate={true} {leagueTeamManagers} />
+    {:then [transactionsInfo, playersInfo, leagueTeamManagers]}
+        {#if getTransactionLoadError([transactionsInfo, playersInfo, leagueTeamManagers])}
+            <div class="loading" role="alert">
+                <p>{getTransactionLoadError([transactionsInfo, playersInfo, leagueTeamManagers])}</p>
+                <button type="button" on:click={() => window.location.reload()}>Retry</button>
+            </div>
+        {:else}
+            {@const {transactions, currentTeams, stale, partial, failedWeeks} = transactionsInfo}
+        <TransactionsPage {playersInfo} {stale} {partial} {failedWeeks} {transactions} {currentTeams} {show} {query} queryPage={page} {perPage} postUpdate={true} {leagueTeamManagers} />
+        {/if}
     {:catch error}
         <p class="center">Something went wrong: {error.message}</p>
     {/await}

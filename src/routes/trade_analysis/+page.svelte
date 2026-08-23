@@ -223,6 +223,7 @@
   onMount(async () => {
     try {
       const playersRes = await fetch('https://api.sleeper.app/v1/players/nfl');
+      if (!playersRes.ok) throw new Error(`Player data request failed (${playersRes.status}).`);
       const players = await playersRes.json();
       data = await buildTradeAnalysisData({ players });
     } catch (e) {
@@ -243,7 +244,7 @@
   {#if loading}
     <div class="loading"><div class="spinner"></div><p>Crunching trade data across all seasons…</p><p class="sub">This traces every pick to the player drafted with it — may take a moment.</p></div>
   {:else if error}
-    <div class="error">Error: {error}</div>
+    <div class="error" role="alert">Trade analysis is temporarily unavailable: {error} <button type="button" on:click={() => window.location.reload()}>Retry</button></div>
   {:else if data}
 
     <div class="controls-row">

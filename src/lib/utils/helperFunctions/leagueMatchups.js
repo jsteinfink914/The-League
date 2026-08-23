@@ -1,19 +1,17 @@
 import { getLeagueData } from "./leagueData"
 import { leagueID } from '$lib/utils/leagueInfo';
 import { getNflState } from "./nflState"
+import { fetchJson, allSettledWithConcurrency } from './request';
 import { get } from 'svelte/store';
 import {matchupsStore} from '$lib/stores';
-import { fetchJsonWithTimeout, mapWithConcurrency } from './network';
+import { buildMatchupWeeks } from './matchupResults';
 
 export const getLeagueMatchups = async () => {
 	if(get(matchupsStore).matchupWeeks) {
 		return get(matchupsStore);
 	}
 
-	const [nflState, leagueData] = await Promise.all(
-		getNflState(),
-		getLeagueData(),
-	);
+const [nflState, leagueData] = await Promise.all([getNflState(), getLeagueData()]);
 
 	let week = 1;
 	if(nflState.season_type == 'regular') {
@@ -24,58 +22,32 @@ export const getLeagueMatchups = async () => {
 	const year = leagueData.season;
 	const regularSeasonLength = leagueData.settings.playoff_week_start - 1;
 
-	// Pull in all matchup data for the season without overwhelming Sleeper.
-	const matchupNumbers = [];
+	// pull in all matchup data for the season
+const matchupRequests = [];
 	for(let i = 1; i < leagueData.settings.playoff_week_start; i++) {
-		matchupNumbers.push(i);
+    matchupRequests.push({
+      week: i,
+      load: () => fetchJson(`https://api.sleeper.app/v1/league/${leagueID}/matchups/${i}`, { compress: true })
+    });
 	}
-	const matchupsData = await mapWithConcurrency(
-		matchupNumbers,
-		4,
-		(matchupNumber) => fetchJsonWithTimeout(
-			`https://api.sleeper.app/v1/league/${leagueID}/matchups/${matchupNumber}`,
-			{compress: true}
-		)
-	);
+const results = await allSettledWithConcurrency(matchupRequests.map((request) => request.load));
+const successfulMatchups = results.filter((result) => result.status === 'fulfilled');
 
-	const matchupWeeks = [];
-	// process all the matchups
-	for(let i = 1; i < matchupsData.length + 1; i++) {
-		const processed = processMatchups(matchupsData[i - 1], i);
-		if(processed) {
-			matchupWeeks.push({
-				matchups: processed.matchups,
-				week: processed.week
-			});
-		}
-	}
+if (!successfulMatchups.length) {
+  throw new Error(`Unable to load matchup data for ${year}. Try again later.`);
+}
+  const { matchupWeeks, failedWeeks } = buildMatchupWeeks(matchupRequests, results);
 
 	const matchupsResponse = {
 		matchupWeeks,
 		year,
 		week,
-		regularSeasonLength
+regularSeasonLength,
+partial: failedWeeks.length > 0,
+failedWeeks,
 	}
 	
 	matchupsStore.update(() => matchupsResponse);
 
 	return matchupsResponse;
-}
-
-const processMatchups = (inputMatchups, week) => {
-	if(!inputMatchups || inputMatchups.length == 0) {
-		return false;
-	}
-	const matchups = {};
-	for(const match of inputMatchups) {
-		if(!matchups[match.matchup_id]) {
-			matchups[match.matchup_id] = [];
-		}
-		matchups[match.matchup_id].push({
-			roster_id: match.roster_id,
-			starters: match.starters,
-			points: match.starters_points,
-		})
-	}
-	return {matchups, week};
 }

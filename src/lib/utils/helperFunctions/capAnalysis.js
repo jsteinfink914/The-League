@@ -4,14 +4,10 @@ import {
   getContractBreakdown,
   normalizeName
 } from '$lib/utils/playerNameLookup';
+import { allSettledWithConcurrency, fetchJson } from './request';
+import { requireCompleteWeekResults } from './completeWeekResults';
 
 // ── Low-level helpers ──────────────────────────────────────────────────────
-
-async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Fetch failed: ${url} (${res.status})`);
-  return res.json();
-}
 
 /**
  * Walk the league chain starting from leagueID and collect all season IDs.
@@ -23,12 +19,7 @@ async function collectSeasonChain() {
 
   while (curID && curID !== '0') {
     let data;
-    try {
-      data = await fetchJson(`https://api.sleeper.app/v1/league/${curID}`);
-    } catch (e) {
-      console.warn('Cap analysis: failed to fetch league', curID, e);
-      break;
-    }
+    data = await fetchJson(`https://api.sleeper.app/v1/league/${curID}`);
     seasons.push({
       year: Number(data.season),
       seasonID: curID,
@@ -53,13 +44,9 @@ async function fetchSeasonMatchups(seasonID, playoffWeekStart) {
     urls.push(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${w}`);
   }
 
-  const responses = await Promise.all(urls.map((u) => fetch(u)));
-  const bodies = await Promise.all(responses.map((r) => r.json()));
-
-  return bodies.map((entries, i) => ({
-    week: i + 1,
-    entries: Array.isArray(entries) ? entries : []
-  }));
+  const results = await allSettledWithConcurrency(urls.map((url) => () => fetchJson(url)));
+  return requireCompleteWeekResults(results, 'Cap analysis matchup data')
+    .map((entries, i) => ({ week: i + 1, entries }));
 }
 
 /**
@@ -238,14 +225,8 @@ export async function buildCapAnalysisData({
 
   // ── Step 4: Current season matchups ──────────────────────────────────────
   const currentSeason = seasonChain.find((s) => s.year === currentYearNum) || seasonChain[0];
-  let currentMatchups = [];
-  if (currentSeason) {
-    try {
-      currentMatchups = await fetchSeasonMatchups(currentSeason.seasonID, currentSeason.playoffWeekStart);
-    } catch (e) {
-      console.warn('[CapAnalysis] Failed to fetch current matchups:', e);
-    }
-  }
+  if (!currentSeason) throw new Error('Current season data is unavailable. Refresh to retry.');
+  const currentMatchups = await fetchSeasonMatchups(currentSeason.seasonID, currentSeason.playoffWeekStart);
 
   const playerPtsCurrent = buildPlayerPoints(currentMatchups);
   const rosterWeeklyCurrent = buildRosterWeekly(currentMatchups);
@@ -309,7 +290,7 @@ export async function buildCapAnalysisData({
     const historicalSeasons = seasonChain.filter(
       (s) => s.year !== currentYearNum && capYears.includes(s.year)
     );
-    const histResults = await Promise.allSettled(
+    const histResults = await Promise.all(
       historicalSeasons.map(async ({ year, seasonID, playoffWeekStart }) => {
         const [matchups, rosters] = await Promise.all([
           fetchSeasonMatchups(seasonID, playoffWeekStart),
@@ -319,8 +300,7 @@ export async function buildCapAnalysisData({
       })
     );
     for (const result of histResults) {
-      if (result.status !== 'fulfilled') continue;
-      const { year, matchups, rosters } = result.value;
+      const { year, matchups, rosters } = result;
       const yRows = historyRows.filter((r) => r.Year === year);
       if (!yRows.length) continue;
       const yi = { ...buildValueIndexesLocal(yRows), sleeperToFantasyPros: valueIndexes.sleeperToFantasyPros };

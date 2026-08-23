@@ -202,6 +202,21 @@ async function audit({
 
   const sleeperNames = await readLeagueRosterSleeperNames(leagueId, sleeperPath);
   const flagged = [];
+  const duplicateRows = duplicatePlayerRows(readPlayerValues(valuesPath), year);
+
+  for (const name of duplicateRows) {
+    flagged.push({
+      Severity: 'blocking',
+      Sleeper: '',
+      Resolved_Name: name,
+      Value: '',
+      Match_Type: 'duplicate',
+      Suggested_Fantasy_Pros: '',
+      Suggested_Value: '',
+      Confidence: '',
+      Notes: `Duplicate ${year} player value row; resolve before publishing.`
+    });
+  }
 
   for (const sleeperName of sleeperNames) {
     const resolved = resolvePlayerValue(sleeperName, indexes);
@@ -213,7 +228,9 @@ async function audit({
     const marketResolved = marketIndexes
       ? resolvePlayerValue(sleeperName, marketIndexes)
       : null;
-    const marketMissing = contractYear >= 3 && marketResolved?.matchType === 'none';
+    const marketMissing =
+      contractYear >= 3 &&
+      (!marketResolved || marketResolved.matchType === 'none' || marketResolved.value == null);
 
     if (indexes.ambiguousNormalized.has(norm)) {
       notes.push('Ambiguous normalized name; add explicit fp_sleeper_mapping.txt row');
@@ -229,6 +246,7 @@ async function audit({
 
     if (marketMissing) {
       flagged.push({
+        Severity: 'blocking',
         Sleeper: sleeperName,
         Resolved_Name: resolved.fantasyProsName,
         Value: resolved.value,
@@ -241,19 +259,33 @@ async function audit({
           ...notes
         ].join('; ')
       });
-    } else if (resolved.matchType === 'none' && suggestedValue > 0 && firstNameMatches) {
+    } else if (resolved.matchType === 'none' || resolved.value == null) {
       flagged.push({
+        Severity: 'blocking',
         Sleeper: sleeperName,
         Resolved_Name: resolved.fantasyProsName,
         Value: resolved.value,
         Match_Type: resolved.matchType,
         Suggested_Fantasy_Pros: suggestion?.Name || '',
-        Suggested_Value: suggestedValue,
+        Suggested_Value: suggestion ? suggestedValue : '',
         Confidence: suggestion ? suggestion.Score.toFixed(2) : '',
-        Notes: notes.join('; ') || 'Likely missing fp_sleeper_mapping.txt row'
+        Notes: notes.join('; ') || 'Missing current player value or explicit fp_sleeper_mapping.txt row'
+      });
+    } else if (resolved.value === 0) {
+      flagged.push({
+        Severity: 'warning',
+        Sleeper: sleeperName,
+        Resolved_Name: resolved.fantasyProsName,
+        Value: 0,
+        Match_Type: resolved.matchType,
+        Suggested_Fantasy_Pros: '',
+        Suggested_Value: '',
+        Confidence: '',
+        Notes: 'Explicit zero-dollar value (valid, but included for review).'
       });
     } else if (notes.length) {
       flagged.push({
+        Severity: 'blocking',
         Sleeper: sleeperName,
         Resolved_Name: resolved.fantasyProsName,
         Value: resolved.value,
@@ -268,6 +300,7 @@ async function audit({
 
   const unmatchedPath = path.join(REVIEW_DIR, `unmatched-roster-${year}.csv`);
   writeCsv(unmatchedPath, flagged, [
+    'Severity',
     'Sleeper',
     'Resolved_Name',
     'Value',
@@ -279,7 +312,8 @@ async function audit({
   ]);
 
   console.log(`Audited ${sleeperNames.length} rostered players for ${year}.`);
-  console.log(`Flagged ${flagged.length} issues.`);
+  const blockingIssues = flagged.filter((row) => row.Severity === 'blocking');
+  console.log(`Flagged ${blockingIssues.length} blocking issue(s) and ${flagged.length - blockingIssues.length} warning(s).`);
   console.log(`Review: ${relative(unmatchedPath)}`);
 
   if (flagged.length) {
@@ -287,7 +321,7 @@ async function audit({
     for (const row of flagged) {
       console.log(`- ${row.Sleeper} (${row.Notes})`);
     }
-    return 1;
+    return blockingIssues.length ? 1 : 0;
   }
 
   return 0;
@@ -323,13 +357,17 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
   const marketRows = readFantasyProsValues(fantasyProsPath);
   const marketByName = new Map(marketRows.map((row) => [row.Name, row.MarketValue]));
   const history = readPlayerValues(valuesPath);
+  const currentYearDuplicates = duplicatePlayerRows(history, year);
+  if (currentYearDuplicates.length) {
+    fail(`Refusing to replace ${year}: duplicate player value rows already exist for ${currentYearDuplicates.join(', ')}.`);
+  }
   const rookieRows = readRookieReview(rookiesPath);
   const currentRookies = new Map(rookieRows.map((row) => [row.Fantasy_Pros, row.RookieValue]));
   const rookieContracts = buildRookieContracts(history);
   const existingOtherYears = history.filter((row) => row.Year !== year);
 
   const generatedRows = [];
-  const warnings = [];
+  const issues = [];
 
   for (const marketRow of marketRows) {
     const currentRookieValue = currentRookies.get(marketRow.Name);
@@ -355,41 +393,52 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
     }
 
     const contractYear = year - contract.RookieYear + 1;
+    const value = calculateContractValue(contractYear, contract.RookieValue, marketRow.MarketValue);
+    if (!Number.isFinite(value) || value < 0) {
+      issues.push(`${marketRow.Name} has no valid contract value for ${year}.`);
+      continue;
+    }
     generatedRows.push({
       Year: year,
       Name: marketRow.Name,
-      Value: calculateContractValue(contractYear, contract.RookieValue, marketRow.MarketValue),
+      Value: value,
       Rookie: 0
     });
   }
 
   for (const [name] of currentRookies) {
     if (!marketByName.has(name)) {
-      warnings.push(`Rookie review includes "${name}", but that name was not in FantasyPros input.`);
+      issues.push(`Rookie review includes "${name}", but that name is not in FantasyPros input.`);
     }
+  }
+
+  if (generatedRows.length !== marketRows.length || issues.length) {
+    fail(`Refusing to generate player values:\n- ${issues.join('\n- ')}`);
   }
 
   const allRows = [...existingOtherYears, ...generatedRows].sort(
     (a, b) => a.Year - b.Year || Number(b.Value) - Number(a.Value) || a.Name.localeCompare(b.Name)
   );
 
-  writeCsv(outputPath, allRows, ['Year', 'Name', 'Value', 'Rookie']);
-
   const staticMarketPath = path.join(ROOT, 'static', `fantasypros-${year}.csv`);
-  fs.copyFileSync(fantasyProsPath, staticMarketPath);
+  writeGeneratedOutputsAtomically({
+    valuesPath: outputPath,
+    valuesCsv: csvForRows(allRows, ['Year', 'Name', 'Value', 'Rookie']),
+    marketPath: staticMarketPath,
+    marketCsv: fs.readFileSync(fantasyProsPath, 'utf8')
+  });
   console.log(`Copied market values for UI: ${relative(staticMarketPath)}`);
 
   console.log(`Generated ${generatedRows.length} rows for ${year}.`);
   console.log(`Output: ${relative(outputPath)}`);
-  if (warnings.length) {
-    console.log('\nWarnings:');
-    for (const warning of warnings) console.log(`- ${warning}`);
-  }
 }
 
 function readFantasyProsValues(filePath) {
   const text = fs.readFileSync(filePath, 'utf8');
   const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+  if (parsed.errors.length) {
+    fail(`FantasyPros input contains malformed CSV rows: ${relative(filePath)}.`);
+  }
   const fields = parsed.meta.fields || [];
   const nameField = fields.find((field) => /^(player|name)$/i.test(String(field).trim())) || fields[1];
   // The FantasyPros export contains both projected Points and auction Value.
@@ -403,13 +452,17 @@ function readFantasyProsValues(filePath) {
   }
 
   const rows = [];
+  const invalidRows = [];
 
-  for (const row of parsed.data) {
+  for (const [index, row] of parsed.data.entries()) {
     const rank = Number(String(row[rankField] ?? '').trim());
     const displayName = String(row[nameField] ?? '').trim();
     const value = parseDollarValue(row[valueField]);
 
-    if (!Number.isFinite(rank) || !displayName || !Number.isFinite(value)) continue;
+    if (!Number.isFinite(rank) || rank < 1 || !displayName || !Number.isFinite(value) || value < 0) {
+      invalidRows.push(index + 2);
+      continue;
+    }
 
     rows.push({
       Rank: rank,
@@ -418,8 +471,11 @@ function readFantasyProsValues(filePath) {
     });
   }
 
-  if (!rows.length) {
-    fail(`Could not parse any FantasyPros rows from ${relative(filePath)}.`);
+  if (rows.length < 20) {
+    fail(`FantasyPros input has too few valid rows (${rows.length}) in ${relative(filePath)}.`);
+  }
+  if (invalidRows.length) {
+    fail(`FantasyPros input has invalid rank, player name, or non-negative value on row(s): ${invalidRows.join(', ')}.`);
   }
 
   const duplicateNames = rows
@@ -435,26 +491,60 @@ function readFantasyProsValues(filePath) {
 function readPlayerValues(filePath) {
   const text = fs.readFileSync(filePath, 'utf8');
   const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-  return parsed.data
-    .filter((row) => row.Year && row.Name)
-    .map((row) => ({
+  const rows = [];
+  const invalidRows = [];
+  for (const [index, row] of parsed.data.entries()) {
+    const parsedRow = {
       Year: Number(row.Year),
-      Name: String(row.Name).trim(),
+      Name: String(row.Name ?? '').trim(),
       Value: Number(row.Value),
       Rookie: Number(row.Rookie) === 1 ? 1 : 0
-    }));
+    };
+    if (!Number.isInteger(parsedRow.Year) || !parsedRow.Name || !Number.isFinite(parsedRow.Value) || parsedRow.Value < 0) {
+      invalidRows.push(index + 2);
+    } else {
+      rows.push(parsedRow);
+    }
+  }
+  if (parsed.errors.length || invalidRows.length) {
+    fail(`Player values input is malformed${invalidRows.length ? ` (rows ${invalidRows.join(', ')})` : ''}.`);
+  }
+  return rows;
+}
+
+function duplicatePlayerRows(rows, year) {
+  const seen = new Set();
+  const duplicates = new Set();
+  for (const row of rows) {
+    if (row.Year !== year) continue;
+    const key = normalizeName(row.Name);
+    if (seen.has(key)) duplicates.add(row.Name);
+    else seen.add(key);
+  }
+  return [...duplicates].sort();
 }
 
 function readRookieReview(filePath) {
   const text = fs.readFileSync(filePath, 'utf8');
   const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-  return parsed.data
-    .filter((row) => Number(row.Rookie) === 1 && row.Fantasy_Pros)
-    .map((row) => ({
-      Fantasy_Pros: String(row.Fantasy_Pros).trim(),
-      RookieValue: Number(row.RookieValue)
-    }))
-    .filter((row) => Number.isFinite(row.RookieValue));
+  const rows = [];
+  const invalidRows = [];
+  const names = new Set();
+  for (const [index, row] of parsed.data.entries()) {
+    if (Number(row.Rookie) !== 1) continue;
+    const name = String(row.Fantasy_Pros ?? '').trim();
+    const value = Number(row.RookieValue);
+    if (!name || !Number.isFinite(value) || value < 0 || names.has(name)) {
+      invalidRows.push(index + 2);
+      continue;
+    }
+    names.add(name);
+    rows.push({ Fantasy_Pros: name, RookieValue: value });
+  }
+  if (parsed.errors.length || invalidRows.length) {
+    fail(`Rookie review is malformed or has duplicate names (rows ${invalidRows.join(', ')}).`);
+  }
+  return rows;
 }
 
 function readNameMappings(filePath) {
@@ -501,8 +591,11 @@ async function fetchSleeperPlayers(filePath) {
     fail(`Sleeper player fetch failed with HTTP ${response.status}.`);
   }
 
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(await response.json(), null, 2));
+  const data = await response.json();
+  if (!data || typeof data !== 'object') {
+    fail('Sleeper player fetch returned invalid data.');
+  }
+  writeFileAtomically(filePath, `${JSON.stringify(data, null, 2)}\n`);
   console.log(`Saved Sleeper player data: ${relative(filePath)}`);
 }
 
@@ -518,11 +611,59 @@ function parseDollarValue(value) {
 }
 
 function writeCsv(filePath, rows, columns) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  writeFileAtomically(filePath, csvForRows(rows, columns));
+}
+
+function csvForRows(rows, columns) {
   const csv = rows.length
     ? Papa.unparse(rows, { columns, header: true, newline: '\n' })
     : columns.join(',');
-  fs.writeFileSync(filePath, `${csv}\n`);
+  return `${csv}\n`;
+}
+
+function writeFileAtomically(filePath, content) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const tempPath = `${filePath}.tmp-${process.pid}`;
+  try {
+    fs.writeFileSync(tempPath, content);
+    fs.renameSync(tempPath, filePath);
+  } catch (error) {
+    fs.rmSync(tempPath, { force: true });
+    throw error;
+  }
+}
+
+function writeGeneratedOutputsAtomically({ valuesPath, valuesCsv, marketPath, marketCsv }) {
+  const files = [
+    { path: valuesPath, content: valuesCsv },
+    { path: marketPath, content: marketCsv }
+  ].map((file) => ({
+    ...file,
+    tempPath: `${file.path}.tmp-${process.pid}`,
+    backupPath: `${file.path}.bak-${process.pid}`,
+    hadOriginal: fs.existsSync(file.path)
+  }));
+
+  try {
+    for (const file of files) {
+      fs.mkdirSync(path.dirname(file.path), { recursive: true });
+      fs.writeFileSync(file.tempPath, file.content);
+    }
+    for (const file of files) {
+      if (file.hadOriginal) fs.renameSync(file.path, file.backupPath);
+      fs.renameSync(file.tempPath, file.path);
+    }
+    for (const file of files) fs.rmSync(file.backupPath, { force: true });
+  } catch (error) {
+    for (const file of files) {
+      fs.rmSync(file.tempPath, { force: true });
+      if (fs.existsSync(file.backupPath)) {
+        fs.rmSync(file.path, { force: true });
+        fs.renameSync(file.backupPath, file.path);
+      }
+    }
+    throw error;
+  }
 }
 
 function parseArgs(args) {

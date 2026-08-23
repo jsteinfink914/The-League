@@ -1,47 +1,56 @@
-import { get } from 'svelte/store';
 import {players} from '$lib/stores';
 import { browser } from '$app/environment';
+import { fetchJson } from './request';
+import { getPlayerCacheExpiration, hasFreshPlayerCache } from './playerCache';
 
 export const loadPlayers = async (servFetch, refresh = false) => {     
-	if(get(players)[1426]) {
-		return {
-            players: get(players),
-            stale: false
-        };
-	}
-
     const smartFetch = servFetch ?? fetch;
     
-    const now = Math.round(new Date().getTime() / 1000);
+    const now = Date.now();
     let playersInfo = null;
     let expiration = null;
     if(browser) {
-        playersInfo = JSON.parse(localStorage.getItem("playersInfo"));
-        expiration = parseInt(localStorage.getItem("expiration"));
+        try {
+            const cached = JSON.parse(localStorage.getItem('playersInfo') || 'null');
+            const cachedExpiration = Number(localStorage.getItem('playersInfoExpiration'));
+            if (cached && cached[1426] && Number.isFinite(cachedExpiration)) {
+                playersInfo = cached;
+                expiration = cachedExpiration;
+            }
+        } catch {
+            localStorage.removeItem('playersInfo');
+            localStorage.removeItem('playersInfoExpiration');
+        }
     }
 
-    if(playersInfo && playersInfo[1426] && expiration && now > expiration && !refresh) {
+    if(hasFreshPlayerCache(playersInfo, expiration, now, refresh)) {
         return {
             players: playersInfo,
-            stale: true
+            stale: false
         }
     }
     
-    if(!playersInfo || !expiration || now > expiration) {
-        const res = await smartFetch(`/api/fetch_players_info`, {compress: true});
-        const data = await res.json();
-
-        if (!res.ok) {
-            throw new Error(data);
+    if(!hasFreshPlayerCache(playersInfo, expiration, now, refresh)) {
+        let data;
+        try {
+            data = await fetchJson(`/api/fetch_players_info`, {compress: true}, { fetcher: smartFetch });
+            if (!data || typeof data !== 'object' || !data[1426]) {
+                throw new Error('Player service returned an invalid player list.');
+            }
+        } catch (error) {
+            if (playersInfo?.[1426]) {
+                players.update(() => playersInfo);
+                return { players: playersInfo, stale: true };
+            }
+            throw error;
         }
 
         if(browser) {
             localStorage.setItem("playersInfo", JSON.stringify(data))
 
-            const ts = Math.round(new Date().getTime() / 1000);
-            const newExpiration = ts + (24 * 3600);
+            const newExpiration = getPlayerCacheExpiration(now);
 
-            localStorage.setItem("expiration", newExpiration)  
+            localStorage.setItem("playersInfoExpiration", newExpiration)
 
             players.update(() => data);
         }

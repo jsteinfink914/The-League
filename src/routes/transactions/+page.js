@@ -1,14 +1,18 @@
 import { getLeagueTransactions, loadPlayers, getLeagueTeamManagers } from '$lib/utils/helper';
 
+const asResult = (promise, label) => Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out.`)), 12_000))
+]).catch((error) => ({ error: error.message || `${label} could not be loaded.` }));
+
 export async function load({ url, fetch }) {
     const show = url?.searchParams?.get('show');
     const query = url?.searchParams?.get('query');
     const curPage = url?.searchParams?.get('page');
 
-    const transactionsData = await getLeagueTransactions(false);
-    const leagueTeamManagersData = await getLeagueTeamManagers();
-
-    const playersData = await loadPlayers(fetch);
+    const transactionsData = asResult(getLeagueTransactions(false), 'Transaction data');
+    const leagueTeamManagersData = asResult(getLeagueTeamManagers(), 'League manager data');
+    const playersData = asResult(loadPlayers(fetch), 'Player data');
 
     const bannedValued = [
         'undefined',

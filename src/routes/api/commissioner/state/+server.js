@@ -36,13 +36,34 @@ export async function GET() {
   const unmatchedRookies = readCsv(unmatchedRookiesPath);
   const auditIssues = readCsv(unmatchedRosterPath);
   const fpRowCount = readCsv(fpRawPath).length;
+  const blockingIssues = auditIssues.filter(
+    (issue) => !issue.Severity || issue.Severity === 'blocking'
+  );
+  const warningIssues = auditIssues.filter((issue) => issue.Severity === 'warning');
+  const publishBlockers = [];
+  if (!fileStat(fpRawPath).exists) publishBlockers.push('No FantasyPros export has been fetched.');
+  if (!fileStat(valuesPath).exists) publishBlockers.push('No generated player values file exists.');
+  if (!fileStat(unmatchedRosterPath).exists) publishBlockers.push('Run the roster audit before publishing.');
+  if (blockingIssues.length) {
+    publishBlockers.push(`${blockingIssues.length} unresolved roster/value issue(s) remain.`);
+  }
 
   return json({
     year: YEAR,
     fpRaw: { ...fileStat(fpRawPath), rowCount: fpRowCount },
     rookiesReview: { ...fileStat(rookiesPath), rows: rookies },
     unmatchedRookies: { ...fileStat(unmatchedRookiesPath), rows: unmatchedRookies },
-    auditIssues: { ...fileStat(unmatchedRosterPath), rows: auditIssues },
-    playerValues: fileStat(valuesPath)
+    auditIssues: {
+      ...fileStat(unmatchedRosterPath),
+      rows: auditIssues,
+      blockingCount: blockingIssues.length,
+      warningCount: warningIssues.length
+    },
+    playerValues: fileStat(valuesPath),
+    publishReadiness: {
+      ready: publishBlockers.length === 0,
+      blockers: publishBlockers,
+      warningCount: warningIssues.length
+    }
   });
 }

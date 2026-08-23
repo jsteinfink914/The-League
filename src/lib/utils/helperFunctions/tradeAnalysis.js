@@ -1,21 +1,16 @@
 import { leagueID } from '$lib/utils/leagueInfo';
 import { getLeagueTeamManagers } from './leagueTeamManagers';
+import { allSettledWithConcurrency, fetchJson } from './request';
+import { requireCompleteWeekResults } from './completeWeekResults';
 
 const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
-
-async function fetchJson(url) {
-  const res = await fetch(url, { compress: true });
-  if (!res.ok) throw new Error(`Fetch failed: ${url} (${res.status})`);
-  return res.json();
-}
 
 async function collectSeasonChain() {
   const seasons = [];
   let curID = leagueID;
   while (curID && curID !== '0') {
     let data;
-    try { data = await fetchJson(`https://api.sleeper.app/v1/league/${curID}`); }
-    catch (e) { console.warn('tradeAnalysis: failed to fetch league', curID, e); break; }
+    data = await fetchJson(`https://api.sleeper.app/v1/league/${curID}`);
     seasons.push({ year: Number(data.season), seasonID: curID, playoffWeekStart: data.settings?.playoff_week_start ?? 15 });
     const prev = data.previous_league_id;
     curID = prev && prev !== '0' ? prev : null;
@@ -27,14 +22,14 @@ async function fetchAllTransactions(seasonChain) {
   const all = [];
   for (const { seasonID } of seasonChain) {
     const weekPromises = [];
-    for (let w = 1; w <= 18; w++) weekPromises.push(fetch(`https://api.sleeper.app/v1/league/${seasonID}/transactions/${w}`, { compress: true }));
-    const ress = await Promise.all(weekPromises);
-    const jsons = await Promise.all(ress.map(r => r.ok ? r.json() : []));
-    for (const batch of jsons) {
-      if (Array.isArray(batch)) {
-        for (const t of batch) {
-          if (t && t.type === 'trade' && t.status !== 'failed') all.push({ ...t, _seasonID: seasonID });
-        }
+    for (let w = 1; w <= 18; w++) {
+      weekPromises.push(() => fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/transactions/${w}`, { compress: true }));
+    }
+    const results = await allSettledWithConcurrency(weekPromises);
+    const batches = requireCompleteWeekResults(results, `Trade analysis transactions for season ${seasonID}`);
+    for (const batch of batches) {
+      for (const t of batch) {
+        if (t && t.type === 'trade' && t.status !== 'failed') all.push({ ...t, _seasonID: seasonID });
       }
     }
   }
@@ -43,11 +38,13 @@ async function fetchAllTransactions(seasonChain) {
 
 async function fetchSeasonMatchups(seasonID, playoffWeekStart) {
   const weekCount = Math.max(playoffWeekStart - 1, 1);
-  const responses = await Promise.all(
-    Array.from({ length: weekCount }, (_, i) => fetch(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${i + 1}`))
+  const results = await allSettledWithConcurrency(
+    Array.from({ length: weekCount }, (_, i) => () =>
+      fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${i + 1}`, { compress: true })
+    )
   );
-  const bodies = await Promise.all(responses.map(r => r.json()));
-  return bodies.map((entries, i) => ({ week: i + 1, entries: Array.isArray(entries) ? entries : [] }));
+  return requireCompleteWeekResults(results, `Trade analysis matchups for season ${seasonID}`)
+    .map((entries, i) => ({ week: i + 1, entries }));
 }
 
 async function buildPlayerPointsFromYear(seasonChain, tradeYear) {
@@ -55,17 +52,15 @@ async function buildPlayerPointsFromYear(seasonChain, tradeYear) {
   const playerPoints = new Map();
   const ensure = pid => { if (!playerPoints.has(pid)) playerPoints.set(pid, { starterPts: 0, rosterPts: 0 }); return playerPoints.get(pid); };
   for (const { seasonID, playoffWeekStart } of relevantSeasons) {
-    try {
-      const matchups = await fetchSeasonMatchups(seasonID, playoffWeekStart);
-      for (const { entries } of matchups) {
-        for (const entry of entries) {
-          const starters = entry.starters || [];
-          const starterPtsArr = entry.starters_points || [];
-          for (const [pid, pts] of Object.entries(entry.players_points || {})) ensure(pid).rosterPts += pts || 0;
-          starters.forEach((pid, idx) => { if (pid) ensure(pid).starterPts += starterPtsArr[idx] || 0; });
-        }
+    const matchups = await fetchSeasonMatchups(seasonID, playoffWeekStart);
+    for (const { entries } of matchups) {
+      for (const entry of entries) {
+        const starters = entry.starters || [];
+        const starterPtsArr = entry.starters_points || [];
+        for (const [pid, pts] of Object.entries(entry.players_points || {})) ensure(pid).rosterPts += pts || 0;
+        starters.forEach((pid, idx) => { if (pid) ensure(pid).starterPts += starterPtsArr[idx] || 0; });
       }
-    } catch (e) { console.warn('tradeAnalysis: failed matchups for', seasonID, e); }
+    }
   }
   return playerPoints;
 }
@@ -73,23 +68,21 @@ async function buildPlayerPointsFromYear(seasonChain, tradeYear) {
 async function fetchAllDraftsData(seasonChain) {
   const allDrafts = [];
   for (const { seasonID, year } of seasonChain) {
-    try {
-      const draftsInfo = await fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/drafts`);
-      for (const draftMeta of draftsInfo) {
-        if (draftMeta.status !== 'complete') continue;
-        const [officialDraft, draftPicks] = await Promise.all([
-          fetchJson(`https://api.sleeper.app/v1/draft/${draftMeta.draft_id}`),
-          fetchJson(`https://api.sleeper.app/v1/draft/${draftMeta.draft_id}/picks`)
-        ]);
-        const slotToRosterID = officialDraft.slot_to_roster_id || {};
-        const picks = draftPicks.map(p => ({
-          round: p.round,
-          playerID: p.player_id,
-          originalOwnerRosterID: String(slotToRosterID[p.draft_slot] ?? p.roster_id)
-        }));
-        allDrafts.push({ year, draftID: draftMeta.draft_id, picks });
-      }
-    } catch (e) { console.warn('tradeAnalysis: failed drafts for', seasonID, e); }
+    const draftsInfo = await fetchJson(`https://api.sleeper.app/v1/league/${seasonID}/drafts`);
+    for (const draftMeta of draftsInfo) {
+      if (draftMeta.status !== 'complete') continue;
+      const [officialDraft, draftPicks] = await Promise.all([
+        fetchJson(`https://api.sleeper.app/v1/draft/${draftMeta.draft_id}`),
+        fetchJson(`https://api.sleeper.app/v1/draft/${draftMeta.draft_id}/picks`)
+      ]);
+      const slotToRosterID = officialDraft.slot_to_roster_id || {};
+      const picks = draftPicks.map(p => ({
+        round: p.round,
+        playerID: p.player_id,
+        originalOwnerRosterID: String(slotToRosterID[p.draft_slot] ?? p.roster_id)
+      }));
+      allDrafts.push({ year, draftID: draftMeta.draft_id, picks });
+    }
   }
   return allDrafts;
 }

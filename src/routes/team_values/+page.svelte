@@ -1,6 +1,6 @@
 <script>
   import Papa from 'papaparse';
-  import { onDestroy, onMount, tick } from 'svelte';
+  import { onMount } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import { leagueID } from '$lib/utils/leagueInfo';
   import {
@@ -10,7 +10,7 @@
     parseFantasyProsMarketCsv,
     resolvePlayerValue
   } from '$lib/utils/playerNameLookup';
-  import { fetchWithTimeout } from '$lib/utils/helperFunctions/network';
+  import { fetchWithRetry } from '$lib/utils/helperFunctions/request';
   Chart.register(...registerables);
 
   const valueYear = '2026';
@@ -20,27 +20,25 @@
   let managerRosters = {};
   let totalValues = [];
   let chart;
-  let chartCanvas;
-  let loading = true;
-  let errorMessage = '';
+  let loadError = '';
 
   const fetchData = async () => {
     try {
       // Fetch rosters
-      const rosterResponse = await fetchWithTimeout(`https://api.sleeper.app/v1/league/${leagueID}/rosters`);
+      const rosterResponse = await fetchWithRetry(`https://api.sleeper.app/v1/league/${leagueID}/rosters`);
       const rosters = await rosterResponse.json();
 
       // Fetch players
-      const playersResponse = await fetchWithTimeout('https://api.sleeper.app/v1/players/nfl');
+      const playersResponse = await fetchWithRetry('https://api.sleeper.app/v1/players/nfl');
       const players = await playersResponse.json();
 
       // Fetch player mappings
-      const playerMapResponse = await fetchWithTimeout('/fp_sleeper_mapping.txt');
+      const playerMapResponse = await fetchWithRetry('/fp_sleeper_mapping.txt');
       const playerMapText = await playerMapResponse.text();
       const playerMappings = Papa.parse(playerMapText, { header: true }).data;
 
       // Fetch manager mappings
-      const managerMapResponse = await fetchWithTimeout('/Manager_map.txt');
+      const managerMapResponse = await fetchWithRetry('/Manager_map.txt');
       const managerMapText = await managerMapResponse.text();
       const managerMappings = Papa.parse(managerMapText, { header: true }).data;
       const managerMap = new Map(managerMappings.map(entry => [entry.Index, entry.Name]));
@@ -49,11 +47,22 @@
       let rostersByTeam = {};
       rosters.forEach(roster => {
         let index = roster.roster_id;
-        rostersByTeam[index] = (roster.players ?? []).map(playerId => {
+        rostersByTeam[index] = roster.players.map(playerId => {
           let player = players[playerId];
           return player ? `${player.first_name} ${player.last_name}` : "";
         });
       });
+
+      // Pad short rosters to 23 slots (dynasty minimum); leave longer rosters as-is
+      for (let i = 1; i <= 16; i++) {
+        if (!rostersByTeam[i]) {
+          rostersByTeam[i] = Array(23).fill("");
+          continue;
+        }
+        if (rostersByTeam[i].length < 23) {
+          rostersByTeam[i].push(...Array(23 - rostersByTeam[i].length).fill(""));
+        }
+      }
 
       const sleeperToFantasyPros = new Map(
         playerMappings
@@ -61,17 +70,27 @@
           .map((entry) => [entry.Sleeper, entry.Fantasy_Pros])
       );
 
-      const playerValuesResponse = await fetchWithTimeout('/Player_Values.txt');
+      const playerValuesResponse = await fetchWithRetry('/Player_Values.txt');
       const playerValuesText = await playerValuesResponse.text();
-      const playerValues = Papa.parse(playerValuesText, { header: true, skipEmptyLines: true }).data;
-      const historyRows = playerValues
-        .filter((entry) => entry.Year && entry.Name)
+      const parsedPlayerValues = Papa.parse(playerValuesText, { header: true, skipEmptyLines: true });
+      if (parsedPlayerValues.errors.length) throw new Error('Player values file could not be parsed.');
+      const malformedRows = parsedPlayerValues.data.filter((entry) =>
+        !entry.Year ||
+        !entry.Name ||
+        !Number.isFinite(Number(entry.Value)) ||
+        Number(entry.Value) < 0
+      );
+      if (malformedRows.length) {
+        throw new Error(`Player values file contains ${malformedRows.length} malformed or negative row(s).`);
+      }
+      const historyRows = parsedPlayerValues.data
         .map((entry) => ({
           Year: Number(entry.Year),
           Name: String(entry.Name).trim(),
-          Value: parseFloat(entry.Value) || 0,
+          Value: Number(entry.Value),
           Rookie: Number(entry.Rookie) === 1 ? 1 : 0
         }));
+      if (!historyRows.length) throw new Error('Player values file contains no valid values.');
       const yearRows = historyRows
         .filter((entry) => String(entry.Year) === valueYear)
         .map((entry) => ({
@@ -86,7 +105,7 @@
 
       let marketValueByName = new Map();
       try {
-        const marketResponse = await fetchWithTimeout(`/fantasypros-${valueYear}.csv`);
+        const marketResponse = await fetchWithRetry(`/fantasypros-${valueYear}.csv`);
         marketValueByName = parseFantasyProsMarketCsv(await marketResponse.text());
       } catch (marketError) {
         console.warn('FantasyPros market file not loaded:', marketError);
@@ -120,36 +139,36 @@
             return {
               name: playerName,
               value: resolved.value,
-              status: breakdown.status,
+              status: resolved.value == null ? 'unresolved' : breakdown.status,
               label: breakdown.label,
-              formula: breakdown.formula,
+              formula: resolved.value == null ? 'No current-year value mapping is available.' : breakdown.formula,
               fantasyProsName: resolved.fantasyProsName
             };
           })
           .filter((player) => player.name)
-          .sort((a, b) => b.value - a.value);
+          .sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
       }
 
       // Map manager names
       const rostersWithManagerNames = {};
       for (const [index, roster] of Object.entries(rostersWithValues)) {
-        const managerName = managerMap.get(index) || `Team ${index}`;
+        const managerName = managerMap.get(index);
         rostersWithManagerNames[managerName] = roster;
       }
       totalValues = Object.keys(rostersWithManagerNames).map(manager => {
-          const totalValue = rostersWithManagerNames[manager].reduce((acc, player) => acc + player.value, 0);
+          const totalValue = rostersWithManagerNames[manager].reduce((acc, player) => acc + (Number.isFinite(player.value) ? player.value : 0), 0);
           return { manager, totalValue };
         });
 
       return rostersWithManagerNames;
     } catch (error) {
       console.error('Error fetching or processing data:', error);
-      throw error;
+      loadError = error.message || 'Team values could not be loaded.';
+      return {};
     }
   };
    const createChart = () => {
-     if (!chartCanvas || !totalValues.length) return;
-     const ctx = chartCanvas.getContext('2d');
+    const ctx = document.getElementById('chart').getContext('2d');
     if (chart) {
       chart.destroy();
     }
@@ -185,7 +204,7 @@
           y: {
             stacked: true,
             beginAtZero: true,
-            max: Math.max(700, ...totalValues.map(item => item.totalValue + 50)),
+            max: Math.max(...totalValues.map(item => item.totalValue)) + 50, // Adjust max to fit the highest value,
             afterDataLimits: scale => {
               scale.max = Math.max(700, scale.max);
             },
@@ -210,32 +229,12 @@
     });
   };
 
-  const loadTeamValues = async () => {
-    loading = true;
-    errorMessage = '';
-    try {
-      managerRosters = await fetchData();
-      managers = Object.keys(managerRosters);
-    } catch (error) {
-      managerRosters = {};
-      managers = [];
-      totalValues = [];
-      errorMessage = error.message || 'Team values could not be loaded.';
-    } finally {
-      loading = false;
-      await tick();
-      if (totalValues.length) {
-        createChart();
-      }
+  onMount(async () => {
+    managerRosters = (await fetchData()) ?? {};
+    managers = Object.keys(managerRosters);
+    if (totalValues.length) {
+      createChart();
     }
-  };
-
-  onMount(() => {
-    loadTeamValues();
-  });
-
-  onDestroy(() => {
-    chart?.destroy();
   });
 </script>
 
@@ -248,13 +247,14 @@
     box-sizing: border-box; /* Include padding in width */
   }
   .chart-container {
-    width: min(100% - 2rem, 1000px);
+    width: 80%;
     max-height: 50vh;
-    margin: 0 auto;
-    overflow-x: auto;
+    justify-content: center;
+    align-items:center;
+    margin-left:15%;
   }
   .dropdown-container {
-    width: min(100% - 2rem, 900px);
+    width: 80%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -267,7 +267,7 @@
   }
 
   table {
-    width: 100%;
+    width: 90%;
     max-width: 900px;
     border-collapse: collapse;
     overflow-y:auto;
@@ -286,7 +286,7 @@
   }
 
   .rules-legend {
-    width: min(100% - 2rem, 720px);
+    width: 80%;
     max-width: 720px;
     margin: 0 0 1rem;
     padding: 0.75rem 1rem;
@@ -341,34 +341,6 @@
     max-width: 220px;
   }
 
-  .status {
-    width: min(100% - 2rem, 720px);
-    padding: 1rem;
-    margin: 1rem auto;
-    border-radius: 6px;
-    text-align: center;
-  }
-
-  .error-state {
-    border: 1px solid #b00020;
-    color: #b00020;
-  }
-
-  .retry-button {
-    margin-top: 0.75rem;
-    padding: 0.6rem 1rem;
-    border: 0;
-    border-radius: 4px;
-    background: #00316b;
-    color: white;
-    cursor: pointer;
-  }
-
-  .table-scroll {
-    width: 100%;
-    overflow-x: auto;
-  }
-
   tr.row-rookie_year td {
     background: var(--waiverAdd);
   }
@@ -382,9 +354,12 @@
   }
 
   @media (max-width: 600px) {
+    .chart-container{
+      margin-left:0%;
+    }
     table {
-      min-width: 620px;
-      font-size: 12px;
+      font-size: 11px;
+      width: 100%;
     }
 
     th, td {
@@ -392,7 +367,8 @@
     }
 
     .rules-legend {
-      font-size: 12px;
+      width: 100%;
+      font-size: 11px;
     }
 
     .formula-cell {
@@ -402,19 +378,19 @@
     select {
       font-size: 14px;
     }
+    .chart-container,
+    .dropdown-container {
+      width: 100%;
+    
+  }
   }
 </style>
 
 <div class="container">
 <h4>Cap Values Summary</h4>
-  {#if loading}
-    <div class="status" role="status">Loading team values…</div>
-  {:else if errorMessage}
-    <div class="status error-state" role="alert">
-      <div>{errorMessage}</div>
-      <button class="retry-button" type="button" on:click={loadTeamValues}>Retry</button>
-    </div>
-  {:else}
+  {#if loadError}
+    <p class="status-err" role="alert">{loadError} <button on:click={() => window.location.reload()}>Retry</button></p>
+  {/if}
   <div class="rules-legend">
     <strong>Cap contract rules ({valueYear})</strong>
     <ul>
@@ -425,7 +401,7 @@
     </ul>
   </div>
   <div class="chart-container">
-    <canvas bind:this={chartCanvas} aria-label="Team cap value chart"></canvas>
+    <canvas id="chart"></canvas>
   </div>
   <div class="dropdown-container">
     <h4>Team Value</h4>
@@ -437,7 +413,6 @@
     </select>
 
     {#if selectedManager}
-      <div class="table-scroll" aria-label="Selected team value table">
       <table>
         <thead>
           <tr>
@@ -451,7 +426,7 @@
           {#each managerRosters[selectedManager] as player}
             <tr class="row-{player.status}">
               <td>{player.name}</td>
-              <td>{player.value}</td>
+              <td>{player.value == null ? 'Unresolved' : `$${player.value}`}</td>
               <td>
                 {#if player.label}
                   <span class="contract-badge contract-{player.status}">{player.label}</span>
@@ -462,15 +437,13 @@
           {/each}
           <tr class="total-value">
             <td>Total Value</td>
-            <td>{managerRosters[selectedManager].reduce((acc, player) => acc + player.value, 0)}</td>
+            <td>{managerRosters[selectedManager].reduce((acc, player) => acc + (Number.isFinite(player.value) ? player.value : 0), 0)}</td>
             <td colspan="2"></td>
           </tr>
         </tbody>
       </table>
-      </div>
     {/if}
     <br>
     <br>
   </div>
-  {/if}
 </div>

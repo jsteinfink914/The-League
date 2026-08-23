@@ -7,4 +7,4 @@ Treat every upstream news feed as independently optional, with bounded requests 
 
 **Why:** Reddit may return a 403 even from a server request, and the Fantasy Footballers feed can exceed the XML parser's entity-expansion limit. Either behavior should not make the Resources page unusable.
 
-**How to apply:** Keep the feed aggregation server-side, use a timeout for each source, collect results independently, and parse the Footballers XML without entity expansion. Render article text as text, not trusted markup.
+**How to apply:** Preserve independently recoverable sources and make the page visibly partial rather than failing as a whole. Treat third-party content as untrusted text.

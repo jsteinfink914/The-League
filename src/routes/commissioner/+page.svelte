@@ -668,6 +668,26 @@
     {/if}
   </div>
 
+  <div class="card">
+    <div class="card-header">
+      <div class="step-badge" style="background:{state.publishReadiness.ready ? '#2d7a2d' : '#c0392b'}">✓</div>
+      <h2>Ready to Publish</h2>
+    </div>
+    {#if state.publishReadiness.ready}
+      <p class="status-ok">✓ Audit is clear. The generated player values are ready to publish.</p>
+      {#if state.publishReadiness.warningCount}
+        <p class="status-info">{state.publishReadiness.warningCount} explicit zero-dollar assumption(s) remain visible for review.</p>
+      {/if}
+    {:else}
+      <p class="status-err">Publishing is blocked until these issues are resolved:</p>
+      <ul class="meta">
+        {#each state.publishReadiness.blockers as blocker}
+          <li>{blocker}</li>
+        {/each}
+      </ul>
+    {/if}
+  </div>
+
   <!-- ─── PENDING CHANGES ────────────────────────────────────────────────── -->
   <div class="card">
     <div class="card-header">

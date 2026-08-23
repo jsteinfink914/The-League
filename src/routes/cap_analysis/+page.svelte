@@ -969,7 +969,7 @@
   {#if loading}
     <div class="loading">Loading cap analysis data… this may take a moment.</div>
   {:else if error}
-    <div class="error-msg">Error: {error}</div>
+    <div class="error-msg" role="alert">Cap analysis is temporarily unavailable: {error} <button type="button" on:click={() => window.location.reload()}>Retry</button></div>
   {:else if data}
 
     <!-- ── SECTION 1: Cap Allocation ───────────────────────────────────── -->

@@ -16,10 +16,20 @@ export function buildValueIndexes(rows) {
   const valuesByName = new Map();
   const valuesByNormalizedName = new Map();
   const ambiguousNormalized = new Set();
+  const invalidRows = [];
+  const duplicateNames = new Set();
 
   for (const row of rows) {
     const name = String(row.Name).trim();
-    const value = Number(row.Value ?? row.MarketValue ?? 0);
+    const value = Number(row.Value ?? row.MarketValue);
+    if (!name || !Number.isFinite(value) || value < 0) {
+      invalidRows.push(row);
+      continue;
+    }
+    if (valuesByName.has(name)) {
+      duplicateNames.add(name);
+      continue;
+    }
     valuesByName.set(name, { Name: name, Value: value });
 
     const norm = normalizeName(name);
@@ -31,7 +41,7 @@ export function buildValueIndexes(rows) {
     }
   }
 
-  return { valuesByName, valuesByNormalizedName, ambiguousNormalized };
+  return { valuesByName, valuesByNormalizedName, ambiguousNormalized, invalidRows, duplicateNames };
 }
 
 /**
@@ -45,7 +55,7 @@ export function buildValueIndexes(rows) {
  */
 export function resolvePlayerValue(sleeperName, indexes) {
   if (!sleeperName) {
-    return { fantasyProsName: '', value: 0, matchType: 'empty' };
+    return { fantasyProsName: '', value: null, matchType: 'empty' };
   }
 
   const { sleeperToFantasyPros, valuesByName, valuesByNormalizedName, ambiguousNormalized } =
@@ -74,7 +84,7 @@ export function resolvePlayerValue(sleeperName, indexes) {
     }
   }
 
-  return { fantasyProsName: mappedName, value: 0, matchType: 'none' };
+  return { fantasyProsName: mappedName, value: null, matchType: 'none' };
 }
 
 /**
@@ -132,13 +142,16 @@ export function findRookieContract(fantasyProsName, contracts) {
 }
 
 export function calculateContractValue(contractYear, rookieValue, marketValue) {
+  if (!Number.isFinite(rookieValue) || rookieValue < 0) return null;
   if (contractYear <= 2) return rookieValue;
+  if (!Number.isFinite(marketValue) || marketValue < 0) return null;
   if (contractYear === 3) return Math.round((rookieValue + marketValue) / 2);
   return marketValue;
 }
 
 export const CONTRACT_STATUS_LABELS = {
   none: '',
+  unresolved: 'Unresolved value',
   rookie_year: 'Rookie year (Year 1)',
   rookie_y3: 'Rookie deal (Year 3 blend)',
   market: 'Market'
@@ -173,7 +186,7 @@ export function parseFantasyProsMarketCsv(csvText) {
   for (const row of parsed.data) {
     const displayName = String(row[nameField] || '').trim();
     const value = Number(String(row[valueField] || '').replace(/[$,\s]/g, ''));
-    if (!displayName || !Number.isFinite(value)) continue;
+    if (!displayName || !Number.isFinite(value) || value < 0) continue;
 
     // FantasyPros may append injury status immediately after the team/position,
     // e.g. "Malik Nabers (NYG - WR)DTD". Keep the stable player name only.
@@ -240,6 +253,14 @@ export function getContractBreakdown({
   };
 
   if (!fantasyProsName) return empty;
+  if (!Number.isFinite(capValue) || capValue < 0) {
+    return {
+      ...empty,
+      status: 'unresolved',
+      label: getContractLabel('unresolved'),
+      formula: 'No valid current-year player value is available.'
+    };
+  }
 
   const capYearNum = Number(capYear);
   const contracts = rookieContracts ?? buildRookieContracts(historyRows);
@@ -287,7 +308,7 @@ export function getContractBreakdown({
   }
 
   if (contractYear === 3) {
-    if (marketValue != null) {
+    if (marketValue != null && Number.isFinite(marketValue) && marketValue >= 0) {
       const blended = calculateContractValue(3, rookieValue, marketValue);
       return {
         status: 'rookie_y3',
@@ -301,9 +322,22 @@ export function getContractBreakdown({
     }
 
     return {
-      status: 'rookie_y3',
-      label: 'Rookie deal (Year 3; market unavailable)',
+      status: 'unresolved',
+      label: getContractLabel('unresolved'),
       formula: `Year 3 blend unavailable: no Fantasy Pros market value (current $${capValue})`,
+      contractYear,
+      rookieEntryYear: contract.RookieYear,
+      rookieValue,
+      marketValue: null
+    };
+  }
+
+  if (marketValue == null || !Number.isFinite(marketValue) || marketValue < 0) {
+    return {
+      ...empty,
+      status: 'unresolved',
+      label: getContractLabel('unresolved'),
+      formula: `Year ${contractYear} market value is unavailable for ${fantasyProsName}.`,
       contractYear,
       rookieEntryYear: contract.RookieYear,
       rookieValue,
@@ -318,7 +352,7 @@ export function getContractBreakdown({
     contractYear,
     rookieEntryYear: contract.RookieYear,
     rookieValue,
-    marketValue: marketValue ?? capValue
+    marketValue
   };
 }
 

@@ -7,42 +7,42 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import { loadPlayers } from '$lib/utils/helper';
+    import { resolveMatchupLoadState } from './matchupLoadState';
 
 	export let queryWeek, leagueTeamManagersData, matchupsData, bracketsData, playersData;
 
-    let players, matchupWeeks, year, week, regularSeasonLength, brackets, leagueTeamManagers;
+    let players, matchupWeeks = [], year, week, regularSeasonLength, brackets, leagueTeamManagers;
+    let failedWeeks = [];
+    let errorMessage = '';
+    let bracketError = '';
 
     let loading = true;
-    let errorMessage = '';
 
     onMount(async () => {
-        try {
-            const [bracketsInfo, matchupsInfo, managerInfo, playersInfo] = await Promise.all([
-                bracketsData,
-                matchupsData,
-                leagueTeamManagersData,
-                playersData
-            ]);
-            const failedResult = [bracketsInfo, matchupsInfo, managerInfo, playersInfo].find((result) => result?.error);
-            if (failedResult) {
-                throw new Error(failedResult.error);
-            }
-            brackets = bracketsInfo;
-            leagueTeamManagers = managerInfo;
-            matchupWeeks = matchupsInfo.matchupWeeks;
-            year = matchupsInfo.year;
-            week = matchupsInfo.week;
-            regularSeasonLength = matchupsInfo.regularSeasonLength;
-            players = playersInfo.players;
+        const [bracketsInfo, matchupsInfo, managerInfo, playersInfo] = await Promise.all([
+            bracketsData,
+            matchupsData,
+            leagueTeamManagersData,
+            playersData
+        ]);
+        const state = resolveMatchupLoadState({ bracketsInfo, matchupsInfo, managerInfo, playersInfo });
+        errorMessage = state.errorMessage;
+        if (!errorMessage) {
+            brackets = state.brackets;
+            bracketError = state.bracketError;
+            matchupWeeks = state.matchupWeeks;
+            year = state.year;
+            week = state.week;
+            regularSeasonLength = state.regularSeasonLength;
+            failedWeeks = state.failedWeeks;
+            players = state.players;
+            leagueTeamManagers = state.leagueTeamManagers;
+        }
+        loading = false;
 
-            if(playersInfo.stale) {
-                const newPlayersInfo = await loadPlayers(null, true);
-                players = newPlayersInfo.players;
-            }
-        } catch (error) {
-            errorMessage = error.message || 'League matchups could not be loaded.';
-        } finally {
-            loading = false;
+        if(!errorMessage && state.playersStale) {
+            const newPlayersInfo = await loadPlayers(null, true);
+            players = newPlayersInfo.players;
         }
     });
 
@@ -75,15 +75,20 @@
         margin: 3em 0;
     }
 
+    .partial {
+        width: 85%;
+        max-width: 700px;
+        margin: 1rem auto;
+        padding: .75rem 1rem;
+        border: 1px solid #c58b00;
+        border-radius: 4px;
+        color: #6b4a00;
+        background: #fff7df;
+    }
+
     .retry-button {
         display: block;
         margin: 1rem auto 0;
-        padding: 0.6rem 1rem;
-        border: 0;
-        border-radius: 4px;
-        background: #00316b;
-        color: white;
-        cursor: pointer;
     }
 </style>
 
@@ -101,7 +106,13 @@
             <p>{errorMessage}</p>
             <button class="retry-button" type="button" on:click={() => window.location.reload()}>Retry</button>
         </div>
-    {:else if matchupWeeks.length}
+    {:else}
+    {#if failedWeeks.length}
+        <p class="partial" role="status">
+            Some matchup weeks could not be loaded ({failedWeeks.join(', ')}). Showing the available data; refresh to retry.
+        </p>
+    {/if}
+    {#if matchupWeeks.some((matchup) => !matchup.unavailable)}
         <div class="buttonHolder">
             <Group variant="outlined">
                 <!-- Regular Season -->
@@ -127,7 +138,7 @@
             {/if}
         </div>
         {#if selection == 'regular'}
-            <MatchupWeeks {players} {queryWeek} {matchupWeeks} {regularSeasonLength} {year} {week} bind:selection={selection} {leagueTeamManagers} />
+            <MatchupWeeks {players} {queryWeek} {matchupWeeks} {failedWeeks} {regularSeasonLength} {year} {week} bind:selection={selection} {leagueTeamManagers} />
         {/if}
     {:else}
         <div class="message">
@@ -135,7 +146,11 @@
         </div>
     {/if}
     <!-- {promise has processed -->
-    {#if brackets.champs.bracket[0][0][0].points && (selection == 'champions' || selection == 'losers')}
+    {#if bracketError}
+        <p class="partial" role="status">Playoff brackets are temporarily unavailable. Regular-season matchups are still shown; refresh to retry.</p>
+    {/if}
+    {#if brackets?.champs?.bracket?.[0]?.[0]?.[0]?.points && (selection == 'champions' || selection == 'losers')}
         <Brackets {queryWeek} {leagueTeamManagers} {players} {brackets} bind:selection={selection} />
+    {/if}
     {/if}
 {/if}

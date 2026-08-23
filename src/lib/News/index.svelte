@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 
     export let news;
-    let {articles, fresh} = news;
+    let {articles, fresh, partial = false, failedSources = []} = news;
 
 	onMount(async () => {
         if(!fresh) {
@@ -16,6 +16,8 @@
     const getFreshNews = async () => {
         const newNews = await getNews(null, true);
         articles = newNews.articles;
+        partial = newNews.partial;
+        failedSources = newNews.failedSources;
     }
 
     const perPage = 10;
@@ -60,6 +62,17 @@
         max-width: 800px;
     }
 
+    .partial {
+        width: 85%;
+        max-width: 800px;
+        margin: 1rem auto;
+        padding: .75rem;
+        border: 1px solid #c58b00;
+        border-radius: 4px;
+        background: #fff7df;
+        color: #6b4a00;
+    }
+
     :global(.article) {
         margin: 20px auto;
     }
@@ -69,6 +82,11 @@
     <div class="banner" bind:this={el}>
         <h4>Fantasy Football News and Updates</h4>
     </div>
+    {#if partial}
+        <p class="partial" role="status">
+            Some news sources are temporarily unavailable ({failedSources.join(', ') || 'unknown source'}). Available stories are still shown; refresh to retry.
+        </p>
+    {/if}
 
     <div class="articles">
         {#each displayArticles as article}

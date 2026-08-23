@@ -2,7 +2,7 @@
     import {round} from '$lib/utils/helper'
 	import { getTeamFromTeamManagers } from '$lib/utils/helperFunctions/universalFunctions';
 
-    export let matchup, players, active, ix, displayWeek, expandOverride=false, matchupWeek, leagueTeamManagers, year;
+    export let matchup, players, active, ix, displayWeek, expandOverride=false, matchupWeek = null, leagueTeamManagers, year = null;
 
     let home = matchup[0];
     let away = matchup[1];

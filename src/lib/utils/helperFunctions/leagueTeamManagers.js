@@ -1,7 +1,7 @@
 import { leagueID, managers } from '$lib/utils/leagueInfo';
 import { get } from 'svelte/store';
 import { teamManagersStore } from '$lib/stores';
-import { waitForAll } from './multiPromise';
+import { fetchJson } from './request';
 import { getManagers, getTeamData } from './universalFunctions';
 import { getLeagueData } from './leagueData';
 
@@ -15,21 +15,27 @@ export const getLeagueTeamManagers = async () => {
     let currentSeason = null;
 
     // loop through all seasons and create a [year][roster_id]: team, managers object
-	while(currentLeagueID && currentLeagueID != 0) {
-		const [usersRaw, leagueData, rostersRaw] = await waitForAll(
-            fetch(`https://api.sleeper.app/v1/league/${currentLeagueID}/users`, {compress: true}),
-			getLeagueData(currentLeagueID),
-            fetch(`https://api.sleeper.app/v1/league/${currentLeagueID}/rosters`, {compress: true}),
-        );
-
-		if (!usersRaw || !usersRaw.ok || !leagueData || !rostersRaw || !rostersRaw.ok) {
-			throw new Error('Failed to fetch league team managers data');
-		}
-
-        const [users, rosters] = await waitForAll(
-            usersRaw.json(), 
-            rostersRaw.json(), 
-        );
+const failedSeasons = [];
+while(currentLeagueID && currentLeagueID != 0) {
+let users;
+let rosters;
+let leagueData;
+try {
+  [users, leagueData, rosters] = await Promise.all([
+    fetchJson(`https://api.sleeper.app/v1/league/${currentLeagueID}/users`, { compress: true }),
+    getLeagueData(currentLeagueID),
+    fetchJson(`https://api.sleeper.app/v1/league/${currentLeagueID}/rosters`, { compress: true })
+  ]);
+} catch (error) {
+  failedSeasons.push({ leagueId: currentLeagueID, error: error.message });
+  if (!currentSeason) {
+    throw new Error(`Unable to load current league managers: ${error.message}`);
+  }
+  break;
+}
+if (!Array.isArray(users) || !Array.isArray(rosters) || !leagueData?.season) {
+  throw new Error('Sleeper returned invalid league team managers data.');
+}
 
         const year = parseInt(leagueData.season);
         currentLeagueID = leagueData.previous_league_id;
@@ -55,6 +61,8 @@ export const getLeagueTeamManagers = async () => {
         currentSeason,
         teamManagersMap,
         users: finalUsers,
+        partial: failedSeasons.length > 0,
+        failedSeasons,
     }
     teamManagersStore.update(() => response);
     return response;
