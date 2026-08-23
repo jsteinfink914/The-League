@@ -38,6 +38,15 @@ jobs:
       - name: Generate player values
         run: node scripts/generate-player-values.js generate --year ${{ inputs.year }}
 
+      - name: Show generated player value diff
+        run: |
+          if git diff --quiet -- static/Player_Values.txt; then
+            echo "No changes to static/Player_Values.txt."
+          else
+            echo "Diff for static/Player_Values.txt:"
+            git --no-pager diff -- static/Player_Values.txt
+          fi
+
       - name: Commit and push updated values
         run: |
           git config user.name  "github-actions[bot]"
