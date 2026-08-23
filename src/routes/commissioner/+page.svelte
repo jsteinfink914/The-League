@@ -57,7 +57,10 @@
       const data = await res.json();
       fetchLog = data.output || data.error || '(no output)';
       fetchOk = data.ok;
-      if (data.ok) await loadState();
+      if (data.ok) {
+        await loadState();
+        await refreshDiff();
+      }
     } catch (e) {
       fetchLog = e.message;
       fetchOk = false;
@@ -83,7 +86,10 @@
       });
       const data = await res.json();
       saveOk = data.ok;
-      if (data.ok) rookiesDirty = false;
+      if (data.ok) {
+        rookiesDirty = false;
+        await refreshDiff();
+      }
     } catch {
       saveOk = false;
     } finally {
@@ -109,7 +115,10 @@
       const data = await res.json();
       generateLog = data.output || data.error || '(no output)';
       generateOk = data.ok;
-      if (data.ok) await loadState();
+      if (data.ok) {
+        await loadState();
+        await refreshDiff();
+      }
     } catch (e) {
       generateLog = e.message;
       generateOk = false;
@@ -142,6 +151,11 @@
     } finally {
       diffLoading = false;
     }
+  }
+
+  async function refreshDiff() {
+    diffData = null;
+    if (diffOpen) await loadDiff();
   }
 
   // ── step 4 – audit ────────────────────────────────────────────────────────
@@ -381,6 +395,31 @@
   .diff-toggle:hover { background: var(--f3f3f3); }
 
   .diff-section { margin-top: 1.25rem; }
+
+  .diff-refresh {
+    float: right;
+    border: 0;
+    background: none;
+    color: var(--g555);
+    font-size: .75rem;
+    cursor: pointer;
+    padding: .15rem 0;
+  }
+  .diff-refresh:hover { color: var(--g333); text-decoration: underline; }
+  .diff-refresh:disabled { cursor: wait; opacity: .6; }
+
+  .diff-heading {
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--g333);
+    margin: .25rem 0 .35rem;
+  }
+
+  .diff-divider {
+    border-top: 1px solid var(--ddd);
+    margin: 1.5rem 0 1rem;
+    clear: both;
+  }
 
   .diff-group-label {
     font-size: .75rem;
@@ -629,38 +668,45 @@
     {/if}
   </div>
 
-  <!-- ─── VALUE DIFF ─────────────────────────────────────────────────────── -->
-  {#if state.playerValues.exists}
+  <!-- ─── PENDING CHANGES ────────────────────────────────────────────────── -->
   <div class="card">
     <div class="card-header">
       <div class="step-badge" style="background:var(--g555)">↕</div>
-      <h2>Value Diff</h2>
+      <h2>Review Pending Changes</h2>
     </div>
-    <p class="meta">Compare current <code>Player_Values.txt</code> against the last committed version before pushing.</p>
+    <p class="meta">Compare the generated player values and rookie review against the last committed version before pushing.</p>
 
     <button class="diff-toggle" on:click={toggleDiff}>
-      {diffOpen ? '▲ Hide diff' : '▼ Review changes vs last commit'}
+      {diffOpen ? '▲ Hide changes' : '▼ Review changes vs last commit'}
     </button>
 
     {#if diffOpen}
       <div class="diff-section">
+        <button class="diff-refresh" on:click={loadDiff} disabled={diffLoading}>↻ Refresh comparison</button>
         {#if diffLoading}
           <p class="status-info">Loading diff…</p>
         {:else if diffError}
           <p class="status-err">✗ {diffError}</p>
         {:else if diffData}
-          {@const total = diffData.changed.length + diffData.added.length + diffData.removed.length}
+          {@const valueTotal = diffData.values.changed.length + diffData.values.added.length + diffData.values.removed.length}
+          {@const rookieTotal = diffData.rookies.changed.length + diffData.rookies.added.length + diffData.rookies.removed.length}
+          {@const total = valueTotal + rookieTotal}
           {#if total === 0}
             <p class="diff-empty">✓ No changes from last commit — nothing new to push.</p>
           {:else}
 
-            {#if diffData.changed.length > 0}
-              <p class="diff-group-label">Changed ({diffData.changed.length})</p>
+            <p class="diff-heading">Generated player values <span class="pill pill-ok">{valueTotal} change{valueTotal === 1 ? '' : 's'}</span></p>
+            {#if valueTotal === 0}
+              <p class="diff-empty">No generated player-value changes yet. Run Generate after reviewing rookies.</p>
+            {/if}
+
+            {#if diffData.values.changed.length > 0}
+              <p class="diff-group-label">Changed ({diffData.values.changed.length})</p>
               <div class="table-wrap">
               <table class="review issue-table">
                 <thead><tr><th>Player</th><th>Was</th><th>Now</th><th>Δ</th></tr></thead>
                 <tbody>
-                  {#each diffData.changed as r}
+                  {#each diffData.values.changed as r}
                     <tr>
                       <td>{r.name}{#if r.rookie} <span class="pill pill-ok" style="font-size:.65rem">R</span>{/if}</td>
                       <td>${r.oldValue}</td>
@@ -675,13 +721,13 @@
               </div>
             {/if}
 
-            {#if diffData.added.length > 0}
-              <p class="diff-group-label">Added ({diffData.added.length})</p>
+            {#if diffData.values.added.length > 0}
+              <p class="diff-group-label">Added ({diffData.values.added.length})</p>
               <div class="table-wrap">
               <table class="review issue-table">
                 <thead><tr><th>Player</th><th>Value</th></tr></thead>
                 <tbody>
-                  {#each diffData.added as r}
+                  {#each diffData.values.added as r}
                     <tr>
                       <td>{r.name}{#if r.rookie} <span class="pill pill-ok" style="font-size:.65rem">R</span>{/if}</td>
                       <td class="delta-pos">${r.value}</td>
@@ -692,13 +738,13 @@
               </div>
             {/if}
 
-            {#if diffData.removed.length > 0}
-              <p class="diff-group-label">Removed ({diffData.removed.length})</p>
+            {#if diffData.values.removed.length > 0}
+              <p class="diff-group-label">Removed ({diffData.values.removed.length})</p>
               <div class="table-wrap">
               <table class="review issue-table">
                 <thead><tr><th>Player</th><th>Was</th></tr></thead>
                 <tbody>
-                  {#each diffData.removed as r}
+                  {#each diffData.values.removed as r}
                     <tr>
                       <td>{r.name}</td>
                       <td class="delta-neg">${r.value}</td>
@@ -709,12 +755,67 @@
               </div>
             {/if}
 
+            <div class="diff-divider"></div>
+            <p class="diff-heading">Rookie review <span class="pill pill-warn">{rookieTotal} pending change{rookieTotal === 1 ? '' : 's'}</span></p>
+            <p class="meta">These changes become part of <code>Player_Values.txt</code> when you run Generate.</p>
+
+            {#if rookieTotal === 0}
+              <p class="diff-empty">No rookie review changes.</p>
+            {/if}
+
+            {#if diffData.rookies.changed.length > 0}
+              <p class="diff-group-label">Changed ({diffData.rookies.changed.length})</p>
+              <div class="table-wrap">
+              <table class="review issue-table">
+                <thead><tr><th>Rookie</th><th>Was</th><th>Now</th><th>Δ</th></tr></thead>
+                <tbody>
+                  {#each diffData.rookies.changed as r}
+                    <tr>
+                      <td>{r.name}</td>
+                      <td>${r.oldValue}</td>
+                      <td>${r.newValue}</td>
+                      <td class="{r.delta > 0 ? 'delta-pos' : r.delta < 0 ? 'delta-neg' : 'delta-zero'}">
+                        {r.delta > 0 ? '+' : ''}{r.delta}
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+              </div>
+            {/if}
+
+            {#if diffData.rookies.added.length > 0}
+              <p class="diff-group-label">Added ({diffData.rookies.added.length})</p>
+              <div class="table-wrap">
+              <table class="review issue-table">
+                <thead><tr><th>Rookie</th><th>Value</th></tr></thead>
+                <tbody>
+                  {#each diffData.rookies.added as r}
+                    <tr><td>{r.name}</td><td class="delta-pos">${r.value}</td></tr>
+                  {/each}
+                </tbody>
+              </table>
+              </div>
+            {/if}
+
+            {#if diffData.rookies.removed.length > 0}
+              <p class="diff-group-label">Removed ({diffData.rookies.removed.length})</p>
+              <div class="table-wrap">
+              <table class="review issue-table">
+                <thead><tr><th>Rookie</th><th>Was</th></tr></thead>
+                <tbody>
+                  {#each diffData.rookies.removed as r}
+                    <tr><td>{r.name}</td><td class="delta-neg">${r.value}</td></tr>
+                  {/each}
+                </tbody>
+              </table>
+              </div>
+            {/if}
           {/if}
         {/if}
       </div>
     {/if}
   </div>
-  {/if}
 
   {/if}<!-- end loading -->
 </div>
