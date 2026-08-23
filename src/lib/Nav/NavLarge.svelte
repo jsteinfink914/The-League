@@ -6,6 +6,7 @@
 	import { enableBlog, managers } from '$lib/utils/leagueInfo';
 
 	export let active, tabs;
+	export let currentPath = '';
 
 	let activeTab = active;
 
@@ -44,6 +45,12 @@
 		goto(dest);
 	}
 
+	const closeOnEscape = (event) => {
+		if (event.key === 'Escape' && display) {
+			open(true);
+		}
+	};
+
 	let tabChildren = []
 
 	for(const tab of tabs) {
@@ -54,7 +61,7 @@
 
 </script>
 
-<svelte:window bind:innerWidth={innerWidth} />
+<svelte:window bind:innerWidth={innerWidth} on:keydown={closeOnEscape} />
 
 <style>
     :global(.navBar) {
@@ -106,7 +113,14 @@
 	}
 </style>
 
-<div class="overlay" style="display: {display ? "block" : "none"};" on:click={() => open(true)} />
+<button
+	class="overlay"
+	type="button"
+	aria-label="Close navigation menu"
+	tabindex={display ? 0 : -1}
+	style="display: {display ? "block" : "none"};"
+	on:click={() => open(true)}
+/>
 
 <div class="parent">
 	<TabBar class="navBar" {tabs} let:tab bind:active>
@@ -114,6 +128,8 @@
 			<div bind:this={el}>
 				<Tab
 					{tab}
+						aria-expanded={display}
+						aria-controls="league-info-submenu"
 					on:click={() => open(display)}
 					minWidth
 				>
@@ -135,11 +151,12 @@
 			</Tab>
 		{/if}
 	</TabBar>
-	<div class="subMenu" style="max-height: {display ? 49 * tabChildren.length - 1 - (managers.length ? 0 : 48) : 0}px; width: {width}px; top: {height}px; left: {left}px; box-shadow: 0 0 {display ? "3px" : "0"} 0 #00316b; border: {display ? "1px" : "0"} solid #00316b; border-top: none;">
+	{#if display}
+	<div id="league-info-submenu" class="subMenu" style="max-height: {49 * tabChildren.length - 1 - (managers.length ? 0 : 48)}px; width: {width}px; top: {height}px; left: {left}px; box-shadow: 0 0 3px 0 #00316b; border: 1px solid #00316b; border-top: none;">
 		<List>
 			{#each tabChildren as subTab, ix}
 				{#if subTab.label == 'Managers'}
-					<Item class="{managers.length ? '' : 'dontDisplay'}" on:SMUI:action={() => subGoto(subTab.dest)} on:touchstart={() => preloadData(subTab.dest)} on:mouseover={() => preloadData(subTab.dest)}>
+					<Item class="{managers.length ? '' : 'dontDisplay'}" activated={currentPath === subTab.dest} on:SMUI:action={() => subGoto(subTab.dest)} on:touchstart={() => preloadData(subTab.dest)} on:mouseover={() => preloadData(subTab.dest)}>
 						<Graphic class="material-icons">{subTab.icon}</Graphic>
 						<Text class="subText">{subTab.label}</Text>
 					</Item>
@@ -147,7 +164,7 @@
 						<Separator />
 					{/if}
 				{:else}
-					<Item on:SMUI:action={() => subGoto(subTab.dest)} on:touchstart={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}} on:mouseover={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}}>
+					<Item activated={currentPath === subTab.dest} on:SMUI:action={() => subGoto(subTab.dest)} on:touchstart={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}} on:mouseover={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}}>
 						<Graphic class="material-icons">{subTab.icon}</Graphic>
 						<Text class="subText">{subTab.label}</Text>
 					</Item>
@@ -158,4 +175,5 @@
 			{/each}
 		</List>
 	</div>
+	{/if}
 </div>

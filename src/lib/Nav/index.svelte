@@ -97,7 +97,7 @@
 	</div>
 
 	<div class="large">
-		<NavLarge {tabs} bind:active={active} />
+		<NavLarge {tabs} bind:active={active} currentPath={$page.url.pathname} />
 	</div>
 
 	<div class="small">

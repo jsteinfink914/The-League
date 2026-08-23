@@ -1,11 +1,11 @@
 import { getLeagueData } from './leagueData';
 import { leagueID } from '$lib/utils/leagueInfo';
 import { getNflState } from './nflState';
-import { waitForAll } from './multiPromise';
 import { get } from 'svelte/store';
 import {transactionsStore} from '$lib/stores';
 import { browser } from '$app/environment';
 import { getLeagueTeamManagers } from './leagueTeamManagers';
+import { fetchJsonWithTimeout, mapWithConcurrency } from './network';
 
 export const getLeagueTransactions = async (preview, refresh = false) => {
 	const transactionsStoreVal = get(transactionsStore);
@@ -14,7 +14,8 @@ export const getLeagueTransactions = async (preview, refresh = false) => {
 		return {
 			transactions: checkPreview(preview, transactionsStoreVal.transactions),
 			totals: transactionsStoreVal.totals,
-			stale: false
+			stale: false,
+			partial: transactionsStoreVal.partial ?? false
 		};
 	}
 
@@ -37,13 +38,14 @@ export const getLeagueTransactions = async (preview, refresh = false) => {
 		week = nflState.week;
 	}
 
-	const {transactionsData, currentSeason} = await combThroughTransactions(week, leagueID).catch((err) => { console.error(err); });
+	const {transactionsData, currentSeason, partial} = await combThroughTransactions(week, leagueID);
 
 	const { transactions, totals } = await digestTransactions({transactionsData, currentSeason});
 
 	const transactionPackage = {
 		transactions,
-		totals
+		totals,
+		partial
 	};
 
     if(browser) {
@@ -57,7 +59,8 @@ export const getLeagueTransactions = async (preview, refresh = false) => {
 	return {
 		transactions: checkPreview(preview, transactions),
 		totals,
-		stale: false
+		stale: false,
+		partial
 	};
 }
 
@@ -93,7 +96,7 @@ const combThroughTransactions = async (week, currentLeagueID) => {
 
 	while(currentLeagueID && currentLeagueID != 0) {
 		// gather supporting info simultaneously
-		const leagueData = await getLeagueData(currentLeagueID).catch((err) => { console.error(err); });
+		const leagueData = await getLeagueData(currentLeagueID);
 
 		leagueIDs.push(currentLeagueID);
 
@@ -104,37 +107,44 @@ const combThroughTransactions = async (week, currentLeagueID) => {
 		currentLeagueID = leagueData.previous_league_id;
 	}
 
-	const transactionPromises = [];
+	const transactionRequests = [];
 
 	for(const singleLeagueID of leagueIDs) {
 		while(week > 0) {
-			transactionPromises.push(fetch(`https://api.sleeper.app/v1/league/${singleLeagueID}/transactions/${week}`, {compress: true}));
+			transactionRequests.push({ leagueID: singleLeagueID, week });
 			week--;
 		}
 		week = 18;
 	}
 
-	const transactionRess = await waitForAll(...transactionPromises).catch((err) => { console.error(err); });
+	const transactionsDataJson = await mapWithConcurrency(transactionRequests, 5, async (request) => {
+		try {
+			const data = await fetchJsonWithTimeout(
+				`https://api.sleeper.app/v1/league/${request.leagueID}/transactions/${request.week}`,
+				{compress: true}
+			);
+			return { data, failed: false };
+		} catch (error) {
+			console.warn(`Unable to load transactions for league ${request.leagueID}, week ${request.week}:`, error);
+			return { data: [], failed: true };
+		}
+	});
 
-	const transactionDataPromises = [];
-	
-	for(const transactionRes of transactionRess) {
-			if (transactionRes == null || !transactionRes.ok) {
-                console.error(transactionRes);
-                continue;
-			}
-			transactionDataPromises.push(transactionRes.json());
+	if (transactionsDataJson.every((result) => result.failed)) {
+		throw new Error('Transaction history could not be loaded. Please try again.');
 	}
-
-	const transactionsDataJson = await waitForAll(...transactionDataPromises).catch((err) => { console.error(err); });
 
 	let transactionsData = [];
 
 	for(const transactionDataJson of transactionsDataJson) {
-		transactionsData = transactionsData.concat(transactionDataJson);
+		transactionsData = transactionsData.concat(transactionDataJson.data);
 	}
 
-	return {transactionsData, currentSeason};
+	return {
+		transactionsData,
+		currentSeason,
+		partial: transactionsDataJson.some((result) => result.failed)
+	};
 }
 
 const digestTransactions = async ({transactionsData, currentSeason}) => {

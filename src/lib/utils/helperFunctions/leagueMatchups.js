@@ -1,19 +1,19 @@
 import { getLeagueData } from "./leagueData"
 import { leagueID } from '$lib/utils/leagueInfo';
 import { getNflState } from "./nflState"
-import { waitForAll } from './multiPromise';
 import { get } from 'svelte/store';
 import {matchupsStore} from '$lib/stores';
+import { fetchJsonWithTimeout, mapWithConcurrency } from './network';
 
 export const getLeagueMatchups = async () => {
 	if(get(matchupsStore).matchupWeeks) {
 		return get(matchupsStore);
 	}
 
-	const [nflState, leagueData] = await waitForAll(
+	const [nflState, leagueData] = await Promise.all(
 		getNflState(),
 		getLeagueData(),
-	).catch((err) => { console.error(err); });
+	);
 
 	let week = 1;
 	if(nflState.season_type == 'regular') {
@@ -24,23 +24,19 @@ export const getLeagueMatchups = async () => {
 	const year = leagueData.season;
 	const regularSeasonLength = leagueData.settings.playoff_week_start - 1;
 
-	// pull in all matchup data for the season
-	const matchupsPromises = [];
+	// Pull in all matchup data for the season without overwhelming Sleeper.
+	const matchupNumbers = [];
 	for(let i = 1; i < leagueData.settings.playoff_week_start; i++) {
-		matchupsPromises.push(fetch(`https://api.sleeper.app/v1/league/${leagueID}/matchups/${i}`, {compress: true}))
+		matchupNumbers.push(i);
 	}
-	const matchupsRes = await waitForAll(...matchupsPromises);
-
-	// convert the json matchup responses
-	const matchupsJsonPromises = [];
-	for(const matchupRes of matchupsRes) {
-		const data = matchupRes.json();
-		matchupsJsonPromises.push(data)
-		if (!matchupRes.ok) {
-			throw new Error(data);
-		}
-	}
-	const matchupsData = await waitForAll(...matchupsJsonPromises).catch((err) => { console.error(err); }).catch((err) => { console.error(err); });
+	const matchupsData = await mapWithConcurrency(
+		matchupNumbers,
+		4,
+		(matchupNumber) => fetchJsonWithTimeout(
+			`https://api.sleeper.app/v1/league/${leagueID}/matchups/${matchupNumber}`,
+			{compress: true}
+		)
+	);
 
 	const matchupWeeks = [];
 	// process all the matchups

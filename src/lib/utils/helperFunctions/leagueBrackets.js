@@ -1,9 +1,9 @@
 import { getLeagueData } from './leagueData';
 import { leagueID } from '$lib/utils/leagueInfo';
 import { getLeagueRosters } from './leagueRosters';
-import {waitForAll} from './multiPromise';
 import { get } from 'svelte/store';
 import {brackets} from '$lib/stores';
+import { fetchJsonWithTimeout, mapWithConcurrency } from './network';
 
 export const getBrackets = async (queryLeagueID = leagueID) => {
     if(get(brackets).champs && queryLeagueID == leagueID) {
@@ -11,18 +11,18 @@ export const getBrackets = async (queryLeagueID = leagueID) => {
     }
 
     // get roster, user, and league data
-    const [rosterRes, leagueData] = await waitForAll(
+    const [rosterRes, leagueData] = await Promise.all([
         getLeagueRosters(queryLeagueID),
         getLeagueData(queryLeagueID),
-    ).catch((err) => { console.error(err); });
+    ]);
 
     // Number of rosters (in order to determine the number of places, i.e. 1st - 12th)
     const numRosters = Object.keys(rosterRes.rosters).length;
 
     // get bracket data for winners and losers
-    const bracketsAndMatchupFetches = [
-        fetch(`https://api.sleeper.app/v1/league/${queryLeagueID}/winners_bracket`, {compress: true}),
-        fetch(`https://api.sleeper.app/v1/league/${queryLeagueID}/losers_bracket`, {compress: true}),
+    const bracketAndMatchupUrls = [
+        `https://api.sleeper.app/v1/league/${queryLeagueID}/winners_bracket`,
+        `https://api.sleeper.app/v1/league/${queryLeagueID}/losers_bracket`,
     ]
 
     // variables for playoff records
@@ -49,28 +49,25 @@ export const getBrackets = async (queryLeagueID = leagueID) => {
     // add each week after the regular season to the fetch array
     for(let i = playoffsStart; i < 19; i++) {
         // Get the matchup data (starters) for the playoff weeks
-        bracketsAndMatchupFetches.push(fetch(`https://api.sleeper.app/v1/league/${queryLeagueID}/matchups/${i}`, {compress: true}));
+        bracketAndMatchupUrls.push(`https://api.sleeper.app/v1/league/${queryLeagueID}/matchups/${i}`);
     }
     
-    // Simultaneously fetch the bracket and matchup data
-    const bracketsAndMatchupResps = await waitForAll(...bracketsAndMatchupFetches).catch((err) => { console.error(err); });
-
-    // an array to hold all the JSON being converted
-    const bracketsAndMatchupJson = [];
-
-    // convert all the returned data from JSON
-    for(const bracketsAndMatchupResp of bracketsAndMatchupResps) {
-        bracketsAndMatchupJson.push(bracketsAndMatchupResp.json());
-    }
-
-    // wait for promises to fulfill
-    const playoffMatchups = await waitForAll(...bracketsAndMatchupJson).catch((err) => { console.error(err); });
+    const bracketAndMatchupData = await mapWithConcurrency(
+        bracketAndMatchupUrls,
+        4,
+        (url) => fetchJsonWithTimeout(url, {compress: true})
+    );
 
     // The first element above was the winners bracket, so remove that
-    const winnersData = playoffMatchups.shift();
+    const winnersData = bracketAndMatchupData.shift();
 
     // The second element above was the winners bracket, so remove that, the remaining items are matchup weeks
-    const losersData = playoffMatchups.shift();
+    const losersData = bracketAndMatchupData.shift();
+    const playoffMatchups = bracketAndMatchupData;
+
+    if (!Array.isArray(winnersData) || !winnersData.length || !Array.isArray(losersData) || !losersData.length) {
+        throw new Error('Playoff bracket data is unavailable.');
+    }
 
     // determine the length of the playoffs by looking at the last bracket
     const playoffRounds = winnersData[winnersData.length - 1].r;

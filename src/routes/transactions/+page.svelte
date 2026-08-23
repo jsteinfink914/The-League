@@ -36,8 +36,8 @@
             <p>Loading league transactions...</p>
             <LinearProgress indeterminate />
         </div>
-    {:then [{transactions, currentTeams, stale}, playersInfo, leagueTeamManagers]}
-        <TransactionsPage {playersInfo} {stale} {transactions} {currentTeams} {show} {query} queryPage={page} {perPage} postUpdate={true} {leagueTeamManagers} />
+    {:then [{transactions, currentTeams, stale, partial}, playersInfo, leagueTeamManagers]}
+        <TransactionsPage {playersInfo} {stale} {partial} {transactions} {currentTeams} {show} {query} queryPage={page} {perPage} postUpdate={true} {leagueTeamManagers} />
     {:catch error}
         <p class="center">Something went wrong: {error.message}</p>
     {/await}

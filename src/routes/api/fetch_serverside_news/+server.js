@@ -1,11 +1,13 @@
 import {XMLParser, XMLValidator} from 'fast-xml-parser';
-import { waitForAll } from '$lib/utils/helperFunctions/multiPromise';
 import { dynasty } from '$lib/utils/helper';
 import { json } from '@sveltejs/kit';
+import { fetchWithTimeout } from '$lib/utils/helperFunctions/network';
 
 const FF_BALLERS= 'https://thefantasyfootballers.libsyn.com/fantasyfootball';
 const DYNASTY_LEAGUE= 'https://dynastyleaguefootball.com/feed/';
 const DYNASTY_NERDS= 'https://www.dynastynerds.com/feed/';
+const REDDIT_DYNASTY = 'https://www.reddit.com/r/DynastyFF/new.json';
+const REDDIT_FANTASY = 'https://www.reddit.com/r/fantasyfootball/new.json';
 
 export async function GET() {
 	const articles = [
@@ -15,28 +17,47 @@ export async function GET() {
 		articles.push(getXMLArticles(DYNASTY_LEAGUE, processDynastyLeague));
 		articles.push(getXMLArticles(DYNASTY_NERDS, processDynastyNerds));
 	}
-    const responses = await waitForAll(...articles).catch((err) => { console.error(err); });
-
-	let finalArticles = [];
-
-	for(const response of responses) {
-		finalArticles = [...finalArticles, ...response];
-	}
+    articles.push(getJsonArticles(dynasty ? REDDIT_DYNASTY : REDDIT_FANTASY, processReddit));
+    const responses = await Promise.allSettled(articles);
+	let finalArticles = responses.flatMap((response) => {
+		if (response.status === 'fulfilled') return response.value;
+		console.warn('News source unavailable:', response.reason);
+		return [];
+	});
 
     return json(finalArticles);
 }
 
 const getXMLArticles = async(url, callback) => {
-    const res = await fetch(url, {compress: true}).catch((err) => { console.error(err); });
-    const text = await res.text().catch((err) => { console.error(err); });
-
-    let xmlData;
-    if(XMLValidator.validate(text) === true){
-        const parser = new XMLParser();
-        xmlData = parser.parse(text);
+    try {
+        const res = await fetchWithTimeout(url, {compress: true});
+        const text = await res.text();
+        if (XMLValidator.validate(text) !== true) {
+            throw new Error('News source returned invalid XML');
+        }
+        const parser = new XMLParser({ processEntities: false });
+        const xmlData = parser.parse(text);
+        const items = xmlData?.rss?.channel?.item;
+        if (!items) return [];
+        return callback(Array.isArray(items) ? items : [items]);
+    } catch (error) {
+        console.warn(`Unable to load news source ${url}:`, error);
+        return [];
     }
-    
-    return callback(xmlData.rss.channel.item);
+}
+
+const getJsonArticles = async(url, callback) => {
+    try {
+        const res = await fetchWithTimeout(url, {
+            headers: { 'User-Agent': 'League Page news reader' },
+            compress: true
+        });
+        const data = await res.json();
+        return data?.data ? callback(data.data) : [];
+    } catch (error) {
+        console.warn(`Unable to load news source ${url}:`, error);
+        return [];
+    }
 }
 
 const processFF = (articles) => {
@@ -48,7 +69,7 @@ const processFF = (articles) => {
 		const icon = 'newsIcons/ffballers.jpeg';
 		finalArticles.push({
 			title: article.title,
-			article: article.description,
+			article: toPlainText(article.description),
 			link: article.link,
 			author: `Fantasy Footballers`,
 			ts,
@@ -71,7 +92,7 @@ const processFTN = (rawArticles) => {
 		const icon = 'newsIcons/ftn.png';
 		finalArticles.push({
 			title: article.short_text,
-			article: article.text,
+			article: toPlainText(article.text),
 			link: `https://www.ftnfantasy.com/nfl${article.link}`,
 			author: `FTN Fantasy`,
 			ts,
@@ -91,7 +112,7 @@ const processDynastyLeague = (articles) => {
 		const icon = 'newsIcons/dynastyLeague.png';
 		finalArticles.push({
 			title: article.title,
-			article: article.description,
+			article: toPlainText(article.description),
 			link: article.link,
 			author: `Dynasty League Football`,
 			ts,
@@ -111,7 +132,7 @@ const processDynastyNerds = (articles) => {
 		const icon = 'newsIcons/dynastyNerds.jpeg';
 		finalArticles.push({
 			title: article.title,
-			article: article.description,
+			article: toPlainText(article.description),
 			link: article.link,
 			author: `Dynasty Nerds`,
 			ts,
@@ -122,6 +143,33 @@ const processDynastyNerds = (articles) => {
 	return finalArticles;
 }
 
+const processReddit = (rawArticles) => {
+    const bannedAuthors = ['AutoModerator', 'FFBot', 'Brookskbrothers', 'FTAKJ'];
+    const bannedIcons = ['', 'self', 'thumbnail', 'default'];
+
+    return (rawArticles.children ?? [])
+        .map((rawArticle) => rawArticle.data)
+        .filter((article) => article && !bannedAuthors.includes(article.author))
+        .map((article) => {
+            const ts = article.created_utc * 1000;
+            return {
+                title: article.title,
+                article: article.selftext_html ? toPlainText(article.selftext_html) : article.url,
+                link: `https://www.reddit.com${article.permalink}`,
+                author: `${article.subreddit_name_prefixed} - u/${article.author}`,
+                ts,
+                date: stringDate(new Date(ts)),
+                icon: !bannedIcons.includes(article.thumbnail) ? article.thumbnail : `newsIcons/${article.subreddit}.png`
+            };
+        });
+}
+
 const stringDate = (d) => {
 	return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()} ${d.getHours()}:${(d.getMinutes() < 10 ? '0' : '') + d.getMinutes()}`;
 }
+
+const toPlainText = (value) => String(value ?? '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();

@@ -1,3 +1,4 @@
 - [Team value contract labels](team-value-contract-labels.md) — display exact contract years and derive formulas from the same generated value rules.
 - [FantasyPros fetch automation](fantasypros-fetch.md) — Playwright iframe quirks, rank-cell empty-after-Calculate bug, Chromium system deps, commissioner page structure.
 - [GitHub push permissions](github-push-permissions.md) — fine-grained PATs need repository Contents read/write permission for Replit pushes.
+- [External news feed resilience](news-feed-resilience.md) — isolate failing sources; Reddit may reject server requests and Footballers feeds can exceed XML entity limits.

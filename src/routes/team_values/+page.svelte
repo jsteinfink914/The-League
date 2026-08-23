@@ -1,6 +1,6 @@
 <script>
   import Papa from 'papaparse';
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import { leagueID } from '$lib/utils/leagueInfo';
   import {
@@ -10,6 +10,7 @@
     parseFantasyProsMarketCsv,
     resolvePlayerValue
   } from '$lib/utils/playerNameLookup';
+  import { fetchWithTimeout } from '$lib/utils/helperFunctions/network';
   Chart.register(...registerables);
 
   const valueYear = '2026';
@@ -19,24 +20,27 @@
   let managerRosters = {};
   let totalValues = [];
   let chart;
+  let chartCanvas;
+  let loading = true;
+  let errorMessage = '';
 
   const fetchData = async () => {
     try {
       // Fetch rosters
-      const rosterResponse = await fetch(`https://api.sleeper.app/v1/league/${leagueID}/rosters`);
+      const rosterResponse = await fetchWithTimeout(`https://api.sleeper.app/v1/league/${leagueID}/rosters`);
       const rosters = await rosterResponse.json();
 
       // Fetch players
-      const playersResponse = await fetch('https://api.sleeper.app/v1/players/nfl');
+      const playersResponse = await fetchWithTimeout('https://api.sleeper.app/v1/players/nfl');
       const players = await playersResponse.json();
 
       // Fetch player mappings
-      const playerMapResponse = await fetch('/fp_sleeper_mapping.txt');
+      const playerMapResponse = await fetchWithTimeout('/fp_sleeper_mapping.txt');
       const playerMapText = await playerMapResponse.text();
       const playerMappings = Papa.parse(playerMapText, { header: true }).data;
 
       // Fetch manager mappings
-      const managerMapResponse = await fetch('/Manager_map.txt');
+      const managerMapResponse = await fetchWithTimeout('/Manager_map.txt');
       const managerMapText = await managerMapResponse.text();
       const managerMappings = Papa.parse(managerMapText, { header: true }).data;
       const managerMap = new Map(managerMappings.map(entry => [entry.Index, entry.Name]));
@@ -45,22 +49,11 @@
       let rostersByTeam = {};
       rosters.forEach(roster => {
         let index = roster.roster_id;
-        rostersByTeam[index] = roster.players.map(playerId => {
+        rostersByTeam[index] = (roster.players ?? []).map(playerId => {
           let player = players[playerId];
           return player ? `${player.first_name} ${player.last_name}` : "";
         });
       });
-
-      // Pad short rosters to 23 slots (dynasty minimum); leave longer rosters as-is
-      for (let i = 1; i <= 16; i++) {
-        if (!rostersByTeam[i]) {
-          rostersByTeam[i] = Array(23).fill("");
-          continue;
-        }
-        if (rostersByTeam[i].length < 23) {
-          rostersByTeam[i].push(...Array(23 - rostersByTeam[i].length).fill(""));
-        }
-      }
 
       const sleeperToFantasyPros = new Map(
         playerMappings
@@ -68,7 +61,7 @@
           .map((entry) => [entry.Sleeper, entry.Fantasy_Pros])
       );
 
-      const playerValuesResponse = await fetch('/Player_Values.txt');
+      const playerValuesResponse = await fetchWithTimeout('/Player_Values.txt');
       const playerValuesText = await playerValuesResponse.text();
       const playerValues = Papa.parse(playerValuesText, { header: true, skipEmptyLines: true }).data;
       const historyRows = playerValues
@@ -93,10 +86,8 @@
 
       let marketValueByName = new Map();
       try {
-        const marketResponse = await fetch(`/fantasypros-${valueYear}.csv`);
-        if (marketResponse.ok) {
-          marketValueByName = parseFantasyProsMarketCsv(await marketResponse.text());
-        }
+        const marketResponse = await fetchWithTimeout(`/fantasypros-${valueYear}.csv`);
+        marketValueByName = parseFantasyProsMarketCsv(await marketResponse.text());
       } catch (marketError) {
         console.warn('FantasyPros market file not loaded:', marketError);
       }
@@ -142,7 +133,7 @@
       // Map manager names
       const rostersWithManagerNames = {};
       for (const [index, roster] of Object.entries(rostersWithValues)) {
-        const managerName = managerMap.get(index);
+        const managerName = managerMap.get(index) || `Team ${index}`;
         rostersWithManagerNames[managerName] = roster;
       }
       totalValues = Object.keys(rostersWithManagerNames).map(manager => {
@@ -153,10 +144,12 @@
       return rostersWithManagerNames;
     } catch (error) {
       console.error('Error fetching or processing data:', error);
+      throw error;
     }
   };
    const createChart = () => {
-    const ctx = document.getElementById('chart').getContext('2d');
+     if (!chartCanvas || !totalValues.length) return;
+     const ctx = chartCanvas.getContext('2d');
     if (chart) {
       chart.destroy();
     }
@@ -192,7 +185,7 @@
           y: {
             stacked: true,
             beginAtZero: true,
-            max: Math.max(...totalValues.map(item => item.totalValue)) + 50, // Adjust max to fit the highest value,
+            max: Math.max(700, ...totalValues.map(item => item.totalValue + 50)),
             afterDataLimits: scale => {
               scale.max = Math.max(700, scale.max);
             },
@@ -217,12 +210,32 @@
     });
   };
 
-  onMount(async () => {
-    managerRosters = (await fetchData()) ?? {};
-    managers = Object.keys(managerRosters);
-    if (totalValues.length) {
-      createChart();
+  const loadTeamValues = async () => {
+    loading = true;
+    errorMessage = '';
+    try {
+      managerRosters = await fetchData();
+      managers = Object.keys(managerRosters);
+    } catch (error) {
+      managerRosters = {};
+      managers = [];
+      totalValues = [];
+      errorMessage = error.message || 'Team values could not be loaded.';
+    } finally {
+      loading = false;
+      await tick();
+      if (totalValues.length) {
+        createChart();
+      }
     }
+  };
+
+  onMount(() => {
+    loadTeamValues();
+  });
+
+  onDestroy(() => {
+    chart?.destroy();
   });
 </script>
 
@@ -235,14 +248,13 @@
     box-sizing: border-box; /* Include padding in width */
   }
   .chart-container {
-    width: 80%;
+    width: min(100% - 2rem, 1000px);
     max-height: 50vh;
-    justify-content: center;
-    align-items:center;
-    margin-left:15%;
+    margin: 0 auto;
+    overflow-x: auto;
   }
   .dropdown-container {
-    width: 80%;
+    width: min(100% - 2rem, 900px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -255,7 +267,7 @@
   }
 
   table {
-    width: 90%;
+    width: 100%;
     max-width: 900px;
     border-collapse: collapse;
     overflow-y:auto;
@@ -274,7 +286,7 @@
   }
 
   .rules-legend {
-    width: 80%;
+    width: min(100% - 2rem, 720px);
     max-width: 720px;
     margin: 0 0 1rem;
     padding: 0.75rem 1rem;
@@ -329,6 +341,34 @@
     max-width: 220px;
   }
 
+  .status {
+    width: min(100% - 2rem, 720px);
+    padding: 1rem;
+    margin: 1rem auto;
+    border-radius: 6px;
+    text-align: center;
+  }
+
+  .error-state {
+    border: 1px solid #b00020;
+    color: #b00020;
+  }
+
+  .retry-button {
+    margin-top: 0.75rem;
+    padding: 0.6rem 1rem;
+    border: 0;
+    border-radius: 4px;
+    background: #00316b;
+    color: white;
+    cursor: pointer;
+  }
+
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+  }
+
   tr.row-rookie_year td {
     background: var(--waiverAdd);
   }
@@ -342,12 +382,9 @@
   }
 
   @media (max-width: 600px) {
-    .chart-container{
-      margin-left:0%;
-    }
     table {
-      font-size: 11px;
-      width: 100%;
+      min-width: 620px;
+      font-size: 12px;
     }
 
     th, td {
@@ -355,8 +392,7 @@
     }
 
     .rules-legend {
-      width: 100%;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .formula-cell {
@@ -366,16 +402,19 @@
     select {
       font-size: 14px;
     }
-    .chart-container,
-    .dropdown-container {
-      width: 100%;
-    
-  }
   }
 </style>
 
 <div class="container">
 <h4>Cap Values Summary</h4>
+  {#if loading}
+    <div class="status" role="status">Loading team values…</div>
+  {:else if errorMessage}
+    <div class="status error-state" role="alert">
+      <div>{errorMessage}</div>
+      <button class="retry-button" type="button" on:click={loadTeamValues}>Retry</button>
+    </div>
+  {:else}
   <div class="rules-legend">
     <strong>Cap contract rules ({valueYear})</strong>
     <ul>
@@ -386,7 +425,7 @@
     </ul>
   </div>
   <div class="chart-container">
-    <canvas id="chart"></canvas>
+    <canvas bind:this={chartCanvas} aria-label="Team cap value chart"></canvas>
   </div>
   <div class="dropdown-container">
     <h4>Team Value</h4>
@@ -398,6 +437,7 @@
     </select>
 
     {#if selectedManager}
+      <div class="table-scroll" aria-label="Selected team value table">
       <table>
         <thead>
           <tr>
@@ -427,8 +467,10 @@
           </tr>
         </tbody>
       </table>
+      </div>
     {/if}
     <br>
     <br>
   </div>
+  {/if}
 </div>

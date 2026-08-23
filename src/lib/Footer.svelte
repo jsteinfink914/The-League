@@ -1,5 +1,4 @@
 <script>
-	import { goto } from '$app/navigation';
     import { managers } from '$lib/utils/helper';
 	import { tabs } from '$lib/utils/tabs';
 	import { onMount } from 'svelte';
@@ -81,12 +80,16 @@
 
 	.navLink {
 		display: inline-block;
-		cursor: pointer;
 		padding: 6px 10px;
+		color: inherit;
+		text-decoration: none;
 	}
 
-	.navLink:hover {
+	.navLink:hover,
+	.navLink:focus-visible {
 		color: #920505;
+		outline: 2px solid currentColor;
+		outline-offset: 2px;
 	}
 
 	.commish-link {
@@ -127,12 +130,12 @@
 		<ul>
 			{#each tabs as tab}
 				{#if !tab.nest}
-					<li><div class="navLink" on:click={() => goto(tab.dest)}>{tab.label}</div></li>
+					<li><a class="navLink" href={tab.dest}>{tab.label}</a></li>
 				{:else}
 					{#each tab.children as child}
                         <!-- Shouldn't show Managers tab unless managers has been populated -->
 				        {#if child.label != "Managers" || managers.length > 0}
-                            <li><div class="navLink" on:click={() => goto(child.dest)}>{child.label}</div></li>
+                            <li><a class="navLink" href={child.dest}>{child.label}</a></li>
                         {/if}
 					{/each}
 				{/if}

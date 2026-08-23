@@ -13,22 +13,36 @@
     let players, matchupWeeks, year, week, regularSeasonLength, brackets, leagueTeamManagers;
 
     let loading = true;
+    let errorMessage = '';
 
     onMount(async () => {
-        brackets = await bracketsData;
-        const matchupsInfo = await matchupsData;
-        leagueTeamManagers = await leagueTeamManagersData;
-        matchupWeeks = matchupsInfo.matchupWeeks;
-        year = matchupsInfo.year;
-        week = matchupsInfo.week;
-        regularSeasonLength = matchupsInfo.regularSeasonLength;
-        const playersInfo = await playersData;
-        players = playersInfo.players;
-        loading = false;
+        try {
+            const [bracketsInfo, matchupsInfo, managerInfo, playersInfo] = await Promise.all([
+                bracketsData,
+                matchupsData,
+                leagueTeamManagersData,
+                playersData
+            ]);
+            const failedResult = [bracketsInfo, matchupsInfo, managerInfo, playersInfo].find((result) => result?.error);
+            if (failedResult) {
+                throw new Error(failedResult.error);
+            }
+            brackets = bracketsInfo;
+            leagueTeamManagers = managerInfo;
+            matchupWeeks = matchupsInfo.matchupWeeks;
+            year = matchupsInfo.year;
+            week = matchupsInfo.week;
+            regularSeasonLength = matchupsInfo.regularSeasonLength;
+            players = playersInfo.players;
 
-        if(playersInfo.stale) {
-            const newPlayersInfo = await loadPlayers(null, true);
-            players = newPlayersInfo.players;
+            if(playersInfo.stale) {
+                const newPlayersInfo = await loadPlayers(null, true);
+                players = newPlayersInfo.players;
+            }
+        } catch (error) {
+            errorMessage = error.message || 'League matchups could not be loaded.';
+        } finally {
+            loading = false;
         }
     });
 
@@ -60,6 +74,17 @@
         align-items: center;
         margin: 3em 0;
     }
+
+    .retry-button {
+        display: block;
+        margin: 1rem auto 0;
+        padding: 0.6rem 1rem;
+        border: 0;
+        border-radius: 4px;
+        background: #00316b;
+        color: white;
+        cursor: pointer;
+    }
 </style>
 
 
@@ -71,7 +96,12 @@
         <LinearProgress indeterminate />
     </div>
 {:else}
-    {#if matchupWeeks.length}
+    {#if errorMessage}
+        <div class="message" role="alert">
+            <p>{errorMessage}</p>
+            <button class="retry-button" type="button" on:click={() => window.location.reload()}>Retry</button>
+        </div>
+    {:else if matchupWeeks.length}
         <div class="buttonHolder">
             <Group variant="outlined">
                 <!-- Regular Season -->
