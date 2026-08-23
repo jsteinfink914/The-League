@@ -185,9 +185,16 @@ async function audit({
     ...buildValueIndexes(yearRows.map((row) => ({ Name: row.Name, Value: row.Value }))),
     sleeperToFantasyPros: mappings.sleeperToFantasyPros
   };
-
+  const marketRows = fantasyProsPath ? readFantasyProsValues(fantasyProsPath) : [];
+  const marketIndexes = fantasyProsPath
+    ? {
+        ...buildValueIndexes(marketRows.map((row) => ({ Name: row.Name, MarketValue: row.MarketValue }))),
+        sleeperToFantasyPros: mappings.sleeperToFantasyPros
+      }
+    : null;
+  const rookieContracts = buildRookieContracts(readPlayerValues(valuesPath));
   const suggestRows = fantasyProsPath
-    ? readFantasyProsValues(fantasyProsPath).map((row) => ({
+    ? marketRows.map((row) => ({
         Name: row.Name,
         MarketValue: row.MarketValue
       }))
@@ -201,6 +208,12 @@ async function audit({
     const mappedName = mappings.sleeperToFantasyPros.get(sleeperName) || sleeperName;
     const norm = normalizeName(mappedName);
     const notes = [];
+    const contract = findRookieContract(resolved.fantasyProsName, rookieContracts);
+    const contractYear = contract ? year - contract.RookieYear + 1 : null;
+    const marketResolved = marketIndexes
+      ? resolvePlayerValue(sleeperName, marketIndexes)
+      : null;
+    const marketMissing = contractYear >= 3 && marketResolved?.matchType === 'none';
 
     if (indexes.ambiguousNormalized.has(norm)) {
       notes.push('Ambiguous normalized name; add explicit fp_sleeper_mapping.txt row');
@@ -214,7 +227,21 @@ async function audit({
     const suggestFirst = suggestion?.Name.split(' ')[0]?.toLowerCase();
     const firstNameMatches = sleeperFirst && suggestFirst && sleeperFirst === suggestFirst;
 
-    if (resolved.matchType === 'none' && suggestedValue > 0 && firstNameMatches) {
+    if (marketMissing) {
+      flagged.push({
+        Sleeper: sleeperName,
+        Resolved_Name: resolved.fantasyProsName,
+        Value: resolved.value,
+        Match_Type: marketResolved?.matchType || 'none',
+        Suggested_Fantasy_Pros: suggestion?.Name || '',
+        Suggested_Value: suggestedValue || '',
+        Confidence: suggestion ? suggestion.Score.toFixed(2) : '',
+        Notes: [
+          `Year ${contractYear} rookie deal has no current FantasyPros market value`,
+          ...notes
+        ].join('; ')
+      });
+    } else if (resolved.matchType === 'none' && suggestedValue > 0 && firstNameMatches) {
       flagged.push({
         Sleeper: sleeperName,
         Resolved_Name: resolved.fantasyProsName,

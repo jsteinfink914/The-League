@@ -168,7 +168,9 @@ export function parseFantasyProsMarketCsv(csvText) {
 
     if (!displayName || !Number.isFinite(value)) continue;
 
-    const name = displayName.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    // FantasyPros may append injury status immediately after the team/position,
+    // e.g. "Malik Nabers (NYG - WR)DTD". Keep the stable player name only.
+    const name = displayName.replace(/\s*\([^)]*\)(?:[A-Za-z]+)?\s*$/, '').trim();
     map.set(name, value);
   }
 
