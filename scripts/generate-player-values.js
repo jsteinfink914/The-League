@@ -12,6 +12,12 @@ import {
   resolvePlayerValue,
   suggestName
 } from '../src/lib/utils/playerNameLookup.js';
+import {
+  cleanFantasyProsName,
+  mergeSupplementalRows,
+  readSupplementalRows,
+  sourceNameKey
+} from './fantasypros-supplemental.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -19,6 +25,7 @@ const DEFAULT_VALUES_PATH = path.join(ROOT, 'static', 'Player_Values.txt');
 const DEFAULT_MAPPING_PATH = path.join(ROOT, 'static', 'fp_sleeper_mapping.txt');
 const REVIEW_DIR = path.join(ROOT, 'data', 'player-values', 'review');
 const RAW_DIR = path.join(ROOT, 'data', 'player-values', 'raw');
+const SUPPLEMENTAL_SUFFIX = '-supplemental.csv';
 
 const COMMANDS = new Set(['prepare', 'generate', 'audit']);
 
@@ -39,11 +46,15 @@ async function main() {
   const fantasyProsPath = resolvePath(
     args.fantasypros || path.join(RAW_DIR, `fantasypros-${year}.csv`)
   );
+  const supplementalPath = resolvePath(
+    args.supplemental || path.join(RAW_DIR, `fantasypros-${year}${SUPPLEMENTAL_SUFFIX}`)
+  );
 
   if (command === 'prepare') {
     await prepare({
       year,
       fantasyProsPath,
+      supplementalPath,
       sleeperPath: args.sleeper ? resolvePath(args.sleeper) : null,
       fetchSleeper: Boolean(args['fetch-sleeper'])
     });
@@ -57,6 +68,7 @@ async function main() {
       valuesPath: resolvePath(args.values || DEFAULT_VALUES_PATH),
       mappingPath: resolvePath(args.mapping || DEFAULT_MAPPING_PATH),
       fantasyProsPath: fs.existsSync(fantasyProsPath) ? fantasyProsPath : null,
+      supplementalPath,
       sleeperPath: args.sleeper ? resolvePath(args.sleeper) : null,
       fetchSleeper: Boolean(args['fetch-sleeper'])
     });
@@ -66,13 +78,14 @@ async function main() {
   generate({
     year,
     fantasyProsPath,
+    supplementalPath,
     valuesPath: resolvePath(args.values || DEFAULT_VALUES_PATH),
     outputPath: resolvePath(args.output || DEFAULT_VALUES_PATH),
     rookiesPath: resolvePath(args.rookies || path.join(REVIEW_DIR, `rookies-${year}.csv`))
   });
 }
 
-async function prepare({ year, fantasyProsPath, sleeperPath, fetchSleeper }) {
+async function prepare({ year, fantasyProsPath, supplementalPath, sleeperPath, fetchSleeper }) {
   ensureFile(fantasyProsPath, 'FantasyPros input');
 
   const defaultSleeperPath = path.join(RAW_DIR, `sleeper-players-${year}.json`);
@@ -83,7 +96,7 @@ async function prepare({ year, fantasyProsPath, sleeperPath, fetchSleeper }) {
     sleeperPath = defaultSleeperPath;
   }
 
-  const marketRows = readFantasyProsValues(fantasyProsPath);
+  const marketRows = readFantasyProsValues(fantasyProsPath, supplementalPath);
   const mappings = readNameMappings(DEFAULT_MAPPING_PATH);
   const indexes = {
     ...buildValueIndexes(marketRows.map((row) => ({ Name: row.Name, MarketValue: row.MarketValue }))),
@@ -141,6 +154,9 @@ async function prepare({ year, fantasyProsPath, sleeperPath, fetchSleeper }) {
   ]);
 
   console.log(`Read ${marketRows.length} FantasyPros market rows.`);
+  if (supplementalPath && fs.existsSync(supplementalPath)) {
+    console.log(`Supplemental source: ${relative(supplementalPath)}`);
+  }
   if (!sleeperPath) {
     console.log('No --sleeper file supplied, so rookie review file has only headers.');
     console.log(`Add rookies manually to ${relative(rookiesPath)} before generate.`);
@@ -158,6 +174,7 @@ async function audit({
   valuesPath,
   mappingPath,
   fantasyProsPath,
+  supplementalPath,
   sleeperPath,
   fetchSleeper
 }) {
@@ -185,7 +202,9 @@ async function audit({
     ...buildValueIndexes(yearRows.map((row) => ({ Name: row.Name, Value: row.Value }))),
     sleeperToFantasyPros: mappings.sleeperToFantasyPros
   };
-  const marketRows = fantasyProsPath ? readFantasyProsValues(fantasyProsPath) : [];
+  const marketRows = fantasyProsPath
+    ? readFantasyProsValues(fantasyProsPath, supplementalPath)
+    : [];
   const marketIndexes = fantasyProsPath
     ? {
         ...buildValueIndexes(marketRows.map((row) => ({ Name: row.Name, MarketValue: row.MarketValue }))),
@@ -369,12 +388,12 @@ async function readLeagueRosterSleeperNames(leagueId, sleeperPlayersPath) {
   return [...names].sort((a, b) => a.localeCompare(b));
 }
 
-function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }) {
+function generate({ year, fantasyProsPath, supplementalPath, valuesPath, outputPath, rookiesPath }) {
   ensureFile(fantasyProsPath, 'FantasyPros input');
   ensureFile(valuesPath, 'historical player values');
   ensureFile(rookiesPath, 'rookie review file');
 
-  const marketRows = readFantasyProsValues(fantasyProsPath);
+  const marketRows = readFantasyProsValues(fantasyProsPath, supplementalPath);
   const marketByName = new Map(marketRows.map((row) => [row.Name, row.MarketValue]));
   const history = readPlayerValues(valuesPath);
   const currentYearDuplicates = duplicatePlayerRows(history, year);
@@ -468,7 +487,7 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
     valuesPath: outputPath,
     valuesCsv: csvForRows(allRows, ['Year', 'Name', 'Value', 'Rookie']),
     marketPath: staticMarketPath,
-    marketCsv: fs.readFileSync(fantasyProsPath, 'utf8')
+    marketCsv: csvForFantasyProsRows(marketRows)
   });
   console.log(`Copied market values for UI: ${relative(staticMarketPath)}`);
 
@@ -476,7 +495,24 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
   console.log(`Output: ${relative(outputPath)}`);
 }
 
-function readFantasyProsValues(filePath) {
+function readFantasyProsValues(filePath, supplementalPath) {
+  const sourceRows = readFantasyProsSourceRows(filePath);
+  const supplementalRows =
+    supplementalPath && fs.existsSync(supplementalPath)
+      ? readSupplementalRows(supplementalPath)
+      : [];
+  const mergedRows = mergeSupplementalRows(sourceRows, supplementalRows);
+
+  return mergedRows.map((row) => ({
+    Rank: Number(row['#']),
+    Overall: row.Overall,
+    Points: row.Points,
+    Name: cleanFantasyProsName(row.Overall),
+    MarketValue: parseDollarValue(row.Value)
+  }));
+}
+
+function readFantasyProsSourceRows(filePath) {
   const text = fs.readFileSync(filePath, 'utf8');
   const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
   if (parsed.errors.length) {
@@ -488,6 +524,7 @@ function readFantasyProsValues(filePath) {
   // Always prefer the explicitly named value column so a column-order change
   // cannot silently turn projections into dollar values.
   const valueField = fields.find((field) => /^(value|auction value|\$ value)$/i.test(String(field).trim()));
+  const pointsField = fields.find((field) => /^points$/i.test(String(field).trim()));
   const rankField = fields.find((field) => /^(#|rank|overall)$/i.test(String(field).trim())) || fields[0];
 
   if (!nameField || !valueField) {
@@ -508,9 +545,10 @@ function readFantasyProsValues(filePath) {
     }
 
     rows.push({
-      Rank: rank,
-      Name: cleanFantasyProsName(displayName),
-      MarketValue: value
+      '#': rank,
+      Overall: displayName,
+      Points: String(row[pointsField] ?? '').trim(),
+      Value: String(row[valueField] ?? '').trim()
     });
   }
 
@@ -522,13 +560,25 @@ function readFantasyProsValues(filePath) {
   }
 
   const duplicateNames = rows
-    .map((row) => row.Name)
+    .map((row) => sourceNameKey(row.Overall))
     .filter((name, index, names) => names.indexOf(name) !== index);
   if (duplicateNames.length) {
     fail(`FantasyPros input has duplicate player names after cleanup: ${[...new Set(duplicateNames)].join(', ')}.`);
   }
 
   return rows;
+}
+
+function csvForFantasyProsRows(rows) {
+  return csvForRows(
+    rows.map((row) => ({
+      '#': row.Rank,
+      Overall: row.Overall,
+      Points: row.Points,
+      Value: `$${row.MarketValue}`
+    })),
+    ['#', 'Overall', 'Points', 'Value']
+  );
 }
 
 function readPlayerValues(filePath) {
@@ -640,13 +690,6 @@ async function fetchSleeperPlayers(filePath) {
   }
   writeFileAtomically(filePath, `${JSON.stringify(data, null, 2)}\n`);
   console.log(`Saved Sleeper player data: ${relative(filePath)}`);
-}
-
-function cleanFantasyProsName(name) {
-  // FantasyPros appends team/position and, for injured players, a status such
-  // as `DTD` immediately after that parenthetical. Neither belongs in the
-  // stable player name used by the Sleeper mapping and rookie-contract logic.
-  return name.replace(/\s*\([^)]*\)(?:[A-Za-z]+)?\s*$/, '').trim();
 }
 
 function parseDollarValue(value) {

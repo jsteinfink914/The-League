@@ -3,11 +3,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Papa from 'papaparse';
 import { chromium } from 'playwright';
+import { readSupplementalRows, sourceNameKey } from './fantasypros-supplemental.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const DEFAULT_URL = 'https://www.fantasypros.com/nfl/auction-values/calculator.php';
 const RAW_DIR = path.join(ROOT, 'data', 'player-values', 'raw');
+const SUPPLEMENTAL_SUFFIX = '-supplemental.csv';
 const TARGET_FRAME_BASE = 'https://draftwizard.fantasypros.com/auction/fp_nfl.jsp';
 const REQUIRED_SETTINGS = {
   scoring: { value: 'HALF', label: 'Half PPR' },
@@ -26,6 +28,9 @@ async function main() {
 
   const outputPath = resolvePath(
     args.output || path.join(RAW_DIR, `fantasypros-${year}.csv`)
+  );
+  const supplementalPath = resolvePath(
+    args.supplemental || path.join(RAW_DIR, `fantasypros-${year}${SUPPLEMENTAL_SUFFIX}`)
   );
   const url = args.url || DEFAULT_URL;
   const browser = await chromium.launch({ headless: !Boolean(args.headed) });
@@ -49,6 +54,7 @@ async function main() {
 
     const rows = await extractOverallRows(frame);
     validateRows(rows);
+    const supplementalRows = readSupplementalIfPresent(supplementalPath);
     writeCsvAtomically(outputPath, rows);
 
     console.log(`Fetched ${rows.length} FantasyPros overall rows.`);
@@ -58,6 +64,12 @@ async function main() {
         .join(', ')}`
     );
     console.log(`Output: ${relative(outputPath)}`);
+    if (supplementalRows.length) {
+      console.log(
+        `Verified supplemental source: ${relative(supplementalPath)} ` +
+          `(${supplementalRows.length} zero-market rows reapplied by prepare, generate, and audit).`
+      );
+    }
   } catch (error) {
     fail(`FantasyPros fetch failed safely: ${error.message}`);
   } finally {
@@ -174,12 +186,21 @@ function validateRows(rows) {
   }
 
   const duplicates = rows
-    .map((r) => r.Overall)
+    .map((r) => sourceNameKey(r.Overall))
     .filter((n, i, a) => a.indexOf(n) !== i);
   if (duplicates.length) {
     throw new Error(
       `Overall table has duplicate player labels: ${[...new Set(duplicates)].join(', ')}.`
     );
+  }
+}
+
+function readSupplementalIfPresent(filePath) {
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    return readSupplementalRows(filePath);
+  } catch (error) {
+    throw new Error(error.message);
   }
 }
 

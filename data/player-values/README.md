@@ -17,6 +17,13 @@ complete-looking result table before atomically replacing
 credentials. Use `--output /tmp/fantasypros-YYYY.csv` to test a fetch without
 changing the project input.
 
+Verified zero-market rows are kept separately from the unmodified fetched export in
+`data/player-values/raw/fantasypros-YYYY-supplemental.csv`. Fetch validates that
+source; prepare, generate, and audit reapply it after reading a fresh FantasyPros
+export. A
+supplemental row is appended only when its stable player name is absent from the
+fetched export; the fetched row wins if it is already present.
+
 If FantasyPros changes the calculator UI, blocks automation, or returns an
 incomplete table, the command exits without replacing the existing CSV.
 
