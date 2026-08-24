@@ -308,27 +308,19 @@ export function getContractBreakdown({
   }
 
   if (contractYear === 3) {
-    if (marketValue != null && Number.isFinite(marketValue) && marketValue >= 0) {
-      const blended = calculateContractValue(3, rookieValue, marketValue);
-      return {
-        status: 'rookie_y3',
-        label: getContractLabel('rookie_y3', contractYear),
-        formula: `Year 3 blend: ($${rookieValue} + $${marketValue}) / 2 = $${blended}`,
-        contractYear,
-        rookieEntryYear: contract.RookieYear,
-        rookieValue,
-        marketValue
-      };
-    }
-
+    const hasMarketValue = marketValue != null && Number.isFinite(marketValue) && marketValue >= 0;
+    const effectiveMarketValue = hasMarketValue ? marketValue : 0;
+    const blended = calculateContractValue(3, rookieValue, effectiveMarketValue);
     return {
-      status: 'unresolved',
-      label: getContractLabel('unresolved'),
-      formula: `Year 3 blend unavailable: no Fantasy Pros market value (current $${capValue})`,
+      status: 'rookie_y3',
+      label: getContractLabel('rookie_y3', contractYear),
+      formula: hasMarketValue
+        ? `Year 3 blend: ($${rookieValue} + $${effectiveMarketValue}) / 2 = $${blended}`
+        : `Year 3 blend: ($${rookieValue} + $0 assumed market value) / 2 = $${blended}`,
       contractYear,
       rookieEntryYear: contract.RookieYear,
       rookieValue,
-      marketValue: null
+      marketValue: effectiveMarketValue
     };
   }
 

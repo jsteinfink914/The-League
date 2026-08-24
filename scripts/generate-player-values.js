@@ -231,6 +231,14 @@ async function audit({
     const marketMissing =
       contractYear >= 3 &&
       (!marketResolved || marketResolved.matchType === 'none' || marketResolved.value == null);
+    const assumesZeroMarket = contractYear === 3 && marketMissing;
+    const auditResolved = assumesZeroMarket
+      ? {
+          ...resolved,
+          value: calculateContractValue(3, contract.RookieValue, 0),
+          matchType: 'rookie_y3_missing_market'
+        }
+      : resolved;
 
     if (indexes.ambiguousNormalized.has(norm)) {
       notes.push('Ambiguous normalized name; add explicit fp_sleeper_mapping.txt row');
@@ -244,7 +252,7 @@ async function audit({
     const suggestFirst = suggestion?.Name.split(' ')[0]?.toLowerCase();
     const firstNameMatches = sleeperFirst && suggestFirst && sleeperFirst === suggestFirst;
 
-    if (marketMissing) {
+    if (marketMissing && !assumesZeroMarket) {
       flagged.push({
         Severity: 'blocking',
         Sleeper: sleeperName,
@@ -259,25 +267,37 @@ async function audit({
           ...notes
         ].join('; ')
       });
-    } else if (resolved.matchType === 'none' || resolved.value == null) {
+    } else if (auditResolved.matchType === 'none' || auditResolved.value == null) {
       flagged.push({
         Severity: 'blocking',
         Sleeper: sleeperName,
         Resolved_Name: resolved.fantasyProsName,
-        Value: resolved.value,
-        Match_Type: resolved.matchType,
+        Value: auditResolved.value,
+        Match_Type: auditResolved.matchType,
         Suggested_Fantasy_Pros: suggestion?.Name || '',
         Suggested_Value: suggestion ? suggestedValue : '',
         Confidence: suggestion ? suggestion.Score.toFixed(2) : '',
         Notes: notes.join('; ') || 'Missing current player value or explicit fp_sleeper_mapping.txt row'
       });
-    } else if (resolved.value === 0) {
+    } else if (assumesZeroMarket) {
+      flagged.push({
+        Severity: 'warning',
+        Sleeper: sleeperName,
+        Resolved_Name: auditResolved.fantasyProsName,
+        Value: auditResolved.value,
+        Match_Type: auditResolved.matchType,
+        Suggested_Fantasy_Pros: '',
+        Suggested_Value: '',
+        Confidence: '',
+        Notes: 'Year 3 player has no current FantasyPros value; assumed $0 for the rookie-value average.'
+      });
+    } else if (auditResolved.value === 0) {
       flagged.push({
         Severity: 'warning',
         Sleeper: sleeperName,
         Resolved_Name: resolved.fantasyProsName,
         Value: 0,
-        Match_Type: resolved.matchType,
+        Match_Type: auditResolved.matchType,
         Suggested_Fantasy_Pros: '',
         Suggested_Value: '',
         Confidence: '',
@@ -288,8 +308,8 @@ async function audit({
         Severity: 'blocking',
         Sleeper: sleeperName,
         Resolved_Name: resolved.fantasyProsName,
-        Value: resolved.value,
-        Match_Type: resolved.matchType,
+        Value: auditResolved.value,
+        Match_Type: auditResolved.matchType,
         Suggested_Fantasy_Pros: '',
         Suggested_Value: '',
         Confidence: '',
@@ -406,13 +426,36 @@ function generate({ year, fantasyProsPath, valuesPath, outputPath, rookiesPath }
     });
   }
 
+  const generatedNames = new Set(generatedRows.map((row) => normalizeName(row.Name)));
+  for (const contract of rookieContracts.byNormalized.values()) {
+    const contractYear = year - contract.RookieYear + 1;
+    if (contractYear !== 3) continue;
+
+    const normalizedName = normalizeName(contract.rookieName);
+    if (generatedNames.has(normalizedName)) continue;
+
+    const value = calculateContractValue(contractYear, contract.RookieValue, 0);
+    if (!Number.isFinite(value) || value < 0) {
+      issues.push(`${contract.rookieName} has no valid Year 3 fallback value for ${year}.`);
+      continue;
+    }
+
+    generatedRows.push({
+      Year: year,
+      Name: contract.rookieName,
+      Value: value,
+      Rookie: 0
+    });
+    generatedNames.add(normalizedName);
+  }
+
   for (const [name] of currentRookies) {
     if (!marketByName.has(name)) {
       issues.push(`Rookie review includes "${name}", but that name is not in FantasyPros input.`);
     }
   }
 
-  if (generatedRows.length !== marketRows.length || issues.length) {
+  if (generatedRows.length < marketRows.length || issues.length) {
     fail(`Refusing to generate player values:\n- ${issues.join('\n- ')}`);
   }
 

@@ -1627,6 +1627,7 @@ Year,Name,Value,Rookie
 2026,Jaydon Blue,9,0
 2026,Samaje Perine,9,0
 2026,Tyler Allgeier,9,0
+2026,Ja'Lynn Polk,8,0
 2026,Kaelon Black,8,1
 2026,Tre' Harris,8,0
 2026,Ty Johnson,8,0
@@ -1641,6 +1642,7 @@ Year,Name,Value,Rookie
 2026,Jordan Love,6,0
 2026,Keaton Mitchell,6,0
 2026,Mike Washington Jr.,6,1
+2026,Trey Benson,6,0
 2026,Jack Bech,5,0
 2026,Jordan James,5,0
 2026,Kayshon Boutte,5,0
@@ -1666,9 +1668,11 @@ Year,Name,Value,Rookie
 2026,C.J. Stroud,2,0
 2026,Chris Brooks,2,0
 2026,Detroit Lions,2,0
+2026,Jermaine Burton,2,0
 2026,Kimani Vidal,2,0
 2026,Los Angeles Chargers,2,0
 2026,Los Angeles Rams,2,0
+2026,Malachi Corley,2,0
 2026,Minnesota Vikings,2,0
 2026,Najee Harris,2,0
 2026,Pittsburgh Steelers,2,0
@@ -1703,6 +1707,8 @@ Year,Name,Value,Rookie
 2026,Nick Folk,1,0
 2026,Omar Cooper Jr.,1,1
 2026,Philadelphia Eagles,1,0
+2026,Ricky Pearsall,1,0
+2026,Roman Wilson,1,0
 2026,Terrance Ferguson,1,0
 2026,Tyler Loop,1,0
 2026,Will Reichard,1,0
@@ -1712,7 +1718,9 @@ Year,Name,Value,Rookie
 2026,Andy Borregales,0,0
 2026,Arizona Cardinals,0,0
 2026,Ashton Dulin,0,0
+2026,Audric Estime,0,0
 2026,Austin Ekeler,0,0
+2026,Ben Sinnott,0,0
 2026,Brashard Smith,0,0
 2026,Cam Ward,0,0
 2026,Carolina Panthers,0,0
@@ -1732,10 +1740,13 @@ Year,Name,Value,Rookie
 2026,David Njoku,0,0
 2026,Dawson Knox,0,0
 2026,Deshaun Watson,0,0
+2026,Devontez Walker,0,0
 2026,DJ Giddens,0,0
 2026,Drew Stevens,0,1
+2026,Dylan Laube,0,0
 2026,Elic Ayomanor,0,0
 2026,Elijah Mitchell,0,0
+2026,Emani Bailey,0,0
 2026,Emanuel Wilson,0,0
 2026,Emmett Johnson,0,1
 2026,Erick All Jr.,0,0
@@ -1749,8 +1760,11 @@ Year,Name,Value,Rookie
 2026,Harold Fannin Jr.,0,0
 2026,Hollywood Brown,0,0
 2026,Indianapolis Colts,0,0
+2026,Isaac Guerendo,0,0
 2026,Isaac TeSlaa,0,0
 2026,Isaiah Davis,0,0
+2026,J.J. McCarthy,0,0
+2026,Ja'Tavion Sanders,0,0
 2026,Jacoby Brissett,0,0
 2026,Jahan Dotson,0,0
 2026,Jake Elliott,0,0
@@ -1768,6 +1782,7 @@ Year,Name,Value,Rookie
 2026,Kyle Monangai,0,0
 2026,Las Vegas Raiders,0,0
 2026,LeQuint Allen Jr.,0,0
+2026,Luke McCaffrey,0,0
 2026,Malik Benson,0,1
 2026,Malik Davis,0,0
 2026,Marvin Mims Jr.,0,0
@@ -1783,6 +1798,7 @@ Year,Name,Value,Rookie
 2026,Oronde Gadsden II,0,0
 2026,Pat Bryant,0,0
 2026,Phil Mafah,0,0
+2026,Rasheen Ali,0,0
 2026,Riley Patterson,0,0
 2026,Roschon Johnson,0,0
 2026,Ryan Flournoy,0,0
@@ -1801,5 +1817,6 @@ Year,Name,Value,Rookie
 2026,Tyler Higbee,0,0
 2026,Washington Commanders,0,0
 2026,Wil Lutz,0,0
+2026,Will Shipley,0,0
 2026,Xavier Hutchinson,0,0
 2026,Zachariah Branch,0,1

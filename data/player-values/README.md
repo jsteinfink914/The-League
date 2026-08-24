@@ -66,6 +66,7 @@ Review `data/player-values/review/unmatched-roster-YYYY.csv` and add any needed 
 - Rookie year: rookie value
 - Year 2: rookie value
 - Year 3: halfway between rookie value and that year's FantasyPros market value
+- Year 3 with no current FantasyPros market value: halfway between rookie value and `$0`
 - Year 4 and later: FantasyPros market value
 - Everyone without a historical rookie row: FantasyPros market value
 
