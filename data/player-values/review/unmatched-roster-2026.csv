@@ -1,98 +1,95 @@
 Severity,Sleeper,Resolved_Name,Value,Match_Type,Suggested_Fantasy_Pros,Suggested_Value,Confidence,Notes
 warning,Aaron Rodgers,Aaron Rodgers,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Adam Thielen,Adam Thielen,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Adam Thielen,Adam Thielen,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,AJ Barner,AJ Barner,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Anthony Richardson,Anthony Richardson,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Brandon Aiyuk,Brandon Aiyuk,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Brenen Thompson,Brenen Thompson,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Bryce Lance,Bryce Lance,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Calvin Austin,Calvin Austin,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Anthony Richardson,Anthony Richardson,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Brandon Aiyuk,Brandon Aiyuk,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Brenen Thompson,Brenen Thompson,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Bryce Lance,Bryce Lance,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Calvin Austin,Calvin Austin,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Cam Ward,Cam Ward,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Chig Okonkwo,Chig Okonkwo,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Chimere Dike,Chimere Dike,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Chris Boswell,Chris Boswell,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Chris Brazzell,Chris Brazzell,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Chris Brazzell,Chris Brazzell,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Christian Kirk,Christian Kirk,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Cole Kmet,Cole Kmet,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Cyrus Allen,Cyrus Allen,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Cyrus Allen,Cyrus Allen,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Darnell Mooney,Darnell Mooney,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Darnell Washington,Darnell Washington,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,David Njoku,David Njoku,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,DeAndre Hopkins,DeAndre Hopkins,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,DeMario Douglas,DeMario Douglas,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Demond Claiborne,Demond Claiborne,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Devin Singletary,Devin Singletary,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,DeAndre Hopkins,DeAndre Hopkins,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,DeMario Douglas,DeMario Douglas,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Demond Claiborne,Demond Claiborne,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Devin Singletary,Devin Singletary,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,DJ Giddens,DJ Giddens,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Efton Chism,Efton Chism,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Eli Raridon,Eli Raridon,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Eli Stowers,Eli Stowers,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Efton Chism,Efton Chism,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Eli Raridon,Eli Raridon,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Eli Stowers,Eli Stowers,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Elic Ayomanor,Elic Ayomanor,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Elijah Arroyo,Elijah Arroyo,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Elijah Sarratt,Elijah Sarratt,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Elijah Arroyo,Elijah Arroyo,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Elijah Sarratt,Elijah Sarratt,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Emanuel Wilson,Emanuel Wilson,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Emmett Johnson,Emmett Johnson,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Evan Engram,Evan Engram,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Fernando Mendoza,Fernando Mendoza,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Geno Smith,Geno Smith,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,George Holani,George Holani,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Greg Dortch,Greg Dortch,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Greg Dortch,Greg Dortch,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Gunnar Helm,Gunnar Helm,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Harold Fannin,Harold Fannin Jr.,0,normalized,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Isaac TeSlaa,Isaac TeSlaa,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Isaiah Bond,Isaiah Bond,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Isaiah Bond,Isaiah Bond,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Isaiah Davis,Isaiah Davis,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,J.J. McCarthy,J.J. McCarthy,0,rookie_y3_missing_market,,,,Year 3 player has no current FantasyPros value; assumed $0 for the rookie-value average.
 warning,Ja'Tavion Sanders,Ja'Tavion Sanders,0,rookie_y3_missing_market,,,,Year 3 player has no current FantasyPros value; assumed $0 for the rookie-value average.
 warning,Jacoby Brissett,Jacoby Brissett,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Jake Elliott,Jake Elliott,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Jake Tonges,Jake Tonges,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Jalen Royals,Jalen Royals,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Jarquez Hunter,Jarquez Hunter,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Jake Tonges,Jake Tonges,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Jalen Royals,Jalen Royals,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Jarquez Hunter,Jarquez Hunter,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Jaxson Dart,Jaxson Dart,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Jayden Higgins,Jayden Higgins,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
 warning,Jaylin Noel,Jaylin Noel,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Joe Mixon,Joe Mixon,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Joe Mixon,Joe Mixon,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Jonah Coleman,Jonah Coleman,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Kaleb Johnson,Kaleb Johnson,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
 warning,Kansas City Chiefs,Kansas City Chiefs,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Kareem Hunt,Kareem Hunt,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Kaytron Allen,Kaytron Allen,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Kendre Miller,Kendre Miller,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Kevin Coleman,Kevin Coleman,,none,Keon Coleman,0,0.83,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Kirk Cousins,Kirk Cousins,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Kareem Hunt,Kareem Hunt,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Kaytron Allen,Kaytron Allen,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Kendre Miller,Kendre Miller,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Kevin Coleman,Kevin Coleman,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Kirk Cousins,Kirk Cousins,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Kyle Monangai,Kyle Monangai,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Kyle Williams,Kyle Williams,,none,Kyren Williams,78,0.85,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Malachi Fields,Malachi Fields,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Malachi Fields,Malachi Fields,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Mason Taylor,Mason Taylor,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Max Klare,Max Klare,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Max Klare,Max Klare,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Miami Dolphins,Miami Dolphins,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Michael Carter,Michael Carter,,none,Michael Mayer,0,0.77,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Michael Carter,Michael Carter,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Michael Mayer,Michael Mayer,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Michael Penix,Michael Penix,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Michael Penix,Michael Penix,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Mike Gesicki,Mike Gesicki,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,New England Patriots,New England Patriots,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Nicholas Singleton,Nicholas Singleton,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Nicholas Singleton,Nicholas Singleton,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Ollie Gordon,Ollie Gordon II,0,normalized,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Oronde Gadsden,Oronde Gadsden II,0,normalized,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Oscar Delp,Oscar Delp,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Oscar Delp,Oscar Delp,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Pat Bryant,Pat Bryant,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Phil Mafah,Phil Mafah,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Ricky Pearsall,Ricky Pearsall,1,rookie_y3_missing_market,,,,Year 3 player has no current FantasyPros value; assumed $0 for the rookie-value average.
 warning,Ryan Flournoy,Ryan Flournoy,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Savion Williams,Savion Williams,,none,Trayveon Williams,0,0.75,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Savion Williams,Savion Williams,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Sean Tucker,Sean Tucker,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Shedeur Sanders,Shedeur Sanders,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Skyler Bell,Skyler Bell,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Tahj Brooks,Tahj Brooks,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Shedeur Sanders,Shedeur Sanders,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Skyler Bell,Skyler Bell,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Tahj Brooks,Tahj Brooks,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Ted Hurst,Ted Hurst III,0,normalized,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Tez Johnson,Tez Johnson,,none,Theo Johnson,0,0.82,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Tez Johnson,Tez Johnson,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Theo Johnson,Theo Johnson,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Tory Horton,Tory Horton,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Trey Benson,Trey Benson,6,rookie_y3_missing_market,,,,Year 3 player has no current FantasyPros value; assumed $0 for the rookie-value average.
 warning,Tua Tagovailoa,Tua Tagovailoa,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Ty Simpson,Ty Simpson,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
-blocking,Tyreek Hill,Tyreek Hill,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Ty Simpson,Ty Simpson,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
+warning,Tyreek Hill,Tyreek Hill,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Will Shipley,Will Shipley,0,rookie_y3_missing_market,,,,Year 3 player has no current FantasyPros value; assumed $0 for the rookie-value average.
-blocking,Zach Ertz,Zach Ertz,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Zach Ertz,Zach Ertz,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
 warning,Zachariah Branch,Zachariah Branch,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."
-blocking,Zavion Thomas,Zavion Thomas,,none,,,,Missing current player value or explicit fp_sleeper_mapping.txt row
+warning,Zavion Thomas,Zavion Thomas,0,exact,,,,"Explicit zero-dollar value (valid, but included for review)."

@@ -1538,6 +1538,7 @@ Year,Name,Value,Rookie
 2026,Rico Dowdle,41,0
 2026,Jalen Hurts,40,0
 2026,Carnell Tate,38,1
+2026,Kaleb Johnson,38,0
 2026,Brian Thomas Jr.,37,0
 2026,Jakobi Meyers,37,0
 2026,Jayden Reed,37,0
@@ -1589,6 +1590,7 @@ Year,Name,Value,Rookie
 2026,Tyler Warren,21,0
 2026,Blake Corum,20,0
 2026,Jake Ferguson,20,0
+2026,Jayden Higgins,20,0
 2026,Matthew Stafford,20,0
 2026,Jerry Jeudy,19,0
 2026,Tre Tucker,19,0
@@ -1663,6 +1665,7 @@ Year,Name,Value,Rookie
 2026,Denver Broncos,3,0
 2026,Greg Dulcich,3,0
 2026,Houston Texans,3,0
+2026,Kyle Williams,3,0
 2026,Ray Davis,3,0
 2026,Buffalo Bills,2,0
 2026,C.J. Stroud,2,0
@@ -1713,15 +1716,21 @@ Year,Name,Value,Rookie
 2026,Tyler Loop,1,0
 2026,Will Reichard,1,0
 2026,Aaron Rodgers,0,0
+2026,Adam Thielen,0,0
 2026,AJ Barner,0,0
 2026,Andrei Iosivas,0,0
 2026,Andy Borregales,0,0
+2026,Anthony Richardson,0,0
 2026,Arizona Cardinals,0,0
 2026,Ashton Dulin,0,0
 2026,Audric Estime,0,0
 2026,Austin Ekeler,0,0
 2026,Ben Sinnott,0,0
+2026,Brandon Aiyuk,0,0
 2026,Brashard Smith,0,0
+2026,Brenen Thompson,0,1
+2026,Bryce Lance,0,1
+2026,Calvin Austin,0,0
 2026,Cam Ward,0,0
 2026,Carolina Panthers,0,0
 2026,Chad Ryland,0,0
@@ -1729,23 +1738,34 @@ Year,Name,Value,Rookie
 2026,Chig Okonkwo,0,0
 2026,Chimere Dike,0,0
 2026,Chris Boswell,0,0
+2026,Chris Brazzell,0,1
 2026,Christian Kirk,0,0
 2026,Cincinnati Bengals,0,0
 2026,Colby Parkinson,0,0
 2026,Cole Kmet,0,0
+2026,Cyrus Allen,0,1
 2026,Dallas Cowboys,0,0
 2026,Darnell Mooney,0,0
 2026,Darnell Washington,0,0
 2026,Darren Waller,0,0
 2026,David Njoku,0,0
 2026,Dawson Knox,0,0
+2026,DeAndre Hopkins,0,0
+2026,DeMario Douglas,0,0
+2026,Demond Claiborne,0,1
 2026,Deshaun Watson,0,0
+2026,Devin Singletary,0,0
 2026,Devontez Walker,0,0
 2026,DJ Giddens,0,0
 2026,Drew Stevens,0,1
 2026,Dylan Laube,0,0
+2026,Efton Chism,0,0
+2026,Eli Raridon,0,1
+2026,Eli Stowers,0,1
 2026,Elic Ayomanor,0,0
+2026,Elijah Arroyo,0,0
 2026,Elijah Mitchell,0,0
+2026,Elijah Sarratt,0,1
 2026,Emani Bailey,0,0
 2026,Emanuel Wilson,0,0
 2026,Emmett Johnson,0,1
@@ -1756,46 +1776,63 @@ Year,Name,Value,Rookie
 2026,Geno Smith,0,0
 2026,George Holani,0,0
 2026,Green Bay Packers,0,0
+2026,Greg Dortch,0,0
 2026,Gunnar Helm,0,0
 2026,Harold Fannin Jr.,0,0
 2026,Hollywood Brown,0,0
 2026,Indianapolis Colts,0,0
 2026,Isaac Guerendo,0,0
 2026,Isaac TeSlaa,0,0
+2026,Isaiah Bond,0,0
 2026,Isaiah Davis,0,0
 2026,J.J. McCarthy,0,0
 2026,Ja'Tavion Sanders,0,0
 2026,Jacoby Brissett,0,0
 2026,Jahan Dotson,0,0
 2026,Jake Elliott,0,0
+2026,Jake Tonges,0,0
+2026,Jalen Royals,0,0
 2026,Jalen Tolbert,0,0
+2026,Jarquez Hunter,0,0
 2026,Jason Sanders,0,0
 2026,Jawhar Jordan,0,0
 2026,Jaxson Dart,0,0
 2026,Jaylin Noel,0,0
+2026,Joe Mixon,0,0
 2026,Joey Slye,0,0
 2026,Jonah Coleman,0,1
 2026,Joshua Palmer,0,0
 2026,Kansas City Chiefs,0,0
+2026,Kareem Hunt,0,0
 2026,KaVontae Turpin,0,0
+2026,Kaytron Allen,0,1
+2026,Kendre Miller,0,0
+2026,Kevin Coleman,0,1
+2026,Kirk Cousins,0,0
 2026,Kyle Juszczyk,0,0
 2026,Kyle Monangai,0,0
 2026,Las Vegas Raiders,0,0
 2026,LeQuint Allen Jr.,0,0
 2026,Luke McCaffrey,0,0
+2026,Malachi Fields,0,1
 2026,Malik Benson,0,1
 2026,Malik Davis,0,0
 2026,Marvin Mims Jr.,0,0
 2026,Mason Taylor,0,0
+2026,Max Klare,0,1
 2026,Miami Dolphins,0,0
+2026,Michael Carter,0,0
 2026,Michael Mayer,0,0
+2026,Michael Penix,0,0
 2026,Mike Gesicki,0,0
 2026,New England Patriots,0,0
 2026,New York Giants,0,0
 2026,New York Jets,0,0
+2026,Nicholas Singleton,0,1
 2026,Olamide Zaccheaus,0,0
 2026,Ollie Gordon II,0,0
 2026,Oronde Gadsden II,0,0
+2026,Oscar Delp,0,1
 2026,Pat Bryant,0,0
 2026,Phil Mafah,0,0
 2026,Rasheen Ali,0,0
@@ -1803,20 +1840,29 @@ Year,Name,Value,Rookie
 2026,Roschon Johnson,0,0
 2026,Ryan Flournoy,0,0
 2026,San Francisco 49ers,0,0
+2026,Savion Williams,0,0
 2026,Sean Tucker,0,0
+2026,Shedeur Sanders,0,0
+2026,Skyler Bell,0,1
+2026,Tahj Brooks,0,0
 2026,Tampa Bay Buccaneers,0,0
 2026,Ted Hurst III,0,1
 2026,Tennessee Titans,0,0
+2026,Tez Johnson,0,0
 2026,Theo Johnson,0,0
 2026,Tory Horton,0,0
 2026,Trayveon Williams,0,0
 2026,Trey Smack,0,1
 2026,Tua Tagovailoa,0,0
 2026,Ty Chandler,0,0
+2026,Ty Simpson,0,1
 2026,Tyler Bass,0,0
 2026,Tyler Higbee,0,0
+2026,Tyreek Hill,0,0
 2026,Washington Commanders,0,0
 2026,Wil Lutz,0,0
 2026,Will Shipley,0,0
 2026,Xavier Hutchinson,0,0
+2026,Zach Ertz,0,0
 2026,Zachariah Branch,0,1
+2026,Zavion Thomas,0,1
