@@ -1469,220 +1469,222 @@ Year,Name,Value,Rookie
 2025,Will Shipley,0,0
 2025,Zamir White,0,0
 2026,Jahmyr Gibbs,149,0
-2026,Puka Nacua,147,0
-2026,Bijan Robinson,144,0
-2026,Ja'Marr Chase,142,0
-2026,Jaxon Smith-Njigba,137,0
-2026,Amon-Ra St. Brown,131,0
+2026,Puka Nacua,148,0
+2026,Ja'Marr Chase,143,0
+2026,Jaxon Smith-Njigba,140,0
+2026,Bijan Robinson,137,0
+2026,Amon-Ra St. Brown,132,0
 2026,Christian McCaffrey,123,0
 2026,Jonathan Taylor,118,0
-2026,Drake London,111,0
-2026,Derrick Henry,104,0
-2026,CeeDee Lamb,101,0
-2026,Rashee Rice,101,0
+2026,Drake London,104,0
+2026,Derrick Henry,103,0
+2026,CeeDee Lamb,102,0
+2026,Justin Jefferson,101,0
 2026,De'Von Achane,100,0
-2026,Justin Jefferson,100,0
+2026,Rashee Rice,98,0
 2026,James Cook III,97,0
 2026,Ashton Jeanty,95,0
 2026,Chris Olave,93,0
+2026,A.J. Brown,92,0
 2026,Chase Brown,92,0
-2026,A.J. Brown,91,0
-2026,Saquon Barkley,91,0
-2026,George Pickens,90,0
-2026,Nico Collins,90,0
+2026,George Pickens,91,0
+2026,Saquon Barkley,90,0
+2026,Nico Collins,87,0
 2026,Kenneth Walker III,85,0
-2026,Josh Jacobs,83,0
-2026,Zay Flowers,82,0
+2026,Zay Flowers,83,0
+2026,Trey McBride,82,0
 2026,Jeremiyah Love,81,1
-2026,Trey McBride,80,0
 2026,Josh Allen,79,0
-2026,Kyren Williams,78,0
+2026,Josh Jacobs,79,0
+2026,Garrett Wilson,78,0
 2026,Breece Hall,77,0
-2026,Garrett Wilson,77,0
+2026,Kyren Williams,77,0
 2026,DeVonta Smith,76,0
 2026,Javonte Williams,74,0
 2026,Malik Nabers,74,0
 2026,Davante Adams,72,0
+2026,Tee Higgins,71,0
 2026,Travis Etienne Jr.,71,0
-2026,Tee Higgins,70,0
-2026,Jameson Williams,69,0
-2026,Marvin Harrison Jr.,69,0
+2026,Jameson Williams,70,0
+2026,Marvin Harrison Jr.,70,0
 2026,Omarion Hampton,68,0
-2026,D'Andre Swift,67,0
+2026,D'Andre Swift,66,0
 2026,Terry McLaurin,62,0
-2026,DJ Moore,60,0
+2026,DJ Moore,61,0
 2026,Jaylen Waddle,60,0
 2026,Mike Evans,57,0
 2026,Tetairoa McMillan,56,0
-2026,Christian Watson,54,0
+2026,Alec Pierce,53,0
+2026,Christian Watson,53,0
 2026,Courtland Sutton,53,0
 2026,TreVeyon Henderson,53,0
-2026,Alec Pierce,52,0
 2026,Brock Bowers,52,0
-2026,David Montgomery,52,0
 2026,DK Metcalf,52,0
+2026,David Montgomery,51,0
 2026,Ladd McConkey,50,0
-2026,Jadarian Price,49,1
-2026,Jaylen Warren,49,0
+2026,Jadarian Price,48,1
+2026,Rome Odunze,48,0
 2026,Matthew Golden,47,0
-2026,Rome Odunze,47,0
 2026,Rhamondre Stevenson,46,0
-2026,Tony Pollard,46,0
 2026,Travis Hunter,46,0
+2026,Jaylen Warren,45,0
+2026,Tony Pollard,45,0
+2026,Lamar Jackson,44,0
 2026,Parker Washington,44,0
-2026,J.K. Dobbins,43,0
-2026,Lamar Jackson,43,0
 2026,RJ Harvey,43,0
-2026,Kyle Pitts Sr.,42,0
+2026,J.K. Dobbins,42,0
 2026,Michael Pittman Jr.,41,0
-2026,Rico Dowdle,41,0
 2026,Jalen Hurts,40,0
+2026,Rico Dowdle,40,0
 2026,Carnell Tate,38,1
 2026,Kaleb Johnson,38,0
 2026,Brian Thomas Jr.,37,0
+2026,George Kittle,37,0
 2026,Jakobi Meyers,37,0
-2026,Jayden Reed,37,0
-2026,Bucky Irving,36,0
-2026,Chuba Hubbard,36,0
+2026,Michael Wilson,37,0
+2026,Jayden Reed,36,0
+2026,Kyle Pitts Sr.,36,0
+2026,Quentin Johnston,36,0
+2026,Sam LaPorta,36,0
+2026,Chris Godwin Jr.,35,0
+2026,Chuba Hubbard,35,0
 2026,Emeka Egbuka,35,0
-2026,Michael Wilson,35,0
-2026,Quentin Johnston,35,0
-2026,Tucker Kraft,35,0
-2026,Chris Godwin Jr.,34,0
+2026,Bucky Irving,34,0
 2026,Dallas Goedert,34,0
 2026,Jordan Addison,34,0
 2026,Xavier Worthy,34,0
-2026,Deebo Samuel Sr.,33,0
 2026,Jayden Daniels,33,0
 2026,Joe Burrow,33,0
-2026,Sam LaPorta,33,0
+2026,Tucker Kraft,33,0
 2026,Travis Kelce,32,0
 2026,Wan'Dale Robinson,32,0
+2026,Brock Purdy,31,0
+2026,KC Concepcion,31,1
 2026,Kenny Gainwell,31,0
-2026,Rachaad White,31,0
-2026,Aaron Jones Sr.,30,0
-2026,Brock Purdy,30,0
-2026,George Kittle,30,0
-2026,Dak Prescott,29,0
+2026,Dak Prescott,30,0
+2026,Rachaad White,30,0
+2026,Trevor Lawrence,30,0
+2026,Aaron Jones Sr.,29,0
+2026,Deebo Samuel Sr.,29,0
 2026,Jonathon Brooks,29,0
-2026,Trevor Lawrence,29,0
+2026,Romeo Doubs,29,0
+2026,De'Zhaun Stribling,28,1
 2026,Jordan Mason,28,0
 2026,Quinshon Judkins,28,0
+2026,Stefon Diggs,28,0
 2026,Patrick Mahomes II,27,0
 2026,Rashid Shaheed,27,0
-2026,Stefon Diggs,27,0
+2026,Josh Downs,26,0
 2026,Khalil Shakir,26,0
 2026,Mark Andrews,26,0
-2026,Josh Downs,25,0
-2026,KC Concepcion,25,1
-2026,Romeo Doubs,25,0
+2026,Denzel Boston,25,1
+2026,Justin Herbert,25,0
 2026,Caleb Williams,24,0
-2026,Justin Herbert,24,0
+2026,Jerry Jeudy,24,0
 2026,Calvin Ridley,23,0
-2026,De'Zhaun Stribling,23,1
 2026,Isaiah Likely,23,0
 2026,Makai Lemon,23,1
-2026,Tank Dell,22,0
 2026,Dalton Kincaid,21,0
-2026,Denzel Boston,21,1
-2026,Drake Maye,21,0
 2026,Jacory Croskey-Merritt,21,0
 2026,Tyler Warren,21,0
-2026,Blake Corum,20,0
+2026,Drake Maye,20,0
 2026,Jake Ferguson,20,0
 2026,Jayden Higgins,20,0
 2026,Matthew Stafford,20,0
-2026,Jerry Jeudy,19,0
+2026,Blake Corum,19,0
 2026,Tre Tucker,19,0
-2026,Tyjae Spears,19,0
 2026,Rashod Bateman,18,0
-2026,Zach Charbonnet,18,0
+2026,Tyjae Spears,18,0
+2026,Isiah Pacheco,17,0
+2026,Keenan Allen,17,0
+2026,Zach Charbonnet,17,0
 2026,Jared Goff,16,0
-2026,Keenan Allen,16,0
-2026,Alvin Kamara,15,0
-2026,Isiah Pacheco,15,0
+2026,Hunter Henry,15,0
 2026,Jauan Jennings,15,0
+2026,Tyler Shough,15,0
 2026,Cam Skattebo,14,0
-2026,Jalen Nailor,14,0
-2026,Tyler Shough,14,0
+2026,Ja'Kobi Lane,14,1
 2026,Baker Mayfield,13,0
-2026,Hunter Henry,13,0
-2026,Ja'Kobi Lane,13,1
+2026,Brenton Strange,13,0
+2026,Jalen Coker,13,0
+2026,Jalen Nailor,13,0
 2026,Juwan Johnson,13,0
+2026,Alvin Kamara,12,0
 2026,Bo Nix,12,0
-2026,Brenton Strange,12,0
-2026,Jalen Coker,12,0
 2026,Keon Coleman,12,0
 2026,Kyler Murray,12,0
 2026,Luther Burden III,12,0
+2026,Cooper Kupp,11,0
 2026,Devaughn Vele,11,0
-2026,Justice Hill,11,0
-2026,Chris Rodriguez Jr.,10,0
-2026,Cooper Kupp,10,0
-2026,Dalton Schultz,10,0
+2026,Kayshon Boutte,11,0
+2026,Justice Hill,10,0
 2026,Adonai Mitchell,9,0
 2026,AJ Dillon,9,0
-2026,Brian Robinson Jr.,9,0
+2026,Chris Rodriguez Jr.,9,0
+2026,Dalton Schultz,9,0
 2026,Daniel Jones,9,0
 2026,Dylan Sampson,9,0
 2026,Jalen McMillan,9,0
 2026,Jaydon Blue,9,0
-2026,Samaje Perine,9,0
+2026,MarShawn Lloyd,9,0
+2026,Mike Washington Jr.,9,1
+2026,Tank Dell,9,0
 2026,Tyler Allgeier,9,0
 2026,Ja'Lynn Polk,8,0
-2026,Kaelon Black,8,1
+2026,Samaje Perine,8,0
 2026,Tre' Harris,8,0
-2026,Ty Johnson,8,0
 2026,Braelon Allen,7,0
+2026,Brian Robinson Jr.,7,0
+2026,Jordan Love,7,0
+2026,Kaelon Black,7,1
 2026,Malik Willis,7,0
 2026,Tank Bigsby,7,0
-2026,Tyrone Tracy Jr.,7,0
+2026,Ty Johnson,7,0
 2026,Bhayshul Tuten,6,0
-2026,Caleb Douglas,6,1
 2026,Colston Loveland,6,0
 2026,Emari Demercado,6,0
-2026,Jordan Love,6,0
 2026,Keaton Mitchell,6,0
-2026,Mike Washington Jr.,6,1
 2026,Trey Benson,6,0
+2026,Tyrone Tracy Jr.,6,0
 2026,Jack Bech,5,0
-2026,Jordan James,5,0
-2026,Kayshon Boutte,5,0
 2026,Malik Washington,5,0
+2026,Pat Freiermuth,5,0
 2026,Sam Darnold,5,0
 2026,T.J. Hockenson,5,0
 2026,Antonio Williams,4,1
 2026,Bub Means,4,0
-2026,Dontayvion Wicks,4,0
+2026,Caleb Douglas,4,1
 2026,Germie Bernard,4,1
+2026,Greg Dulcich,4,0
+2026,Jordan James,4,0
 2026,Jordyn Tyson,4,1
-2026,MarShawn Lloyd,4,0
-2026,Pat Freiermuth,4,0
+2026,Najee Harris,4,0
 2026,Woody Marks,4,0
 2026,Xavier Legette,4,0
 2026,Adam Randall,3,1
 2026,Darius Slayton,3,0
 2026,Denver Broncos,3,0
-2026,Greg Dulcich,3,0
+2026,Dontayvion Wicks,3,0
 2026,Houston Texans,3,0
 2026,Kyle Williams,3,0
+2026,Omar Cooper Jr.,3,1
 2026,Ray Davis,3,0
+2026,Troy Franklin,3,0
+2026,Atlanta Falcons,2,0
 2026,Buffalo Bills,2,0
 2026,C.J. Stroud,2,0
-2026,Chris Brooks,2,0
+2026,Chris Bell,2,1
 2026,Detroit Lions,2,0
 2026,Jermaine Burton,2,0
-2026,Kimani Vidal,2,0
 2026,Los Angeles Chargers,2,0
 2026,Los Angeles Rams,2,0
 2026,Malachi Corley,2,0
+2026,Malik Davis,2,0
 2026,Minnesota Vikings,2,0
-2026,Najee Harris,2,0
 2026,Pittsburgh Steelers,2,0
 2026,Seattle Seahawks,2,0
-2026,Troy Franklin,2,0
+2026,Terrance Ferguson,2,0
 2026,Tyquan Thornton,2,0
-2026,Atlanta Falcons,1,0
 2026,Baltimore Ravens,1,0
 2026,Blake Grupe,1,0
 2026,Brandon Aubrey,1,0
@@ -1693,7 +1695,6 @@ Year,Name,Value,Rookie
 2026,Cameron Dicker,1,0
 2026,Chase McLaughlin,1,0
 2026,Chicago Bears,1,0
-2026,Chris Bell,1,1
 2026,Cleveland Browns,1,0
 2026,Eddy Pineiro,1,0
 2026,Evan McPherson,1,0
@@ -1706,14 +1707,13 @@ Year,Name,Value,Rookie
 2026,Jaylen Wright,1,0
 2026,Ka'imi Fairbairn,1,0
 2026,Kenyon Sadiq,1,1
+2026,Kimani Vidal,1,0
 2026,New Orleans Saints,1,0
-2026,Nick Folk,1,0
-2026,Omar Cooper Jr.,1,1
 2026,Philadelphia Eagles,1,0
 2026,Ricky Pearsall,1,0
 2026,Roman Wilson,1,0
-2026,Terrance Ferguson,1,0
 2026,Tyler Loop,1,0
+2026,Wil Lutz,1,0
 2026,Will Reichard,1,0
 2026,Aaron Rodgers,0,0
 2026,Adam Thielen,0,0
@@ -1734,17 +1734,18 @@ Year,Name,Value,Rookie
 2026,Cam Ward,0,0
 2026,Carolina Panthers,0,0
 2026,Chad Ryland,0,0
-2026,Charlie Smyth,0,0
 2026,Chig Okonkwo,0,0
 2026,Chimere Dike,0,0
 2026,Chris Boswell,0,0
 2026,Chris Brazzell,0,1
+2026,Chris Brooks,0,0
 2026,Christian Kirk,0,0
 2026,Cincinnati Bengals,0,0
 2026,Colby Parkinson,0,0
 2026,Cole Kmet,0,0
 2026,Cyrus Allen,0,1
 2026,Dallas Cowboys,0,0
+2026,Daniel Carlson,0,0
 2026,Darnell Mooney,0,0
 2026,Darnell Washington,0,0
 2026,Darren Waller,0,0
@@ -1798,9 +1799,11 @@ Year,Name,Value,Rookie
 2026,Jawhar Jordan,0,0
 2026,Jaxson Dart,0,0
 2026,Jaylin Noel,0,0
+2026,Jerome Ford,0,0
 2026,Joe Mixon,0,0
 2026,Joey Slye,0,0
 2026,Jonah Coleman,0,1
+2026,Jonnu Smith,0,0
 2026,Joshua Palmer,0,0
 2026,Kansas City Chiefs,0,0
 2026,Kareem Hunt,0,0
@@ -1816,25 +1819,23 @@ Year,Name,Value,Rookie
 2026,Luke McCaffrey,0,0
 2026,Malachi Fields,0,1
 2026,Malik Benson,0,1
-2026,Malik Davis,0,0
 2026,Marvin Mims Jr.,0,0
 2026,Mason Taylor,0,0
 2026,Max Klare,0,1
 2026,Miami Dolphins,0,0
 2026,Michael Carter,0,0
 2026,Michael Mayer,0,0
-2026,Michael Penix,0,0
+2026,Michael Penix Jr.,0,0
 2026,Mike Gesicki,0,0
 2026,New England Patriots,0,0
 2026,New York Giants,0,0
 2026,New York Jets,0,0
 2026,Nicholas Singleton,0,1
-2026,Olamide Zaccheaus,0,0
+2026,Nick Folk,0,0
 2026,Ollie Gordon II,0,0
 2026,Oronde Gadsden II,0,0
 2026,Oscar Delp,0,1
 2026,Pat Bryant,0,0
-2026,Phil Mafah,0,0
 2026,Rasheen Ali,0,0
 2026,Riley Patterson,0,0
 2026,Roschon Johnson,0,0
@@ -1854,13 +1855,11 @@ Year,Name,Value,Rookie
 2026,Trayveon Williams,0,0
 2026,Trey Smack,0,1
 2026,Tua Tagovailoa,0,0
-2026,Ty Chandler,0,0
 2026,Ty Simpson,0,1
 2026,Tyler Bass,0,0
 2026,Tyler Higbee,0,0
 2026,Tyreek Hill,0,0
 2026,Washington Commanders,0,0
-2026,Wil Lutz,0,0
 2026,Will Shipley,0,0
 2026,Xavier Hutchinson,0,0
 2026,Zach Ertz,0,0
