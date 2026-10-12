@@ -14,6 +14,36 @@
   Chart.register(...registerables);
 
   const valueYear = '2026';
+  const SALARY_CAP = 600;
+
+  // Luxury tax from the league constitution (Article 3, Salary Cap):
+  // $10 brackets above $600 at 2x, 3x, 4x ... per dollar.
+  // e.g. $25 over = 10*2 + 10*3 + 5*4 = $70.
+  const luxuryTax = (totalValue) => {
+    const over = totalValue - SALARY_CAP;
+    if (over <= 0) return 0;
+    let tax = 0;
+    let remaining = over;
+    let bracket = 0;
+    while (remaining > 0) {
+      bracket++;
+      const inBracket = Math.min(remaining, 10);
+      tax += inBracket * (bracket + 1);
+      remaining -= inBracket;
+    }
+    return Math.round(tax * 100) / 100;
+  };
+
+  const fmt$ = (n) => `$${Number(n).toFixed(2)}`;
+
+  $: overCapTeams = totalValues
+    .filter((t) => t.totalValue > SALARY_CAP)
+    .map((t) => ({ ...t, over: t.totalValue - SALARY_CAP, tax: luxuryTax(t.totalValue) }))
+    .sort((a, b) => b.tax - a.tax);
+
+  $: selectedTotal = selectedManager && managerRosters[selectedManager]
+    ? managerRosters[selectedManager].reduce((acc, p) => acc + (Number.isFinite(p.value) ? p.value : 0), 0)
+    : 0;
 
   let managers = [];
   let selectedManager = "";
@@ -285,6 +315,26 @@
     font-weight: bold;
   }
 
+  .tax-container {
+    width: 90%;
+    max-width: 900px;
+    margin: 1rem 0;
+    text-align: center;
+  }
+
+  .tax-container table {
+    margin: 0 auto;
+  }
+
+  .owes {
+    font-weight: bold;
+    color: #c1121f;
+  }
+
+  tr.tax-row td {
+    background: rgba(193, 18, 31, 0.06);
+  }
+
   .rules-legend {
     width: 80%;
     max-width: 720px;
@@ -398,10 +448,35 @@
         <li><strong>Rookie deal (Year 2)</strong> — second year since entry: same rookie value</li>
         <li><strong>Rookie deal (Year 3 blend)</strong> — average of rookie value and Fantasy Pros market</li>
         <li><strong>Market</strong> — after the rookie deal: full Fantasy Pros market value</li>
+        <li><strong>Luxury tax</strong> — over the $600 cap: $10 brackets at 2x, 3x, 4x… per dollar (e.g. $25 over = 10×2 + 10×3 + 5×4 = $70 owed)</li>
     </ul>
   </div>
   <div class="chart-container">
     <canvas id="chart"></canvas>
+  </div>
+  <div class="tax-container">
+    <h4>Luxury Tax Owed</h4>
+    {#if totalValues.length}
+      {#if overCapTeams.length}
+        <table>
+          <thead>
+            <tr><th>Manager</th><th>Total Value</th><th>Over Cap</th><th>Owes</th></tr>
+          </thead>
+          <tbody>
+            {#each overCapTeams as t}
+              <tr>
+                <td>{t.manager}</td>
+                <td>{fmt$(t.totalValue)}</td>
+                <td>{fmt$(t.over)}</td>
+                <td class="owes">{fmt$(t.tax)}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      {:else}
+        <p>No teams over the $600 cap — nobody owes the pot anything.</p>
+      {/if}
+    {/if}
   </div>
   <div class="dropdown-container">
     <h4>Team Value</h4>
@@ -437,9 +512,16 @@
           {/each}
           <tr class="total-value">
             <td>Total Value</td>
-            <td>{managerRosters[selectedManager].reduce((acc, player) => acc + (Number.isFinite(player.value) ? player.value : 0), 0)}</td>
+            <td>{fmt$(selectedTotal)}</td>
             <td colspan="2"></td>
           </tr>
+          {#if selectedTotal > SALARY_CAP}
+            <tr class="total-value tax-row">
+              <td>Luxury Tax Owed</td>
+              <td class="owes">{fmt$(luxuryTax(selectedTotal))}</td>
+              <td colspan="2">{fmt$(selectedTotal - SALARY_CAP)} over the ${SALARY_CAP} cap</td>
+            </tr>
+          {/if}
         </tbody>
       </table>
     {/if}
