@@ -40,6 +40,8 @@
 	let draftOrder = [];
 	let spinning = false;
 	let rotation = 0;
+	let revealingLast = false;
+	let runId = 0;
 	let simulationRounds = 10000;
 	let simulationResults = null;
 	let error = '';
@@ -61,6 +63,8 @@
 		draftOrder = [];
 		simulationResults = null;
 		rotation = 0;
+		revealingLast = false;
+		runId++;
 		lotteryStarted = true;
 	};
 
@@ -70,11 +74,14 @@
 		draftOrder = [];
 		spinning = false;
 		rotation = 0;
+		revealingLast = false;
+		runId++;
 	};
 
 	const spin = () => {
 		if (spinning || remainingTeams.length === 0) return;
 		spinning = true;
+		const id = runId;
 
 		const team = selectTeam(remainingTeams);
 		const total = remainingTeams.reduce((sum, t) => sum + t.odds, 0);
@@ -94,9 +101,23 @@
 		rotation = rotation + 360 * 5 - targetGlobal;
 
 		setTimeout(() => {
+			if (id !== runId) return;
 			spinning = false;
-			draftOrder = [...draftOrder, team];
-			remainingTeams = remainingTeams.filter((t) => t !== team);
+			const newOrder = [...draftOrder, team];
+			const newRemaining = remainingTeams.filter((t) => t !== team);
+			if (newRemaining.length === 1) {
+				// Final pick is determined — reveal it automatically, no spin needed.
+				remainingTeams = [];
+				revealingLast = true;
+				setTimeout(() => {
+					if (id !== runId) return;
+					draftOrder = [...newOrder, newRemaining[0]];
+					revealingLast = false;
+				}, 1200);
+			} else {
+				draftOrder = newOrder;
+				remainingTeams = newRemaining;
+			}
 		}, 3100);
 	};
 
@@ -200,6 +221,8 @@
 					<button class="primary spin" on:click={spin} disabled={spinning}>
 						{spinning ? 'Spinning...' : `Spin for Pick ${draftOrder.length + 1}`}
 					</button>
+				{:else if revealingLast}
+					<p class="done">And the final pick goes to...</p>
 				{:else}
 					<p class="done">Lottery complete.</p>
 				{/if}
