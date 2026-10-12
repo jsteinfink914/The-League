@@ -17,6 +17,11 @@ export const tabs = [
         dest: '/transactions',
     },
     {
+        icon: 'toll',
+        label: 'Lottery',
+        dest: '/lottery',
+    },
+    {
         icon: 'article',
         label: 'Blog',
         dest: '/blog',
