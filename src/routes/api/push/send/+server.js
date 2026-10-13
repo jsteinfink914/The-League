@@ -15,11 +15,12 @@ export async function POST({ request }) {
 	} catch {
 		return json({ error: 'bad json' }, { status: 400 });
 	}
-	const { title = 'League alert', message = '' } = body;
+	const { title = 'The League', message = '', url = '/' } = body;
 	if (!message) return json({ error: 'message required' }, { status: 400 });
 
 	const { rows } = await pool.query('SELECT endpoint, subscription FROM push_subscriptions');
-	const payload = JSON.stringify({ title, message });
+	// Device payload matches what static/sw.js reads: { title, body, url }.
+	const payload = JSON.stringify({ title, body: message, url });
 	let sent = 0;
 	let pruned = 0;
 	for (const row of rows) {
