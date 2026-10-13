@@ -5,6 +5,7 @@
 	import { getAvatarFromTeamManagers, getTeamFromTeamManagers } from '$lib/utils/helperFunctions/universalFunctions';
     import Papa from 'papaparse';
     import { onMount } from 'svelte';
+    import PushSubscribe from '$lib/PushSubscribe.svelte';
 
     export let data;
 
@@ -158,6 +159,7 @@
             <h6>{leagueName}</h6>
             <!-- homepageText contains the intro text for your league, this gets edited in /src/lib/utils/leagueInfo.js -->
             {@html homepageText }
+            <PushSubscribe />
             <!-- Most recent Blog Post (if enabled) -->
             {#if enableBlog}
                 <HomePost />
