@@ -18,6 +18,11 @@ export async function POST({ request }) {
 	const { title = 'The League', message = '', url = '/' } = body;
 
 	const { rows } = await pool.query('SELECT endpoint, subscription FROM push_subscriptions');
+	// ?clear=1: delete all subscriptions (admin cleanup). Returns count deleted.
+	if (new URL(request.url).searchParams.get('clear') === '1') {
+		const del = await pool.query('DELETE FROM push_subscriptions');
+		return json({ cleared: del.rowCount });
+	}
 	// ?dryRun=1: return what WOULD be sent (endpoint host, decoded JWT claims)
 	// without actually sending. For debugging auth rejections.
 	if (new URL(request.url).searchParams.get('dryRun') === '1') {
@@ -33,6 +38,7 @@ export async function POST({ request }) {
 				} catch {}
 				return {
 					endpointHost: (() => { try { return new URL(sub.endpoint).host; } catch { return '?'; } })(),
+					endpoint: sub.endpoint, // full URL (dryRun only, for debugging)
 					endpointPreview: sub.endpoint.slice(0, 60) + '...',
 					jwtHeader: h,
 					claims,
