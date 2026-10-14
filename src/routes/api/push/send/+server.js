@@ -29,8 +29,8 @@ export async function POST({ request }) {
 			typeof row.subscription === 'string' ? JSON.parse(row.subscription) : row.subscription;
 		const host = (() => { try { return new URL(sub.endpoint).host; } catch { return '?'; } })();
 		try {
-			const status = await sendPush(sub, payload);
-			details.push({ host, status });
+			const { status, bodyText } = await sendPush(sub, payload);
+			details.push({ host, status, bodyText: (bodyText || '').slice(0, 200) });
 			if (status === 404 || status === 410) {
 				await pool.query('DELETE FROM push_subscriptions WHERE endpoint = $1', [row.endpoint]);
 				pruned++;
