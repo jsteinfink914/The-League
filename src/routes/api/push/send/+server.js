@@ -18,7 +18,38 @@ export async function POST({ request }) {
 	const { title = 'The League', message = '', url = '/' } = body;
 	if (!message) return json({ error: 'message required' }, { status: 400 });
 
+	let db;
+	try {
+		db = pool;
+	} catch {
+		return json({ error: 'db not configured' }, { status: 503 });
+	}
 	const { rows } = await pool.query('SELECT endpoint, subscription FROM push_subscriptions');
+	// ?dryRun=1: return what WOULD be sent (endpoint host, decoded JWT claims)
+	// without actually sending. For debugging auth rejections.
+	if (new URL(request.url).searchParams.get('dryRun') === '1') {
+		const { vapidJwt } = await import('$lib/server/webpush.js');
+		return json({
+			subscriptions: rows.map((row) => {
+				const sub =
+					typeof row.subscription === 'string' ? JSON.parse(row.subscription) : row.subscription;
+				const { token, pubKeyB64 } = vapidJwt(sub.endpoint);
+				const [h, p] = token.split('.');
+				let claims = null;
+				try {
+					claims = JSON.parse(Buffer.from(p, 'base64url').toString());
+				} catch {}
+				return {
+					endpointHost: (() => { try { return new URL(sub.endpoint).host; } catch { return '?'; } })(),
+					endpointPreview: sub.endpoint.slice(0, 60) + '...',
+					jwtHeader: h,
+					claims,
+					kLength: pubKeyB64.length,
+					kPreview: pubKeyB64.slice(0, 12) + '...'
+				};
+			})
+		});
+	}
 	// Device payload matches what static/sw.js reads: { title, body, url }.
 	const payload = JSON.stringify({ title, body: message, url });
 	let sent = 0;
