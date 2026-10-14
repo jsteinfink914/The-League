@@ -119,7 +119,7 @@ export function encryptPush(subscription, payloadText) {
 	return Buffer.concat([salt, rs, Buffer.from([ephPub.length]), ephPub, ct]);
 }
 
-// Encrypt + POST a push. Returns the HTTP status from the push service.
+// Encrypt + POST a push. Returns { status, bodyText } from the push service.
 export async function sendPush(subscription, payloadText) {
 	const { token, pubKeyB64 } = vapidJwt(subscription.endpoint);
 	const body = encryptPush(subscription, payloadText);
@@ -134,5 +134,6 @@ export async function sendPush(subscription, payloadText) {
 		body,
 		signal: AbortSignal.timeout(15000)
 	});
-	return res.status;
+	const bodyText = await res.text().catch(() => '');
+	return { status: res.status, bodyText };
 }
