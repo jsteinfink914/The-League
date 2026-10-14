@@ -3,10 +3,9 @@ self.addEventListener('push', (event) => {
     let data = {};
     try { data = event.data ? event.data.json() : {}; } catch (e) { /* plain text */ }
     const title = data.title || 'The League';
+    // Minimal options: iOS can fail showNotification on icon/badge.
     const options = {
         body: data.body || '',
-        icon: '/favicons/android-chrome-192x192.png',
-        badge: '/favicons/favicon-32x32.png',
         data: { url: data.url || '/' },
     };
     event.waitUntil(self.registration.showNotification(title, options));
