@@ -68,7 +68,9 @@ export function vapidJwt(endpoint) {
 		JSON.stringify({
 			aud,
 			exp: Math.floor(Date.now() / 1000) + 12 * 3600,
-			sub: 'mailto:league-page-push@localhost'
+			// Apple validates the sub claim: must be a real mailto: or https: URL.
+			// 'localhost' contacts earn a blanket 403 BadJwtToken from web.push.apple.com.
+			sub: process.env.PUSH_VAPID_SUBJECT || process.env.PUSH_BASE_URL || 'https://the-league-xi.vercel.app'
 		})
 	);
 	const unsigned = `${header}.${payload}`;
