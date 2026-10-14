@@ -23,11 +23,14 @@ export async function POST({ request }) {
 	const payload = JSON.stringify({ title, body: message, url });
 	let sent = 0;
 	let pruned = 0;
+	const details = [];
 	for (const row of rows) {
 		const sub =
 			typeof row.subscription === 'string' ? JSON.parse(row.subscription) : row.subscription;
+		const host = (() => { try { return new URL(sub.endpoint).host; } catch { return '?'; } })();
 		try {
 			const status = await sendPush(sub, payload);
+			details.push({ host, status });
 			if (status === 404 || status === 410) {
 				await pool.query('DELETE FROM push_subscriptions WHERE endpoint = $1', [row.endpoint]);
 				pruned++;
@@ -35,8 +38,9 @@ export async function POST({ request }) {
 				sent++;
 			}
 		} catch (e) {
+			details.push({ host, status: 'error', error: e.message });
 			console.error('push failed for', row.endpoint, e.message);
 		}
 	}
-	return json({ sent, pruned, total: rows.length });
+	return json({ sent, pruned, total: rows.length, details });
 }
