@@ -1,4 +1,11 @@
 // Service worker for The League web push notifications.
+// Take control immediately so push subscriptions bind correctly on first launch.
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+});
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
 self.addEventListener('push', (event) => {
     let data = {};
     try { data = event.data ? event.data.json() : {}; } catch (e) { /* plain text */ }
