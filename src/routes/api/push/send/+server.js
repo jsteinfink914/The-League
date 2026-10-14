@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import pool from '$lib/server/db.js';
-import { sendPush } from '$lib/server/webpush.js';
+import { sendPush, vapidJwt } from '$lib/server/webpush.js';
 
 // POST { title, message } -> sends a web push to every subscriber.
 // Gated by the shared PUSH_SECRET so only the league watcher can trigger it.
@@ -18,17 +18,10 @@ export async function POST({ request }) {
 	const { title = 'The League', message = '', url = '/' } = body;
 	if (!message) return json({ error: 'message required' }, { status: 400 });
 
-	let db;
-	try {
-		db = pool;
-	} catch {
-		return json({ error: 'db not configured' }, { status: 503 });
-	}
 	const { rows } = await pool.query('SELECT endpoint, subscription FROM push_subscriptions');
 	// ?dryRun=1: return what WOULD be sent (endpoint host, decoded JWT claims)
 	// without actually sending. For debugging auth rejections.
 	if (new URL(request.url).searchParams.get('dryRun') === '1') {
-		const { vapidJwt } = await import('$lib/server/webpush.js');
 		return json({
 			subscriptions: rows.map((row) => {
 				const sub =
