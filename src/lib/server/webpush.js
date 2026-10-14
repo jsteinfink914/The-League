@@ -58,7 +58,11 @@ export function getVapidKeys() {
 // Build the VAPID JWT for a push endpoint. Returns { token, pubKeyB64 }.
 export function vapidJwt(endpoint) {
 	const { priv, pub } = getVapidKeys();
-	const aud = new URL(endpoint).origin;
+	// NB: use protocol + host (NOT .origin): .origin strips default ports,
+	// but the push service may expect the aud with the port as-given, and
+	// the reference web-push library uses protocol + '//' + host.
+	const u = new URL(endpoint);
+	const aud = `${u.protocol}//${u.host}`;
 	const header = b64u(JSON.stringify({ typ: 'JWT', alg: 'ES256' }));
 	const payload = b64u(
 		JSON.stringify({
