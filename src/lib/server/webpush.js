@@ -127,7 +127,8 @@ export async function sendPush(subscription, payloadText) {
 			'Content-Encoding': 'aes128gcm',
 			Authorization: `vapid t=${token}, k=${pubKeyB64}`
 		},
-		body
+		body,
+		signal: AbortSignal.timeout(15000)
 	});
 	return res.status;
 }
