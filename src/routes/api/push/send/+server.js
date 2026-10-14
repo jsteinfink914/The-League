@@ -16,7 +16,6 @@ export async function POST({ request }) {
 		return json({ error: 'bad json' }, { status: 400 });
 	}
 	const { title = 'The League', message = '', url = '/' } = body;
-	if (!message) return json({ error: 'message required' }, { status: 400 });
 
 	const { rows } = await pool.query('SELECT endpoint, subscription FROM push_subscriptions');
 	// ?dryRun=1: return what WOULD be sent (endpoint host, decoded JWT claims)
@@ -43,6 +42,7 @@ export async function POST({ request }) {
 			})
 		});
 	}
+	if (!message) return json({ error: 'message required' }, { status: 400 });
 	// Device payload matches what static/sw.js reads: { title, body, url }.
 	const payload = JSON.stringify({ title, body: message, url });
 	let sent = 0;
