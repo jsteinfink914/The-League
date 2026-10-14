@@ -129,6 +129,7 @@ export async function sendPush(subscription, payloadText) {
 		method: 'POST',
 		headers: {
 			TTL: '86400',
+			Urgency: 'high', // iOS defers normal-urgency pushes; high delivers immediately
 			'Content-Type': 'application/octet-stream',
 			'Content-Encoding': 'aes128gcm',
 			Authorization: `vapid t=${token}, k=${pubKeyB64}`
