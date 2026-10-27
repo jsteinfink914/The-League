@@ -75,10 +75,6 @@
         if (!expectedBlocks.includes(bk) && blockTotals[bk] !== 0) violations.push(`${blockLabel(bk)} has ${blockTotals[bk]} matchups — those divisions shouldn't meet in ${year}`);
     }
 
-    // ---- next season ---------------------------------------------------------
-    const nextYear = year + 1;
-    const nextRotating = nextYear % 2 === 1 ? ['1v3', '2v4'] : ['1v4', '2v3'];
-
     // ---- team filter ---------------------------------------------------------
     let selected = null; // roster_id or null for all teams
     $: selectedGames = selected == null ? null : weeks.map(({ week, games }) => {
@@ -168,17 +164,6 @@
     {:else if weeks.length}
         <div class="clean">✅ This schedule follows the pairing method — every rule checks out.</div>
     {/if}
-
-    <div class="explainer">
-        <b>Next season — {nextYear}.</b>
-        The pairings are already set by the method: division rivals 2x, counterparts
-        <b>{blockLabel('1v2')}</b> and <b>{blockLabel('3v4')}</b>, and the rotation flips to
-        <b>{nextRotating.map(blockLabel).join(' and ')}</b>.
-        The full week-by-week schedule is generated once the {nextYear} league exists in Sleeper and its
-        divisions are set. When the finished schedule is entered into Sleeper, it's checked automatically —
-        if it's valid, the commissioners get the all-clear; if anything breaks the pairing rules,
-        every manager gets an email with exactly what's wrong.
-    </div>
 
     <div class="filterLabel">Filter by team — tap a team to get its full schedule in week order, ready to input:</div>
     <div class="chips">
