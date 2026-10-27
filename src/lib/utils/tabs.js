@@ -36,11 +36,6 @@ export const tabs = [
                 label: 'Rivalry',
                 dest: '/rivalry',
             },
-            {
-                icon: 'emoji_people',
-                label: 'Manager Overview',
-                dest: '/manager_overview',
-            },
         ]
     },
     {
@@ -57,11 +52,6 @@ export const tabs = [
                 icon: 'money',
                 label: 'Team Values',
                 dest: '/team_values',
-            },
-            {
-                icon: 'analytics',
-                label: 'Cap Analysis',
-                dest: '/cap_analysis',
             },
             {
                 icon: 'swap_horiz',
