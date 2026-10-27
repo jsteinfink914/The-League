@@ -32,9 +32,9 @@
         const da = divisionOf(ra), db = divisionOf(rb);
         if (da === db) return { label: `${dn(da)} rivalry`, cls: 'div' };
         const bk = blockKey(da, db);
-        if (COUNTERPART.includes(bk)) return { label: `${dn(da)} vs ${dn(db)} · counterpart`, cls: 'counter' };
-        if (rotating.includes(bk)) return { label: `${dn(da)} vs ${dn(db)} · rotation`, cls: 'rotate' };
-        return { label: `${dn(da)} vs ${dn(db)}`, cls: 'other' };
+        if (COUNTERPART.includes(bk)) return { label: 'Counterpart', cls: 'counter' };
+        if (rotating.includes(bk)) return { label: 'Rotation', cls: 'rotate' };
+        return { label: 'Cross-division', cls: 'other' };
     };
 
     // build week-by-week pairings + season pair counts
@@ -110,16 +110,16 @@
     .weekGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
     .week { background: var(--fff); border: 1px solid var(--ddd); border-radius: 10px; padding: 10px 14px; }
     .week h3 { margin: 0.2em 0 0.6em; color: var(--blueOne); border-bottom: 2px solid var(--blueOne); padding-bottom: 4px; }
-    .game { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--eee); color: var(--g111); }
+    .game { padding: 6px 0; border-bottom: 1px solid var(--eee); color: var(--g111); }
     .game:last-child { border-bottom: none; }
-    .game .mine { font-weight: 700; }
-    .tag { font-size: 0.68em; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; border-radius: 4px; padding: 1px 6px; background: var(--f3f3f3); color: var(--g333); }
+    .game .teams { display: block; line-height: 1.35; overflow-wrap: break-word; }
+    .tag { display: inline-block; margin-top: 3px; max-width: 100%; font-size: 0.68em; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 4px; padding: 1px 6px; background: var(--f3f3f3); color: var(--g333); }
     .tag.div { background: var(--headerPrimary); color: var(--blueOne); }
     .tag.counter { background: var(--waiverAdd); color: var(--g111); }
     .tag.rotate { background: var(--badgeRookieY3Bg); color: var(--badgeRookieY3Text); }
     .tag.other { background: var(--waiverDrop); color: var(--g111); }
     .entryList { background: var(--fff); border: 1px solid var(--ddd); border-radius: 10px; padding: 6px 14px; }
-    .entryRow { display: flex; gap: 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--eee); color: var(--g111); }
+    .entryRow { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--eee); color: var(--g111); }
     .entryRow:last-child { border-bottom: none; }
     .entryWeek { color: var(--g555); font-size: 0.85em; min-width: 58px; }
 </style>
@@ -194,7 +194,7 @@
                     <h3>Week {week}</h3>
                     {#each games as g}
                         <div class="game">
-                            <span>{teamName(g.a)} vs {teamName(g.b)}</span>
+                            <span class="teams">{teamName(g.a)} vs {teamName(g.b)}</span>
                             <span class="tag {g.cat.cls}">{g.cat.label}</span>
                         </div>
                     {/each}
