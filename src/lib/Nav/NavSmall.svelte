@@ -15,11 +15,17 @@
 	let open = false;
 	let menuButton;
 
-	// Collapsible groups: label of the expanded group, or null. Default to the
-	// group containing the active tab so the current section starts open.
+	// Collapsible groups: label of the expanded group, or null. Starts on the
+	// group containing the active tab; after that it's purely manual — do NOT
+	// derive this reactively from `active`, or the drawer snaps back open and
+	// groups can't be closed/switched while on a page inside a group.
 	const groupOfActive = () => tabs.find((t) => t.nest && (t.children || []).some((c) => c.dest === active))?.label ?? null;
 	let expanded = groupOfActive();
-	$: if (active) expanded = groupOfActive() ?? expanded;
+
+	const openDrawer = () => {
+		expanded = groupOfActive() ?? expanded;
+		open = true;
+	};
 
 	const toggleGroup = (label) => {
 		expanded = expanded === label ? null : label;
@@ -133,7 +139,7 @@
 	aria-controls="mobile-navigation"
 	aria-expanded={open}
 	bind:this={menuButton}
-	on:click={() => (open = true)}
+	on:click={openDrawer}
 >
 	<Icon class="material-icons">menu</Icon>
 </button>

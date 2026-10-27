@@ -83,6 +83,7 @@
 
 	.parent {
 		position: relative;
+		z-index: 6; /* above the overlay, so other tabs stay clickable while a submenu is open */
 	}
 
 	.subMenu {
