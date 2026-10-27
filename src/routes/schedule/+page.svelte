@@ -1,12 +1,16 @@
 <script>
     export let data;
-    const { matchupsData, leagueTeamManagersData, rostersData } = data;
+    const { matchupsData, leagueTeamManagersData, rostersData, leagueData } = data;
 
     const year = matchupsData.year;
     const teamManagers = leagueTeamManagersData.teamManagersMap[year] || {};
 
     const teamName = (rosterId) => teamManagers[rosterId]?.team?.name || `Roster ${rosterId}`;
     const divisionOf = (rosterId) => rostersData.rosters[rosterId]?.settings?.division;
+
+    // real division names from Sleeper league metadata (e.g. "New York East")
+    const dn = (d) => leagueData?.metadata?.[`division_${d}`] || `Division ${d}`;
+    const blockLabel = (bk) => bk.split('v').map((d) => dn(+d)).join(' vs ');
 
     // group rosters by division
     const divisions = { 1: [], 2: [], 3: [], 4: [] };
@@ -18,17 +22,19 @@
     const allRosters = [1, 2, 3, 4].flatMap((d) => divisions[d]);
 
     // the league's pairing method (validated against 2023-2025 history)
-    const COUNTERPART = ['1v3', '2v4'];
-    const rotating = year % 2 === 1 ? ['1v2', '3v4'] : ['1v4', '2v3'];
+    // conferences: New York {1, 2} and D.C. {3, 4}; counterparts play every year,
+    // the opposite-conference diagonal rotates on a two-year cycle
+    const COUNTERPART = ['1v2', '3v4'];
+    const rotating = year % 2 === 1 ? ['1v3', '2v4'] : ['1v4', '2v3'];
     const blockKey = (a, b) => [Math.min(a, b), Math.max(a, b)].join('v');
 
     const category = (ra, rb) => {
         const da = divisionOf(ra), db = divisionOf(rb);
-        if (da === db) return { label: `Div ${da} rivalry`, cls: 'div' };
+        if (da === db) return { label: `${dn(da)} rivalry`, cls: 'div' };
         const bk = blockKey(da, db);
-        if (COUNTERPART.includes(bk)) return { label: `Div ${da} vs Div ${db} · counterpart`, cls: 'counter' };
-        if (rotating.includes(bk)) return { label: `Div ${da} vs Div ${db} · rotation`, cls: 'rotate' };
-        return { label: `Div ${da} vs Div ${db}`, cls: 'other' };
+        if (COUNTERPART.includes(bk)) return { label: `${dn(da)} vs ${dn(db)} · counterpart`, cls: 'counter' };
+        if (rotating.includes(bk)) return { label: `${dn(da)} vs ${dn(db)} · rotation`, cls: 'rotate' };
+        return { label: `${dn(da)} vs ${dn(db)}`, cls: 'other' };
     };
 
     // build week-by-week pairings + season pair counts
@@ -65,8 +71,8 @@
     }
     const expectedBlocks = [...COUNTERPART, ...rotating];
     for (const bk of Object.keys(blockTotals)) {
-        if (expectedBlocks.includes(bk) && blockTotals[bk] !== 16) violations.push(`Division block ${bk.replace('v', ' vs ')} has ${blockTotals[bk]} matchups — a full block is 16`);
-        if (!expectedBlocks.includes(bk) && blockTotals[bk] !== 0) violations.push(`Division block ${bk.replace('v', ' vs ')} has ${blockTotals[bk]} matchups — those divisions shouldn't meet in ${year}`);
+        if (expectedBlocks.includes(bk) && blockTotals[bk] !== 16) violations.push(`${blockLabel(bk)} has ${blockTotals[bk]} matchups — a full block is 16`);
+        if (!expectedBlocks.includes(bk) && blockTotals[bk] !== 0) violations.push(`${blockLabel(bk)} has ${blockTotals[bk]} matchups — those divisions shouldn't meet in ${year}`);
     }
 
     // ---- team filter -------------------------------------------------------
@@ -124,16 +130,16 @@
 
     <div class="explainer">
         Every team plays its <b>division rivals 2x</b> (6 games), a full block against its
-        <b>conference counterpart</b> division — <b>Div 1 vs Div 3</b> and <b>Div 2 vs Div 4</b>, every year —
+        <b>conference counterpart</b> — <b>{blockLabel('1v2')}</b> and <b>{blockLabel('3v4')}</b>, every year —
         and a full block against one <b>opposite-conference</b> division, which rotates on a two-year cycle:
-        in {year} that's <b>{rotating.map(b => b.replace('v', ' vs ')).join(' and ')}</b>.
+        in {year} that's <b>{rotating.map(blockLabel).join(' and ')}</b>.
         That's 6 + 4 + 4 = 14 regular-season games.
     </div>
 
     <div class="divGrid">
         {#each [1, 2, 3, 4] as d}
             <div class="divCard">
-                <h3>Division {d}</h3>
+                <h3>{dn(d)}</h3>
                 {#each divisions[d] as rosterId}
                     <div>{teamName(rosterId)}</div>
                 {/each}
@@ -145,7 +151,7 @@
     <div class="blocks">
         {#each Object.entries(blockTotals) as [bk, total]}
             <span class="block {(expectedBlocks.includes(bk) && total === 16) || (!expectedBlocks.includes(bk) && total === 0) ? 'ok' : 'bad'}">
-                Div {bk.replace('v', ' vs Div ')} — {total} matchups{expectedBlocks.includes(bk) ? ' (full block)' : ' (not scheduled)'}
+                {blockLabel(bk)} — {total} matchups{expectedBlocks.includes(bk) ? ' (full block)' : ' (not scheduled)'}
             </span>
         {/each}
     </div>
@@ -169,7 +175,7 @@
 
     {#if selected != null && selectedGames}
         <div class="teamSummary">
-            <b>{teamName(selected)}</b> (Division {divisionOf(selected)}) — {selectedGames.length} games:
+            <b>{teamName(selected)}</b> ({dn(divisionOf(selected))}) — {selectedGames.length} games:
             {selectedCounts.div || 0} division · {selectedCounts.counter || 0} counterpart · {selectedCounts.rotate || 0} rotation{(selectedCounts.other || 0) ? ` · ${selectedCounts.other} other` : ''}
         </div>
         <div class="entryList">
