@@ -3,65 +3,70 @@
 	import List, { Item, Graphic, Text, Separator } from '@smui/list';
 	import TabBar from '@smui/tab-bar';
 	import { goto, preloadData } from '$app/navigation';
-	import { enableBlog, managers } from '$lib/utils/leagueInfo';
+	import { enableBlog } from '$lib/utils/leagueInfo';
 
 	export let active, tabs;
 	export let currentPath = '';
 
 	let activeTab = active;
 
-	let display;
-	let el, width, height, left, top;
+	// Which group's submenu is open (tab label), or null when all closed.
+	let openLabel = null;
+	// Anchor elements for each nest tab, keyed by tab label, for submenu positioning.
+	let anchors = {};
 
-	const sizeSubMenu = (w) => {
-		top = el?.getBoundingClientRect() ? el?.getBoundingClientRect().top  : 0;
-		const bottom = el?.getBoundingClientRect() ? el?.getBoundingClientRect().bottom  : 0;
+	let width, height, left, top;
 
-		height = bottom - top + 1;
+	const visibleChildren = (tab) =>
+		(tab?.children || []).filter((c) => c.label != 'Blog' || enableBlog);
 
-		left = el?.getBoundingClientRect() ? el?.getBoundingClientRect().left  : 0;
-		const right = el?.getBoundingClientRect() ? el?.getBoundingClientRect().right  : 0;
+	$: openTab = tabs.find((t) => t.nest && t.label === openLabel) || null;
+	$: openChildren = visibleChildren(openTab);
 
-		width = right - left;
-	}
+	const sizeSubMenu = () => {
+		const el = openLabel ? anchors[openLabel] : null;
+		if (!el) return;
+		const rect = el.getBoundingClientRect();
+		top = rect.bottom;
+		height = rect.height;
+		left = rect.left;
+		width = rect.width;
+	};
 
 	let innerWidth;
+	$: if (innerWidth && openLabel) sizeSubMenu();
 
-	$: sizeSubMenu(innerWidth);
+	const close = () => {
+		openLabel = null;
+		setTimeout(() => {
+			active = activeTab;
+		}, 500);
+	};
 
-	const open = (close = false) => {
-		if(close) {
-			setTimeout(() => {
-				active = activeTab;
-			}, 500)
+	const toggleGroup = (tab) => {
+		if (openLabel === tab.label) {
+			close();
 		} else {
-			activeTab = active;
-		}
-		display = !display;
-	}
-
-	const subGoto = (dest) => {
-		open(false);
-		goto(dest);
-	}
-
-	const closeOnEscape = (event) => {
-		if (event.key === 'Escape' && display) {
-			open(true);
+			if (!openLabel) activeTab = active;
+			openLabel = tab.label;
+			// wait a tick so the submenu renders, then position it
+			setTimeout(sizeSubMenu, 0);
 		}
 	};
 
-	let tabChildren = []
+	const subGoto = (dest) => {
+		openLabel = null;
+		goto(dest);
+	};
 
-	for(const tab of tabs) {
-		if(tab.nest) {
-			tabChildren = tab.children;
+	const closeOnEscape = (event) => {
+		if (event.key === 'Escape' && openLabel) {
+			close();
 		}
-	}
-
+	};
 </script>
 
-<svelte:window bind:innerWidth={innerWidth} on:keydown={closeOnEscape} />
+<svelte:window bind:innerWidth on:keydown={closeOnEscape} />
 
 <style>
     :global(.navBar) {
@@ -117,20 +122,20 @@
 	class="overlay"
 	type="button"
 	aria-label="Close navigation menu"
-	tabindex={display ? 0 : -1}
-	style="display: {display ? "block" : "none"};"
-	on:click={() => open(true)}
+	tabindex={openLabel ? 0 : -1}
+	style="display: {openLabel ? 'block' : 'none'};"
+	on:click={close}
 />
 
 <div class="parent">
 	<TabBar class="navBar" {tabs} let:tab bind:active>
 		{#if tab.nest}
-			<div bind:this={el}>
+			<div bind:this={anchors[tab.label]}>
 				<Tab
 					{tab}
-						aria-expanded={display}
-						aria-controls="league-info-submenu"
-					on:click={() => open(display)}
+					aria-expanded={openLabel === tab.label}
+					aria-controls="submenu-{tab.label}"
+					on:click={() => toggleGroup(tab)}
 					minWidth
 				>
 					<Icon class="material-icons">{tab.icon}</Icon>
@@ -139,7 +144,6 @@
 			</div>
 		{:else}
 			<Tab
-				class="{tab.label == 'Blog' && !enableBlog ? 'dontDisplay' : ''}"
 				{tab}
 				on:touchstart={() => preloadData(tab.dest)}
 				on:mouseover={() => preloadData(tab.dest)}
@@ -151,26 +155,16 @@
 			</Tab>
 		{/if}
 	</TabBar>
-	{#if display}
-	<div id="league-info-submenu" class="subMenu" style="max-height: {49 * tabChildren.length - 1 - (managers.length ? 0 : 48)}px; width: {width}px; top: {height}px; left: {left}px; box-shadow: 0 0 3px 0 #00316b; border: 1px solid #00316b; border-top: none;">
+	{#if openTab}
+	<div id="submenu-{openTab.label}" class="subMenu" style="max-height: {49 * openChildren.length - 1}px; min-width: {Math.max(width || 0, 200)}px; top: {height}px; left: {left}px; box-shadow: 0 0 3px 0 #00316b; border: 1px solid #00316b; border-top: none;">
 		<List>
-			{#each tabChildren as subTab, ix}
-				{#if subTab.label == 'Managers'}
-					<Item class="{managers.length ? '' : 'dontDisplay'}" activated={currentPath === subTab.dest} on:SMUI:action={() => subGoto(subTab.dest)} on:touchstart={() => preloadData(subTab.dest)} on:mouseover={() => preloadData(subTab.dest)}>
-						<Graphic class="material-icons">{subTab.icon}</Graphic>
-						<Text class="subText">{subTab.label}</Text>
-					</Item>
-					{#if ix != tabChildren.length - 1}
-						<Separator />
-					{/if}
-				{:else}
-					<Item activated={currentPath === subTab.dest} on:SMUI:action={() => subGoto(subTab.dest)} on:touchstart={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}} on:mouseover={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}}>
-						<Graphic class="material-icons">{subTab.icon}</Graphic>
-						<Text class="subText">{subTab.label}</Text>
-					</Item>
-					{#if ix != tabChildren.length - 1}
-						<Separator />
-					{/if}
+			{#each openChildren as subTab, ix}
+				<Item activated={currentPath === subTab.dest} on:SMUI:action={() => subGoto(subTab.dest)} on:touchstart={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}} on:mouseover={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}}>
+					<Graphic class="material-icons">{subTab.icon}</Graphic>
+					<Text class="subText">{subTab.label}</Text>
+				</Item>
+				{#if ix != openChildren.length - 1}
+					<Separator />
 				{/if}
 			{/each}
 		</List>

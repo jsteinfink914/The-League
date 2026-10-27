@@ -70,7 +70,7 @@
 		color: var(--g555)
 	}
 
-	@media (max-width: 950px) { /* width of the large navBar */
+	@media (max-width: 1080px) { /* width of the large navBar (9 tabs now) */
 		.large {
 			display: none;
 		}

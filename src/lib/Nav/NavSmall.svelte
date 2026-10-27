@@ -8,7 +8,7 @@
   	import List, { Item, Text, Graphic, Separator, Subheader } from '@smui/list';
 	import { goto, preloadData } from '$app/navigation';
 	import { leagueName } from '$lib/utils/helper';
-	import { enableBlog, managers } from '$lib/utils/leagueInfo';
+	import { enableBlog } from '$lib/utils/leagueInfo';
 	
 	export let active, tabs;
 
@@ -126,14 +126,7 @@
 					<Separator />
 					<Subheader>{tab.label}</Subheader>
 					{#each tab.children as subTab}
-						{#if subTab.label == 'Managers'}
-							{#if managers.length}
-								<Item href={subTab.dest} on:click={(event) => selectTab(event, subTab)} activated={isActive(subTab)}  on:touchstart={() => preloadData(subTab.dest)} on:mouseover={() => preloadData(subTab.dest)}>
-									<Graphic class="material-icons{isActive(subTab) ? "" : " nav-item"}" aria-hidden="true">{subTab.icon}</Graphic>
-									<Text class="{isActive(subTab) ? "" : "nav-item"}">{subTab.label}</Text>
-								</Item>
-							{/if}
-						{:else}
+						{#if subTab.label != 'Blog' || enableBlog}
 							<Item href={subTab.dest} on:click={(event) => selectTab(event, subTab)} activated={isActive(subTab)}  on:touchstart={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}} on:mouseover={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}}>
 								<Graphic class="material-icons{isActive(subTab) ? "" : " nav-item"}" aria-hidden="true">{subTab.icon}</Graphic>
 								<Text class="{isActive(subTab) ? "" : "nav-item"}">{subTab.label}</Text>

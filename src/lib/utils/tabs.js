@@ -17,18 +17,8 @@ export const tabs = [
         dest: '/transactions',
     },
     {
-        icon: 'toll',
-        label: 'Lottery',
-        dest: '/lottery',
-    },
-    {
-        icon: 'article',
-        label: 'Blog',
-        dest: '/blog',
-    },
-    {
         icon: 'view_comfy',
-        label: 'League Info',
+        label: 'League',
         nest: true,
         children: [
             {
@@ -37,39 +27,36 @@ export const tabs = [
                 dest: '/rosters',
             },
             {
-                icon: 'local_fire_department',
-                label: 'Rivalry',
-                dest: '/rivalry',
-            },
-            {
                 icon: 'leaderboard',
                 label: 'Standings',
                 dest: '/standings',
             },
             {
-                icon: 'view_comfy',
-                label: 'Drafts',
-                dest: '/drafts',
+                icon: 'local_fire_department',
+                label: 'Rivalry',
+                dest: '/rivalry',
             },
             {
-                icon: 'emoji_events',
-                label: 'Trophy Room',
-                dest: '/awards',
+                icon: 'emoji_people',
+                label: 'Manager Overview',
+                dest: '/manager_overview',
             },
             {
-                icon: 'military_tech',
-                label: 'Records',
-                dest: '/records',
+                icon: 'calendar_month',
+                label: 'Schedule',
+                dest: '/schedule',
             },
+        ]
+    },
+    {
+        icon: 'attach_money',
+        label: 'Cap',
+        nest: true,
+        children: [
             {
                 icon: 'attach_money',
                 label: 'Player Values',
                 dest: '/cap',
-            },
-            {
-                icon: 'swap_horiz',
-                label: 'Cap Trade Calculator',
-                dest: '/calculator',
             },
             {
                 icon: 'money',
@@ -82,6 +69,18 @@ export const tabs = [
                 dest: '/cap_analysis',
             },
             {
+                icon: 'swap_horiz',
+                label: 'Cap Trade Calculator',
+                dest: '/calculator',
+            },
+        ]
+    },
+    {
+        icon: 'analytics',
+        label: 'Analytics',
+        nest: true,
+        children: [
+            {
                 icon: 'compare_arrows',
                 label: 'Trade Analysis',
                 dest: '/trade_analysis',
@@ -91,26 +90,71 @@ export const tabs = [
                 label: 'Draft Analysis',
                 dest: '/draft_analysis',
             },
+        ]
+    },
+    {
+        icon: 'history_edu',
+        label: 'History',
+        nest: true,
+        children: [
             {
-                icon: 'emoji_people',
-                label: 'Manager Overview',
-                dest: '/manager_overview',
+                icon: 'view_comfy',
+                label: 'Drafts',
+                dest: '/drafts',
+            },
+            {
+                icon: 'military_tech',
+                label: 'Records',
+                dest: '/records',
+            },
+            {
+                icon: 'emoji_events',
+                label: 'Trophy Room',
+                dest: '/awards',
+            },
+        ]
+    },
+    {
+        icon: 'gavel',
+        label: 'Commish',
+        nest: true,
+        children: [
+            {
+                icon: 'toll',
+                label: 'Lottery',
+                dest: '/lottery',
+            },
+            {
+                icon: 'history_edu',
+                label: 'Constitution',
+                dest: '/constitution',
             },
             {
                 icon: 'swap_horiz',
                 label: 'Conditional Trades',
                 dest: '/conditional',
             },
+        ]
+    },
+    {
+        icon: 'more_horiz',
+        label: 'More',
+        nest: true,
+        children: [
+            {
+                icon: 'article',
+                label: 'Blog',
+                dest: '/blog',
+            },
+            {
+                icon: 'lightbulb',
+                label: 'Resources',
+                dest: '/resources',
+            },
             {
                 icon: 'casino',
                 label: 'Side Bets',
                 dest: '/sidebets',
-            },
-            
-            {
-                icon: 'history_edu',
-                label: 'Constitution',
-                dest: '/constitution',
             },
             {
                 icon: 'sports_football',
@@ -118,10 +162,5 @@ export const tabs = [
                 dest: `https://sleeper.app/leagues/${leagueID}`,
             },
         ]
-    },
-    {
-        icon: 'lightbulb',
-        label: 'Resources',
-        dest: '/resources',
     },
 ];
