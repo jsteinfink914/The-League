@@ -85,6 +85,11 @@ export const tabs = [
                 label: 'Draft Analysis',
                 dest: '/draft_analysis',
             },
+            {
+                icon: 'emoji_people',
+                label: 'Manager Overview',
+                dest: '/manager_overview',
+            },
         ]
     },
     {
