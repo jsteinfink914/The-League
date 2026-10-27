@@ -140,6 +140,7 @@
 				>
 					<Icon class="material-icons">{tab.icon}</Icon>
 					<Label>{tab.label}</Label>
+					<Icon class="material-icons" style="font-size: 1.1em; margin-left: -6px;">{openLabel === tab.label ? 'expand_less' : 'expand_more'}</Icon>
 				</Tab>
 			</div>
 		{:else}

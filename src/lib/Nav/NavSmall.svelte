@@ -5,15 +5,25 @@
 	  Title,
 	} from '@smui/drawer';
 	import { Icon } from '@smui/tab';
-  	import List, { Item, Text, Graphic, Separator, Subheader } from '@smui/list';
+  	import List, { Item, Text, Graphic, Separator } from '@smui/list';
 	import { goto, preloadData } from '$app/navigation';
 	import { leagueName } from '$lib/utils/helper';
 	import { enableBlog } from '$lib/utils/leagueInfo';
-	
+
 	export let active, tabs;
 
 	let open = false;
 	let menuButton;
+
+	// Collapsible groups: label of the expanded group, or null. Default to the
+	// group containing the active tab so the current section starts open.
+	const groupOfActive = () => tabs.find((t) => t.nest && (t.children || []).some((c) => c.dest === active))?.label ?? null;
+	let expanded = groupOfActive();
+	$: if (active) expanded = groupOfActive() ?? expanded;
+
+	const toggleGroup = (label) => {
+		expanded = expanded === label ? null : label;
+	};
 
 	const selectTab = (event, tab) => {
 		if (tab.dest.startsWith('/')) {
@@ -72,6 +82,36 @@
 		color: #858585 !important;
 	}
 
+	.groupHeader {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		gap: 12px;
+		padding: 10px 16px;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+		font: inherit;
+		text-align: left;
+		color: inherit;
+	}
+
+	.groupHeader .groupLabel {
+		flex: 1;
+		font-size: 0.85em;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	:global(.groupHeader .chevron) {
+		transition: transform 0.2s;
+	}
+
+	:global(.groupHeader .chevron.open) {
+		transform: rotate(180deg);
+	}
+
 	.nav-back {
 		position: fixed;
 		z-index: 4;
@@ -124,18 +164,28 @@
 			{#each tabs as tab}
 				{#if tab.nest}
 					<Separator />
-					<Subheader>{tab.label}</Subheader>
-					{#each tab.children as subTab}
-						{#if subTab.label != 'Blog' || enableBlog}
-							<Item href={subTab.dest} on:click={(event) => selectTab(event, subTab)} activated={isActive(subTab)}  on:touchstart={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}} on:mouseover={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}}>
-								<Graphic class="material-icons{isActive(subTab) ? "" : " nav-item"}" aria-hidden="true">{subTab.icon}</Graphic>
-								<Text class="{isActive(subTab) ? "" : "nav-item"}">{subTab.label}</Text>
-							</Item>
-						{/if}
-					{/each}
+					<button
+						class="groupHeader"
+						type="button"
+						aria-expanded={expanded === tab.label}
+						on:click={() => toggleGroup(tab.label)}
+					>
+						<Graphic class="material-icons nav-item" aria-hidden="true">{tab.icon}</Graphic>
+						<span class="groupLabel">{tab.label}</span>
+						<Icon class="material-icons chevron {expanded === tab.label ? 'open' : ''}">expand_more</Icon>
+					</button>
+					{#if expanded === tab.label}
+						{#each tab.children as subTab}
+							{#if subTab.label != 'Blog' || enableBlog}
+								<Item href={subTab.dest} on:click={(event) => selectTab(event, subTab)} activated={isActive(subTab)}  on:touchstart={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}} on:mouseover={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}}>
+									<Graphic class="material-icons{isActive(subTab) ? "" : " nav-item"}" aria-hidden="true">{subTab.icon}</Graphic>
+									<Text class="{isActive(subTab) ? "" : "nav-item"}">{subTab.label}</Text>
+								</Item>
+							{/if}
+						{/each}
+					{/if}
 				{/if}
 			{/each}
 		</List>
 	</Content>
   </Drawer>
-	
