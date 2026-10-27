@@ -41,11 +41,6 @@ export const tabs = [
                 label: 'Manager Overview',
                 dest: '/manager_overview',
             },
-            {
-                icon: 'calendar_month',
-                label: 'Schedule',
-                dest: '/schedule',
-            },
         ]
     },
     {
@@ -123,6 +118,11 @@ export const tabs = [
                 icon: 'toll',
                 label: 'Lottery',
                 dest: '/lottery',
+            },
+            {
+                icon: 'calendar_month',
+                label: 'Schedule',
+                dest: '/schedule',
             },
             {
                 icon: 'history_edu',
