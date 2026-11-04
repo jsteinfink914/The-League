@@ -239,7 +239,7 @@
 
 <div class="page">
   <h1>Trade Analysis</h1>
-  <p class="subtitle">Post-trade outcomes — how many points did acquired assets produce?</p>
+  <p class="subtitle">Post-trade outcomes — only points produced from the week of the trade onward count</p>
 
   {#if loading}
     <div class="loading"><div class="spinner"></div><p>Crunching trade data across all seasons…</p><p class="sub">This traces every pick to the player drafted with it — may take a moment.</p></div>

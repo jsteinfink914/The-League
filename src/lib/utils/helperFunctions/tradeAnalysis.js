@@ -20,6 +20,11 @@ async function collectSeasonChain() {
 
 async function fetchAllTransactions(seasonChain) {
   const all = [];
+  // seasonID -> Map(week -> latest `created` timestamp in that week's bucket).
+  // Sleeper buckets a transaction by the week it was CREATED, so a trade that
+  // was proposed in one week but only completed after that week's activity
+  // ended actually belongs to the next week (see cutoff logic below).
+  const weekActivity = new Map();
   for (const { seasonID } of seasonChain) {
     const weekPromises = [];
     for (let w = 1; w <= 18; w++) {
@@ -27,13 +32,21 @@ async function fetchAllTransactions(seasonChain) {
     }
     const results = await allSettledWithConcurrency(weekPromises);
     const batches = requireCompleteWeekResults(results, `Trade analysis transactions for season ${seasonID}`);
-    for (const batch of batches) {
+    const seasonActivity = new Map();
+    batches.forEach((batch, weekIndex) => {
+      const week = weekIndex + 1;
       for (const t of batch) {
-        if (t && t.type === 'trade' && t.status !== 'failed') all.push({ ...t, _seasonID: seasonID });
+        if (!t) continue;
+        if (typeof t.created === 'number') {
+          const prev = seasonActivity.get(week);
+          if (prev == null || t.created > prev) seasonActivity.set(week, t.created);
+        }
+        if (t.type === 'trade' && t.status !== 'failed') all.push({ ...t, _seasonID: seasonID, _week: week });
       }
-    }
+    });
+    weekActivity.set(seasonID, seasonActivity);
   }
-  return all;
+  return { trades: all, weekActivity };
 }
 
 async function fetchSeasonMatchups(seasonID, playoffWeekStart) {
@@ -47,22 +60,46 @@ async function fetchSeasonMatchups(seasonID, playoffWeekStart) {
     .map((entries, i) => ({ week: i + 1, entries }));
 }
 
-async function buildPlayerPointsFromYear(seasonChain, tradeYear) {
-  const relevantSeasons = seasonChain.filter(s => s.year >= tradeYear);
-  const playerPoints = new Map();
-  const ensure = pid => { if (!playerPoints.has(pid)) playerPoints.set(pid, { starterPts: 0, rosterPts: 0 }); return playerPoints.get(pid); };
-  for (const { seasonID, playoffWeekStart } of relevantSeasons) {
+async function buildWeeklyPlayerPoints(seasonChain) {
+  // playerID -> Map(year -> Map(week -> { starterPts, rosterPts }))
+  const weeklyPoints = new Map();
+  const ensureWeek = (pid, year, week) => {
+    if (!weeklyPoints.has(pid)) weeklyPoints.set(pid, new Map());
+    const byYear = weeklyPoints.get(pid);
+    if (!byYear.has(year)) byYear.set(year, new Map());
+    const byWeek = byYear.get(year);
+    if (!byWeek.has(week)) byWeek.set(week, { starterPts: 0, rosterPts: 0 });
+    return byWeek.get(week);
+  };
+  for (const { seasonID, year, playoffWeekStart } of seasonChain) {
     const matchups = await fetchSeasonMatchups(seasonID, playoffWeekStart);
-    for (const { entries } of matchups) {
+    for (const { week, entries } of matchups) {
       for (const entry of entries) {
         const starters = entry.starters || [];
         const starterPtsArr = entry.starters_points || [];
-        for (const [pid, pts] of Object.entries(entry.players_points || {})) ensure(pid).rosterPts += pts || 0;
-        starters.forEach((pid, idx) => { if (pid) ensure(pid).starterPts += starterPtsArr[idx] || 0; });
+        for (const [pid, pts] of Object.entries(entry.players_points || {})) ensureWeek(pid, year, week).rosterPts += pts || 0;
+        starters.forEach((pid, idx) => { if (pid) ensureWeek(pid, year, week).starterPts += starterPtsArr[idx] || 0; });
       }
     }
   }
-  return playerPoints;
+  return weeklyPoints;
+}
+
+// Total a player's production from a trade onward: in the trade's own season,
+// only weeks from the trade's week onward count; later seasons count in full.
+function playerPointsSince(weeklyPoints, playerID, fromYear, fromWeek) {
+  const totals = { starterPts: 0, rosterPts: 0 };
+  const byYear = weeklyPoints.get(playerID);
+  if (!byYear) return totals;
+  for (const [year, byWeek] of byYear) {
+    if (year < fromYear) continue;
+    for (const [week, pts] of byWeek) {
+      if (year === fromYear && week < fromWeek) continue;
+      totals.starterPts += pts.starterPts;
+      totals.rosterPts += pts.rosterPts;
+    }
+  }
+  return totals;
 }
 
 async function fetchAllDraftsData(seasonChain) {
@@ -133,7 +170,7 @@ export async function buildTradeAnalysisData({ players }) {
     return { name: `${p.first_name} ${p.last_name}`, position: POSITIONS.includes(pos) ? pos : 'Other' };
   }
 
-  const [rawTrades, allDrafts] = await Promise.all([fetchAllTransactions(seasonChain), fetchAllDraftsData(seasonChain)]);
+  const [{ trades: rawTrades, weekActivity }, allDrafts] = await Promise.all([fetchAllTransactions(seasonChain), fetchAllDraftsData(seasonChain)]);
 
   const seenIDs = new Set();
   const uniqueTrades = [];
@@ -178,33 +215,42 @@ export async function buildTradeAnalysisData({ players }) {
 
     for (const side of Object.values(sides)) side.pendingPickCount = side.picks.filter(p => p.isPending).length;
 
+    // Points count from the week the trade COMPLETED. Sleeper's bucket is the
+    // creation week; if the trade completed after every transaction in that
+    // bucket was created (and the bucket had later activity than this trade's
+    // own creation), it really completed in the following week.
+    const bucketWeek = trade._week ?? null;
+    let cutoffWeek = bucketWeek ?? 1;
+    if (bucketWeek != null) {
+      const maxCreated = weekActivity.get(trade._seasonID)?.get(bucketWeek);
+      if (maxCreated != null && trade.status_updated > maxCreated && maxCreated > trade.created) cutoffWeek = bucketWeek + 1;
+    }
+
     const processedTrade = {
       id: trade.transaction_id,
       date: new Date(trade.status_updated).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-      timestamp: trade.status_updated, year: effectiveYear, sides: Object.values(sides)
+      timestamp: trade.status_updated, year: effectiveYear, week: cutoffWeek, sides: Object.values(sides)
     };
     processedTrades.push(processedTrade);
     if (!tradesByYear[effectiveYear]) tradesByYear[effectiveYear] = [];
     tradesByYear[effectiveYear].push(processedTrade);
   }
 
-  const yearPointsCache = new Map();
+  const weeklyPoints = await buildWeeklyPlayerPoints(seasonChain);
   for (const year of Object.keys(tradesByYear).map(Number).sort()) {
-    if (!yearPointsCache.has(year)) yearPointsCache.set(year, await buildPlayerPointsFromYear(seasonChain, year));
-    const playerPoints = yearPointsCache.get(year);
-
     for (const trade of tradesByYear[year]) {
+      const fromWeek = trade.week ?? 1;
       for (const side of trade.sides) {
         let starterPts = 0, rosterPts = 0;
         side.playerDetails = side.players.map(pid => {
           const info = getPlayerInfo(pid);
-          const pts = playerPoints.get(pid) || { starterPts: 0, rosterPts: 0 };
+          const pts = playerPointsSince(weeklyPoints, pid, year, fromWeek);
           starterPts += pts.starterPts; rosterPts += pts.rosterPts;
           return { playerID: pid, name: info.name, position: info.position, starterPts: Math.round(pts.starterPts * 10) / 10, rosterPts: Math.round(pts.rosterPts * 10) / 10 };
         });
         side.pickDetails = side.picks.map(pick => {
           const info = pick.resolvedPlayerID ? getPlayerInfo(pick.resolvedPlayerID) : null;
-          const pts = pick.resolvedPlayerID ? (playerPoints.get(pick.resolvedPlayerID) || { starterPts: 0, rosterPts: 0 }) : { starterPts: 0, rosterPts: 0 };
+          const pts = pick.resolvedPlayerID ? playerPointsSince(weeklyPoints, pick.resolvedPlayerID, year, fromWeek) : { starterPts: 0, rosterPts: 0 };
           if (pick.resolvedPlayerID) { starterPts += pts.starterPts; rosterPts += pts.rosterPts; }
           return { ...pick, resolvedName: info?.name || null, resolvedPosition: info?.position || null, starterPts: Math.round(pts.starterPts * 10) / 10, rosterPts: Math.round(pts.rosterPts * 10) / 10 };
         });
