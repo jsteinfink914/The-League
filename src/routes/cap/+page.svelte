@@ -1,10 +1,23 @@
 <script>
   import Papa from 'papaparse';
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
+
+  // Filters live in the URL query string so views are shareable.
+  const setParams = (updates) => {
+    const url = new URL($page.url);
+    for (const [k, v] of Object.entries(updates)) {
+      if (v == null || v === '') url.searchParams.delete(k);
+      else url.searchParams.set(k, v);
+    }
+    goto(url.pathname + url.search, { replaceState: true, keepFocus: true, noScroll: true });
+  };
+  const initParams = $page.url.searchParams;
 
   let years = [];
-  let selectedYear = "2026";
-  let searchQuery = "";
+  let selectedYear = initParams.get('year') || "2026";
+  let searchQuery = initParams.get('q') || "";
   let data = [];
   let previousYearData = [];
   let differenceData = [];
@@ -87,6 +100,7 @@
 
   function handleYearChange(event) {
     selectedYear = event.target.value;
+    setParams({ year: selectedYear === "2026" ? null : selectedYear });
     updateData();
   }
   function filterNames() {
@@ -99,6 +113,7 @@
 
   function handleSearchInput(event) {
     searchQuery = event.target.value.toLowerCase();
+    setParams({ q: searchQuery || null });
     filterNames();
     showDropdown = searchQuery.length > 0;
   }
@@ -247,7 +262,7 @@
   </select>
     <div style="position: relative; width: 100%;">
     <label for="year-select">Search:</label>
-    <input id="search-input" type="text" placeholder="Search players..." on:input={handleSearchInput} />
+    <input id="search-input" type="text" placeholder="Search players..." value={searchQuery} on:input={handleSearchInput} />
     {#if showDropdown && filteredNames.length > 0}
       <div class="dropdown">
         {#each filteredNames as name}
