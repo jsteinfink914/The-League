@@ -170,6 +170,6 @@
                 {/each}
             </Body>
         </DataTable>
-        <p class="sosNote">SOS (Pts) = average weekly points scored by the opponents each team has faced this season. SOS (Rec) = those opponents' combined win percentage. Higher means a tougher schedule either way.</p>
+        <p class="sosNote">SOS (Pts) = average weekly points scored by the opponents each team has faced this season. SOS (Rec) = those opponents' combined win percentage. Higher means a tougher schedule either way; the number in parentheses is the league rank (1 = toughest).</p>
     </div>
 {/if}

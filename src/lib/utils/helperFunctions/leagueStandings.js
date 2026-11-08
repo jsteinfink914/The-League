@@ -94,14 +94,22 @@ export const getLeagueStandings = async () => {
             const played = (s.wins || 0) + (s.losses || 0) + (s.ties || 0);
             return played ? ((s.wins || 0) + 0.5 * (s.ties || 0)) / played : 0;
         };
+        const sosRaw = {}, sosRecRaw = {};
         for(const rosterID in standings) {
             const faced = scheduleInfo.faced[rosterID] || [];
             if(faced.length) {
                 const oppPpgTotal = faced.reduce((sum, oppID) => sum + (scheduleInfo.games[oppID] ? scheduleInfo.points[oppID] / scheduleInfo.games[oppID] : 0), 0);
-                standings[rosterID].sos = round(oppPpgTotal / faced.length);
+                sosRaw[rosterID] = oppPpgTotal / faced.length;
                 const oppWinPctTotal = faced.reduce((sum, oppID) => sum + (standings[oppID] ? winPct(standings[oppID]) : 0), 0);
-                standings[rosterID].sosRecord = (Math.round((oppWinPctTotal / faced.length + Number.EPSILON) * 1000) / 1000).toFixed(3);
+                sosRecRaw[rosterID] = oppWinPctTotal / faced.length;
             }
+        }
+        // League rank for each flavor (1 = toughest schedule; ties share a rank),
+        // shown in parentheses next to the value.
+        const rankOf = (raw, rosterID) => 1 + Object.values(raw).filter(v => v > raw[rosterID]).length;
+        for(const rosterID in sosRaw) {
+            standings[rosterID].sos = `${round(sosRaw[rosterID])} (${rankOf(sosRaw, rosterID)})`;
+            standings[rosterID].sosRecord = `${(Math.round((sosRecRaw[rosterID] + Number.EPSILON) * 1000) / 1000).toFixed(3)} (${rankOf(sosRecRaw, rosterID)})`;
         }
     }
 
