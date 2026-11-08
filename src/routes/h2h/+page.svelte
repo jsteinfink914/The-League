@@ -11,7 +11,7 @@
 
     let selectedSeason = null;
     let selectedRoster = null;
-    let activeTab = 'stats';
+    let activeTab = 'luck';
 
     onMount(async () => {
         try {
@@ -115,9 +115,9 @@
     <p class="loading">{error}</p>
 {:else if data}
     <div class="tabBar">
-        <button class="tabBtn" class:active={activeTab === 'stats'} on:click={() => (activeTab = 'stats')}>Stats</button>
         <button class="tabBtn" class:active={activeTab === 'luck'} on:click={() => (activeTab = 'luck')}>Luck</button>
         <button class="tabBtn" class:active={activeTab === 'anatomy'} on:click={() => (activeTab = 'anatomy')}>Anatomy of a Record</button>
+        <button class="tabBtn" class:active={activeTab === 'stats'} on:click={() => (activeTab = 'stats')}>Stats</button>
     </div>
 
     {#if activeTab === 'stats'}
