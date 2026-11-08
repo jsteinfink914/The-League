@@ -11,6 +11,7 @@
 
     let selectedSeason = null;
     let selectedRoster = null;
+    let activeTab = 'stats';
 
     onMount(async () => {
         try {
@@ -78,7 +79,14 @@
             .sort((a, b) => b.luck - a.luck);
     };
 
-    const changeSeason = () => { selectedRoster = defaultRoster(selectedSeason); };
+    // Changing the year keeps the team you're looking at; it only falls
+    // back to that season's most extreme luck story if the team somehow
+    // isn't in the selected season.
+    const changeSeason = () => {
+        if (!data?.teamSeasons?.[`${selectedSeason}-${selectedRoster}`]) {
+            selectedRoster = defaultRoster(selectedSeason);
+        }
+    };
 
     const fmtR = (r) => (r > 0 ? `+${r.toFixed(2)}` : r.toFixed(2));
     const fmt1 = (n) => (Math.round(n * 10) / 10).toFixed(1);
@@ -106,6 +114,13 @@
 {:else if error}
     <p class="loading">{error}</p>
 {:else if data}
+    <div class="tabBar">
+        <button class="tabBtn" class:active={activeTab === 'stats'} on:click={() => (activeTab = 'stats')}>Stats</button>
+        <button class="tabBtn" class:active={activeTab === 'luck'} on:click={() => (activeTab = 'luck')}>Luck</button>
+        <button class="tabBtn" class:active={activeTab === 'anatomy'} on:click={() => (activeTab = 'anatomy')}>Anatomy of a Record</button>
+    </div>
+
+    {#if activeTab === 'stats'}
     <section>
         <h3>Point Correlation</h3>
         <p class="note">Across {data.laws.teamGames} team-games ({data.seasons[data.seasons.length - 1]}–{data.seasons[0]}): what actually tracks with winning — and how much it changes year to year.</p>
@@ -163,7 +178,9 @@
             </tbody>
         </table>
     </section>
+    {/if}
 
+    {#if activeTab === 'luck'}
     <section>
         <h3>Luck Over Time</h3>
         <div class="selectors">
@@ -186,7 +203,9 @@
             </tbody>
         </table>
     </section>
+    {/if}
 
+    {#if activeTab === 'anatomy'}
     <section>
         <h2>Anatomy of a Record</h2>
         <div class="selectors">
@@ -235,6 +254,7 @@
 
         {/if}
     </section>
+    {/if}
 {/if}
 
 <style>
@@ -246,6 +266,10 @@
     .note.inline { font-size: 0.75em; font-weight: normal; }
     .loading { display: block; margin: 80px auto; text-align: center; }
     section { margin-bottom: 1.6em; }
+    .tabBar { display: flex; gap: 0.4em; flex-wrap: wrap; margin: 1em 0 0.4em; border-bottom: 2px solid #ddd; }
+    .tabBtn { background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 0.45em 0.8em; font-size: 1.05em; font-weight: bold; color: #555; cursor: pointer; }
+    .tabBtn:hover { color: #222; }
+    .tabBtn.active { color: #222; border-bottom-color: #2e86c1; }
     .dataTable { border-collapse: collapse; width: 100%; max-width: 720px; margin: 0.4em 0 0.8em; }
     .dataTable th, .dataTable td { border: 1px solid #ddd; padding: 0.35em 0.55em; text-align: left; font-size: 0.95em; }
     .dataTable th { background: #f4f4f4; }
@@ -295,5 +319,9 @@
         .tileVal.cold { color: #5dade2; }
         .edgeBar { background: #5dade2; }
         .edgeBar.neg { background: #e74c3c; }
+        .tabBar { border-bottom-color: #444; }
+        .tabBtn { color: #aaa; }
+        .tabBtn:hover { color: #eee; }
+        .tabBtn.active { color: #eee; border-bottom-color: #5dade2; }
     }
 </style>

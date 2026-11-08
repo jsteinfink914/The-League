@@ -2,6 +2,7 @@ import { leagueID } from '$lib/utils/leagueInfo';
 import { getLeagueTeamManagers } from './leagueTeamManagers';
 import { allSettledWithConcurrency, fetchJson } from './request';
 import { requireCompleteWeekResults } from './completeWeekResults';
+import { effectiveTradeWeek } from './tradeWeek';
 
 const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
 
@@ -215,16 +216,8 @@ export async function buildTradeAnalysisData({ players }) {
 
     for (const side of Object.values(sides)) side.pendingPickCount = side.picks.filter(p => p.isPending).length;
 
-    // Points count from the week the trade COMPLETED. Sleeper's bucket is the
-    // creation week; if the trade completed after every transaction in that
-    // bucket was created (and the bucket had later activity than this trade's
-    // own creation), it really completed in the following week.
-    const bucketWeek = trade._week ?? null;
-    let cutoffWeek = bucketWeek ?? 1;
-    if (bucketWeek != null) {
-      const maxCreated = weekActivity.get(trade._seasonID)?.get(bucketWeek);
-      if (maxCreated != null && trade.status_updated > maxCreated && maxCreated > trade.created) cutoffWeek = bucketWeek + 1;
-    }
+    // Points count from the week the trade COMPLETED (see tradeWeek.js).
+    const cutoffWeek = effectiveTradeWeek(trade, weekActivity);
 
     const processedTrade = {
       id: trade.transaction_id,

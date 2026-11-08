@@ -46,6 +46,8 @@
   "scripts": {
     "dev": "vite dev",
     "gen-cap-history": "node scripts/generate-cap-history.js",
+    "test": "node --test",
+    "check:managers": "node scripts/check-manager-names.mjs",
     "values:fetch": "node scripts/fetch-fantasypros-values.js",
     "build": "vite build",
     "build-docker": "DOCKER_BUILD=true vite build --verbose",

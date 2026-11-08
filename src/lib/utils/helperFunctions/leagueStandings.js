@@ -5,7 +5,7 @@ import { getLeagueRosters } from "./leagueRosters"
 import { waitForAll } from './multiPromise';
 import { get } from 'svelte/store';
 import {standingsStore} from '$lib/stores';
-import { round } from './universalFunctions';
+import { expectedWinsByRoster, luckValue, sosValues, roundTo } from './standingsMath';
 
 export const getLeagueStandings = async () => {
 	if(get(standingsStore).standingsInfo) {
@@ -36,10 +36,12 @@ export const getLeagueStandings = async () => {
             wins: roster.settings.wins,
             losses: roster.settings.losses,
             ties: roster.settings.ties,
-            fpts: round(roster.settings.fpts + (roster.settings.fpts_decimal / 100)),
-            fptsAgainst: round(roster.settings.fpts_against + (roster.settings.fpts_against_decimal / 100)),
+            fpts: roundTo(roster.settings.fpts + (roster.settings.fpts_decimal / 100), 2),
+            fptsAgainst: roundTo(roster.settings.fpts_against + (roster.settings.fpts_against_decimal / 100), 2),
             sos: 0,
+            sosRank: 0,
             sosRecord: 0,
+            sosRecordRank: 0,
             luck: 0,
             streak: roster.metadata?.streak || 0,
             divisionWins: divisions ? 0 : null,
@@ -86,50 +88,16 @@ export const getLeagueStandings = async () => {
             standings = processStandings(matchup, standings, rosters, scheduleInfo);
         }
 
-        // Strength of schedule, two flavors, both averaged over the opponents
-        // each team has faced this season (facing an opponent twice counts
-        // them twice). Higher means a tougher slate of opponents either way.
-        //   sos:       the faced opponents' average weekly score
-        //   sosRecord: the faced opponents' combined win percentage
-        const winPct = (s) => {
-            const played = (s.wins || 0) + (s.losses || 0) + (s.ties || 0);
-            return played ? ((s.wins || 0) + 0.5 * (s.ties || 0)) / played : 0;
-        };
-        const sosRaw = {}, sosRecRaw = {};
+        // Strength of schedule (both flavors) and luck, as raw numbers —
+        // the Standings page formats them for display. Math lives in
+        // standingsMath.js so it can be unit tested.
+        const sos = sosValues(standings, scheduleInfo);
+        for(const rosterID in sos) {
+            Object.assign(standings[rosterID], sos[rosterID]);
+        }
+        const expectedWins = expectedWinsByRoster(scheduleInfo.weekScores || []);
         for(const rosterID in standings) {
-            const faced = scheduleInfo.faced[rosterID] || [];
-            if(faced.length) {
-                const oppPpgTotal = faced.reduce((sum, oppID) => sum + (scheduleInfo.games[oppID] ? scheduleInfo.points[oppID] / scheduleInfo.games[oppID] : 0), 0);
-                sosRaw[rosterID] = oppPpgTotal / faced.length;
-                const oppWinPctTotal = faced.reduce((sum, oppID) => sum + (standings[oppID] ? winPct(standings[oppID]) : 0), 0);
-                sosRecRaw[rosterID] = oppWinPctTotal / faced.length;
-            }
-        }
-        // League rank for each flavor (1 = toughest schedule; ties share a rank),
-        // shown in parentheses next to the value.
-        const rankOf = (raw, rosterID) => 1 + Object.values(raw).filter(v => v > raw[rosterID]).length;
-        for(const rosterID in sosRaw) {
-            standings[rosterID].sos = `${round(sosRaw[rosterID])} (${rankOf(sosRaw, rosterID)})`;
-            standings[rosterID].sosRecord = `${(Math.round((sosRecRaw[rosterID] + Number.EPSILON) * 1000) / 1000).toFixed(3)} (${rankOf(sosRecRaw, rosterID)})`;
-        }
-
-        // Luck: actual wins (ties count half) minus all-play expected wins.
-        // For every week, a team earns the share of the other teams in the
-        // league that its score would have beaten (ties half); the weekly
-        // shares sum to expected wins. Positive luck = running hot.
-        const expectedWins = {};
-        for(const weekScores of (scheduleInfo.weekScores || [])) {
-            for(const mine of weekScores) {
-                const others = weekScores.filter((s) => s.rosterID !== mine.rosterID);
-                if(!others.length) continue;
-                const share = others.reduce((sum, o) => sum + (mine.points > o.points ? 1 : mine.points === o.points ? 0.5 : 0), 0) / others.length;
-                expectedWins[mine.rosterID] = (expectedWins[mine.rosterID] || 0) + share;
-            }
-        }
-        for(const rosterID in standings) {
-            const actualWins = (standings[rosterID].wins || 0) + 0.5 * (standings[rosterID].ties || 0);
-            const luck = Math.round(((actualWins - (expectedWins[rosterID] || 0)) + Number.EPSILON) * 10) / 10;
-            standings[rosterID].luck = `${luck > 0 ? '+' : ''}${luck.toFixed(1)}`;
+            standings[rosterID].luck = luckValue(standings[rosterID].wins, standings[rosterID].ties, expectedWins[rosterID]);
         }
     }
 

@@ -37,6 +37,6 @@
         </div>
     </Cell>
     {#each columnOrder as column}
-        <Cell class="center">{standing[column.field]}</Cell>
+        <Cell class="center">{column.format ? column.format(standing) : standing[column.field]}</Cell>
     {/each}
 </Row>

@@ -1,5 +1,5 @@
 <script>
-    import { leagueName, round } from '$lib/utils/helper';
+    import { leagueName } from '$lib/utils/helper';
     import { getTeamFromTeamManagers } from '$lib/utils/helperFunctions/universalFunctions';
     import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
     import LinearProgress from '@smui/linear-progress';
@@ -11,6 +11,10 @@
     // Least important to most important (i.e. the most important [usually wins] goes last)
     const sortOrder = ["fptsAgainst", "divisionTies", "divisionWins", "fpts", "ties", "wins"];
 
+    // Display formatting lives here, at render time — the standings data
+    // itself stays numeric so sorting and comparisons never see text.
+    const fmt2 = (v) => (Math.round((v + Number.EPSILON) * 100) / 100).toFixed(2);
+
     // Column order from left to right
     const columnOrder = [
         { name: "W", field: "wins" },
@@ -19,11 +23,11 @@
         { name: "Div W", field: "divisionWins" },
         { name: "Div T", field: "divisionTies" },
         { name: "Div L", field: "divisionLosses" },
-        { name: "FPTS", field: "fpts" },
-        { name: "FPTS Against", field: "fptsAgainst" },
-        { name: "SOS (Pts)", field: "sos" },
-        { name: "SOS (Rec)", field: "sosRecord" },
-        { name: "Luck", field: "luck" },
+        { name: "FPTS", field: "fpts", format: (row) => fmt2(row.fpts) },
+        { name: "FPTS Against", field: "fptsAgainst", format: (row) => fmt2(row.fptsAgainst) },
+        { name: "SOS (Pts)", field: "sos", format: (row) => `${fmt2(row.sos)} (${row.sosRank})` },
+        { name: "SOS (Rec)", field: "sosRecord", format: (row) => `${row.sosRecord.toFixed(3)} (${row.sosRecordRank})` },
+        { name: "Luck", field: "luck", format: (row) => `${row.luck > 0 ? '+' : ''}${row.luck.toFixed(1)}` },
         { name: "Streak", field: "streak" }
     ];
 
@@ -69,19 +73,15 @@
             sortDirection = 'asc'; // Default to ascending on new column
         }
 
-        // Apply sorting based on the column and direction.
-        // Points totals and SOS values are strings (e.g. "1102.40",
-        // "112.41 (6)"), so compare them by their numeric value — as raw
-        // text, "987.65" would wrongly sort above "1102.40". Non-numeric
-        // values (streaks, etc.) fall back to plain text comparison.
+        // Apply sorting based on the column and direction. Values are
+        // numbers in the data (formatting happens at render), so numeric
+        // columns compare numerically; text (streaks) compares as text.
         standings = [...standings].sort((a, b) => {
             const valA = a[columnField];
             const valB = b[columnField];
-            const numA = parseFloat(valA);
-            const numB = parseFloat(valB);
-            const cmp = (!isNaN(numA) && !isNaN(numB))
-                ? (numA < numB ? -1 : numA > numB ? 1 : 0)
-                : (valA < valB ? -1 : valA > valB ? 1 : 0);
+            const cmp = (typeof valA === 'number' && typeof valB === 'number')
+                ? valA - valB
+                : String(valA).localeCompare(String(valB));
 
             return sortDirection === 'asc' ? cmp : -cmp;
         });

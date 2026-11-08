@@ -5,6 +5,7 @@
   import { buildCapAnalysisData } from '$lib/utils/helperFunctions/capAnalysis';
   import { buildTradeAnalysisData } from '$lib/utils/helperFunctions/tradeAnalysis';
   import { buildDraftAnalysisData } from '$lib/utils/helperFunctions/draftAnalysis';
+  import { buildCombined } from '$lib/utils/helperFunctions/managerOverview';
   import {
     buildRookieContracts,
     buildValueIndexes,
@@ -34,72 +35,6 @@
 
   function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
   function chartTheme() { return { textColor: cssVar('--g333') || '#333', gridColor: cssVar('--ddd') || '#ddd' }; }
-
-  function rankArray(arr, key, ascending = false) {
-    const valid = arr.filter(a => a[key] != null);
-    const sorted = [...valid].sort((a, b) => ascending ? a[key] - b[key] : b[key] - a[key]);
-    const result = {};
-    sorted.forEach((item, i) => { result[item.manager] = i + 1; });
-    return result;
-  }
-
-  function buildCombined() {
-    if (!capData || !tradeData || !draftData) return [];
-
-    // Aggregate cap efficiency across ALL historical seasons per manager
-    const careerCapMap = new Map();
-    for (const entry of capData.seasonTrends || []) {
-      if (!entry.manager) continue;
-      if (!careerCapMap.has(entry.manager)) careerCapMap.set(entry.manager, { capHit: 0, starterPts: 0, rosterPts: 0 });
-      const a = careerCapMap.get(entry.manager);
-      a.capHit += entry.capHit || 0;
-      a.starterPts += entry.starterPts || 0;
-      a.rosterPts += entry.rosterPts || 0;
-    }
-    const careerCapEfficiency = [...careerCapMap.entries()].map(([manager, a]) => ({
-      manager,
-      capHit: a.capHit,
-      starterPts: Math.round(a.starterPts * 10) / 10,
-      rosterPts: Math.round(a.rosterPts * 10) / 10,
-      dollarPerStarterPt: a.starterPts > 0 ? Math.round((a.capHit / a.starterPts) * 100) / 100 : null,
-    }));
-
-    const allManagers = [...new Set([
-      ...careerCapEfficiency.map(t => t.manager),
-      ...tradeData.teamSummary.map(t => t.manager),
-      ...draftData.teamSummary.map(t => t.manager)
-    ])].sort();
-
-    const capRanks = rankArray(careerCapEfficiency.filter(t => t.dollarPerStarterPt != null), 'dollarPerStarterPt', true);
-    const tradeRanks = rankArray(tradeData.teamSummary, 'netStarterSurplus', false);
-    const draftRanks = rankArray(draftData.teamSummary, 'totalStarterPts', false);
-
-    return allManagers.map(mgr => {
-      const cap = careerCapEfficiency.find(t => t.manager === mgr);
-      const trade = tradeData.teamSummary.find(t => t.manager === mgr);
-      const draft = draftData.teamSummary.find(t => t.manager === mgr);
-
-      const capRank = capRanks[mgr] ?? null;
-      const tradeRank = tradeRanks[mgr] ?? null;
-      const draftRank = draftRanks[mgr] ?? null;
-
-      const ranks = [capRank, tradeRank, draftRank].filter(r => r != null);
-      const avgRank = ranks.length > 0 ? Math.round((ranks.reduce((s, r) => s + r, 0) / ranks.length) * 10) / 10 : null;
-
-      return {
-        manager: mgr, capRank, tradeRank, draftRank, avgRank,
-        dollarPerStarterPt: cap?.dollarPerStarterPt ?? null,
-        capStarterPts: cap?.starterPts ?? 0,
-        netTradeSurplus: trade?.netStarterSurplus ?? 0,
-        totalReceivedStarter: trade?.totalReceivedStarter ?? 0,
-        tradeCount: trade?.tradeCount ?? 0,
-        draftTotalPts: draft?.totalStarterPts ?? 0,
-        draftAvgPtsPerPick: draft?.avgStarterPtsPerPick ?? 0,
-        bestDraftPick: draft?.bestPick ?? null,
-        pendingPickCount: trade?.pendingPickCount ?? 0,
-      };
-    });
-  }
 
   $: sortedCombined = [...combined].sort((a, b) => {
     const av = a[overviewSortKey] ?? (overviewSortDir === 1 ? Infinity : -Infinity);
@@ -212,7 +147,7 @@
       loadingStep = 'Building draft analysis…';
       draftData = await buildDraftAnalysisData({ players: nflPlayers });
 
-      combined = buildCombined();
+      combined = buildCombined(capData, tradeData, draftData);
     } catch (e) {
       console.error(e);
       error = e.message;
