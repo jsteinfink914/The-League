@@ -116,7 +116,7 @@
         <div class="splitGrid">
             {#each data.laws.splits as s}
                 <div class="splitCard">
-                    <div class="splitTitle">Their {s.pos}s score {s.threshold}+</div>
+                    <div class="splitTitle">Their {s.pos}s score <strong class="splitThreshold">{s.threshold}+</strong></div>
                     <div class="splitBig">{s.hiWinPct}% <span class="splitLabel">win rate</span></div>
                     <div class="splitSub">vs {s.loWinPct}% when they don't · {s.hiN} games</div>
                 </div>
@@ -124,13 +124,13 @@
         </div>
         <table class="dataTable">
             <thead>
-                <tr><th>Season</th>{#each data.groups as pos}<th>Their {pos} goes off</th>{/each}</tr>
+                <tr><th>Season</th>{#each data.laws.splits as s}<th>Their {s.pos} <strong>{s.threshold}+</strong></th>{/each}</tr>
             </thead>
             <tbody>
                 {#each data.laws.splitsBySeason as row}
                     <tr>
                         <td>{row.season}</td>
-                        {#each row.splits as s}<td>{s.n ? `${s.winPct}% (${s.n})` : '—'}</td>{/each}
+                        {#each row.splits as s}<td>{s.n ? `${s.winPct}%` : '—'}{#if s.n} <span class="gamesN">({s.n})</span>{/if}</td>{/each}
                     </tr>
                 {/each}
             </tbody>
@@ -235,7 +235,9 @@
     .splitGrid { display: flex; flex-wrap: wrap; gap: 0.6em; margin: 0.4em 0 0.8em; }
     .splitCard { border: 1px solid #ddd; border-radius: 8px; padding: 0.6em 0.85em; min-width: 150px; flex: 1; max-width: 220px; }
     .splitTitle { font-size: 0.85em; color: #555; }
-    .splitBig { font-size: 1.6em; font-weight: bold; margin: 0.15em 0; }
+    .splitThreshold { font-size: 1.35em; color: #222; }
+    .splitBig { font-size: 1.6em; font-weight: normal; margin: 0.15em 0; }
+    .gamesN { color: #555; font-size: 0.85em; }
     .splitLabel { font-size: 0.5em; font-weight: normal; color: #555; }
     .splitSub { font-size: 0.8em; color: #555; }
     .selectors { display: flex; gap: 1em; margin: 0.5em 0 1em; flex-wrap: wrap; }
@@ -263,7 +265,8 @@
 
     /* Dark mode: follow the OS setting, same as the site's SMUI dark theme. */
     @media (prefers-color-scheme: dark) {
-        .note, .splitTitle, .splitSub, .splitLabel, .teamRecord, .tileRank, .tileLabel { color: #aaa; }
+        .note, .splitTitle, .splitSub, .splitLabel, .teamRecord, .tileRank, .tileLabel, .gamesN { color: #aaa; }
+        .splitThreshold { color: #eee; }
         .dataTable th, .dataTable td { border-color: #444; }
         .dataTable th { background: #1e1e1e; }
         .dataTable tr.pooled { background: #242424; }
