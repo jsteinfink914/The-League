@@ -53,6 +53,17 @@
     };
     $: maxEdge = team ? Math.max(5, ...Object.values(team.edges).map((v) => Math.abs(v))) : 5;
 
+    const fmtLuck = (v) => `${v > 0 ? '+' : ''}${fmt1(v)}`;
+    $: seasonsAsc = data ? [...data.seasons].sort((a, b) => a - b) : [];
+    $: luckRows = data
+        ? [...new Set(Object.values(data.teamSeasons).map((t) => t.rosterID))]
+            .map((rosterID) => {
+                const values = seasonsAsc.map((s) => data.teamSeasons[`${s}-${rosterID}`]?.luck ?? null);
+                return { rosterID, name: teamName(data.currentYear, rosterID), values, total: values.reduce((sum, v) => sum + (v || 0), 0) };
+            })
+            .sort((a, b) => b.total - a.total)
+        : [];
+
     const changeSeason = () => { selectedRoster = defaultRoster(selectedSeason); };
 
     const fmtR = (r) => (r > 0 ? `+${r.toFixed(2)}` : r.toFixed(2));
@@ -140,6 +151,25 @@
     </section>
 
     <section>
+        <h3>Luck Over Time</h3>
+        <p class="note">Every team's luck by season — actual wins minus all-play expected wins. Positive means the schedule handed them wins; negative means their scoring deserved better. Sorted by all-time luck.</p>
+        <table class="dataTable">
+            <thead>
+                <tr><th>Team</th>{#each seasonsAsc as s}<th>{s}</th>{/each}<th>All-time</th></tr>
+            </thead>
+            <tbody>
+                {#each luckRows as row}
+                    <tr>
+                        <td>{row.name}</td>
+                        {#each row.values as v}<td>{v == null ? '—' : fmtLuck(v)}</td>{/each}
+                        <td><strong>{fmtLuck(row.total)}</strong></td>
+                    </tr>
+                {/each}
+            </tbody>
+        </table>
+    </section>
+
+    <section>
         <h2>Anatomy of a Record</h2>
         <div class="selectors">
             <label>Season
@@ -191,19 +221,19 @@
 
 <style>
     h1 { font-size: 2.2em; line-height: 1.3em; margin: 1.5em 0 0.3em; }
-    h2 { margin: 1.6em 0 0.4em; }
-    h3 { margin: 1.4em 0 0.4em; }
+    h2 { margin: 1.3em 0 0.35em; }
+    h3 { margin: 1.1em 0 0.35em; }
     .intro { max-width: 720px; }
     .note { font-size: 0.85em; font-style: italic; color: #555; max-width: 720px; }
     .note.inline { font-size: 0.75em; font-weight: normal; }
     .loading { display: block; margin: 80px auto; text-align: center; }
-    section { margin-bottom: 2.5em; }
-    .dataTable { border-collapse: collapse; width: 100%; max-width: 720px; margin: 0.5em 0 1em; }
-    .dataTable th, .dataTable td { border: 1px solid #ddd; padding: 0.4em 0.6em; text-align: left; font-size: 0.95em; }
+    section { margin-bottom: 1.6em; }
+    .dataTable { border-collapse: collapse; width: 100%; max-width: 720px; margin: 0.4em 0 0.8em; }
+    .dataTable th, .dataTable td { border: 1px solid #ddd; padding: 0.35em 0.55em; text-align: left; font-size: 0.95em; }
     .dataTable th { background: #f4f4f4; }
     .dataTable tr.pooled { font-weight: bold; background: #fafafa; }
-    .splitGrid { display: flex; flex-wrap: wrap; gap: 0.75em; margin: 0.5em 0 1em; }
-    .splitCard { border: 1px solid #ddd; border-radius: 8px; padding: 0.75em 1em; min-width: 150px; flex: 1; max-width: 220px; }
+    .splitGrid { display: flex; flex-wrap: wrap; gap: 0.6em; margin: 0.4em 0 0.8em; }
+    .splitCard { border: 1px solid #ddd; border-radius: 8px; padding: 0.6em 0.85em; min-width: 150px; flex: 1; max-width: 220px; }
     .splitTitle { font-size: 0.85em; color: #555; }
     .splitBig { font-size: 1.6em; font-weight: bold; margin: 0.15em 0; }
     .splitLabel { font-size: 0.5em; font-weight: normal; color: #555; }
@@ -215,8 +245,8 @@
     .teamName { font-size: 1.3em; font-weight: bold; }
     .teamRecord { font-size: 1.3em; color: #555; }
     .verdict { max-width: 720px; font-size: 1.05em; }
-    .tileGrid { display: flex; flex-wrap: wrap; gap: 0.75em; margin: 1em 0; }
-    .tile { border: 1px solid #ddd; border-radius: 8px; padding: 0.7em 1em; min-width: 140px; flex: 1; max-width: 200px; }
+    .tileGrid { display: flex; flex-wrap: wrap; gap: 0.6em; margin: 0.8em 0; }
+    .tile { border: 1px solid #ddd; border-radius: 8px; padding: 0.6em 0.9em; min-width: 140px; flex: 1; max-width: 200px; }
     .tileVal { font-size: 1.4em; font-weight: bold; }
     .tileVal.hot { color: #c0392b; }
     .tileVal.cold { color: #2471a3; }

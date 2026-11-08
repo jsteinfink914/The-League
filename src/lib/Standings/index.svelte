@@ -23,6 +23,7 @@
         { name: "FPTS Against", field: "fptsAgainst" },
         { name: "SOS (Pts)", field: "sos" },
         { name: "SOS (Rec)", field: "sosRecord" },
+        { name: "Luck", field: "luck" },
         { name: "Streak", field: "streak" }
     ];
 
@@ -177,6 +178,6 @@
                 {/each}
             </Body>
         </DataTable>
-        <p class="sosNote">SOS (Pts) = average weekly points scored by the opponents each team has faced this season. SOS (Rec) = those opponents' combined win percentage. Higher means a tougher schedule either way; the number in parentheses is the league rank (1 = toughest).</p>
+        <p class="sosNote">SOS (Pts) = average weekly points scored by the opponents each team has faced this season. SOS (Rec) = those opponents' combined win percentage. Higher means a tougher schedule either way; the number in parentheses is the league rank (1 = toughest). Luck = wins minus all-play expected wins — positive means the schedule has handed them wins, negative means their scoring deserved better.</p>
     </div>
 {/if}

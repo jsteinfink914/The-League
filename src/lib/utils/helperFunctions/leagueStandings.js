@@ -40,6 +40,7 @@ export const getLeagueStandings = async () => {
             fptsAgainst: round(roster.settings.fpts_against + (roster.settings.fpts_against_decimal / 100)),
             sos: 0,
             sosRecord: 0,
+            luck: 0,
             streak: roster.metadata?.streak || 0,
             divisionWins: divisions ? 0 : null,
             divisionLosses: divisions ? 0 : null,
@@ -111,6 +112,25 @@ export const getLeagueStandings = async () => {
             standings[rosterID].sos = `${round(sosRaw[rosterID])} (${rankOf(sosRaw, rosterID)})`;
             standings[rosterID].sosRecord = `${(Math.round((sosRecRaw[rosterID] + Number.EPSILON) * 1000) / 1000).toFixed(3)} (${rankOf(sosRecRaw, rosterID)})`;
         }
+
+        // Luck: actual wins (ties count half) minus all-play expected wins.
+        // For every week, a team earns the share of the other teams in the
+        // league that its score would have beaten (ties half); the weekly
+        // shares sum to expected wins. Positive luck = running hot.
+        const expectedWins = {};
+        for(const weekScores of (scheduleInfo.weekScores || [])) {
+            for(const mine of weekScores) {
+                const others = weekScores.filter((s) => s.rosterID !== mine.rosterID);
+                if(!others.length) continue;
+                const share = others.reduce((sum, o) => sum + (mine.points > o.points ? 1 : mine.points === o.points ? 0.5 : 0), 0) / others.length;
+                expectedWins[mine.rosterID] = (expectedWins[mine.rosterID] || 0) + share;
+            }
+        }
+        for(const rosterID in standings) {
+            const actualWins = (standings[rosterID].wins || 0) + 0.5 * (standings[rosterID].ties || 0);
+            const luck = Math.round(((actualWins - (expectedWins[rosterID] || 0)) + Number.EPSILON) * 10) / 10;
+            standings[rosterID].luck = `${luck > 0 ? '+' : ''}${luck.toFixed(1)}`;
+        }
     }
 
 	const response = {
@@ -136,6 +156,10 @@ const processStandings = (matchup, standingsData, rosters, scheduleInfo) => {
 			division: rosters[rosterID].settings.division,
 			points: match.points,
 		})
+	}
+
+	if(scheduleInfo) {
+		(scheduleInfo.weekScores = scheduleInfo.weekScores || []).push(matchup.map((m) => ({ rosterID: m.roster_id, points: m.points || 0 })));
 	}
 
 	for(const matchupKey in matchups) {
