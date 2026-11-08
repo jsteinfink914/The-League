@@ -85,6 +85,11 @@ export const tabs = [
                 label: 'Manager Overview',
                 dest: '/manager_overview',
             },
+            {
+                icon: 'insights',
+                label: 'H2H',
+                dest: '/h2h',
+            },
         ]
     },
     {
