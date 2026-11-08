@@ -1,6 +1,8 @@
 <script>
   import Papa from 'papaparse';
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
   import { Chart, registerables } from 'chart.js';
   import { leagueID } from '$lib/utils/leagueInfo';
   import {
@@ -46,7 +48,16 @@
     : 0;
 
   let managers = [];
-  let selectedManager = "";
+  // The manager filter lives in the URL query string so the view is shareable.
+  const setParams = (updates) => {
+    const url = new URL($page.url);
+    for (const [k, v] of Object.entries(updates)) {
+      if (v == null || v === '') url.searchParams.delete(k);
+      else url.searchParams.set(k, v);
+    }
+    goto(url.pathname + url.search, { replaceState: true, keepFocus: true, noScroll: true });
+  };
+  let selectedManager = $page.url.searchParams.get('manager') || "";
   let managerRosters = {};
   let totalValues = [];
   let chart;
@@ -480,7 +491,7 @@
   </div>
   <div class="dropdown-container">
     <h4>Team Value</h4>
-    <select bind:value={selectedManager}>
+    <select value={selectedManager} on:change={(e) => { selectedManager = e.target.value; setParams({ manager: selectedManager || null }); }}>
       <option value="" disabled>Select Manager</option>
       {#each managers as manager}
         <option value={manager}>{manager}</option>

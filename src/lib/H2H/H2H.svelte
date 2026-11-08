@@ -29,7 +29,7 @@
             selectedRoster = data.teamSeasons[`${selectedSeason}-${teamParam}`] ? teamParam : defaultRoster(selectedSeason);
             if (seasonParam && data.seasons.includes(seasonParam)) luckSeason = seasonParam;
             const sortParam = params.get('sort');
-            if (['name', 'wins', 'expectedWins', 'luck'].includes(sortParam)) luckSortKey = sortParam;
+            if (['wins', 'expectedWins', 'luck'].includes(sortParam)) luckSortKey = sortParam;
             if (params.get('dir') === 'asc') luckSortDir = 1;
             else if (params.get('dir') === 'desc') luckSortDir = -1;
         } catch (err) {
@@ -81,17 +81,15 @@
     let luckSeason = 'all';
     let luckSortKey = 'luck';
     let luckSortDir = -1;
-    $: luckRows = data ? sortLuck(buildLuckRows(luckSeason)) : [];
-    const sortLuck = (rows) => [...rows].sort((a, b) => luckSortKey === 'name'
-        ? a.name.localeCompare(b.name) * luckSortDir
-        : (a[luckSortKey] - b[luckSortKey]) * luckSortDir);
+    $: luckRows = data ? buildLuckRows(luckSeason) : [];
+    const sortLuck = (rows, key, dir) => [...rows].sort((a, b) => (a[key] - b[key]) * dir);
     const sortLuckBy = (key) => {
         if (luckSortKey === key) luckSortDir = -luckSortDir;
-        else { luckSortKey = key; luckSortDir = key === 'name' ? 1 : -1; }
+        else { luckSortKey = key; luckSortDir = -1; }
         const isDefault = luckSortKey === 'luck' && luckSortDir === -1;
         setParams({ sort: isDefault ? null : luckSortKey, dir: isDefault ? null : (luckSortDir === 1 ? 'asc' : 'desc') });
     };
-    const luckArrow = (key) => (luckSortKey === key ? (luckSortDir === -1 ? ' ▼' : ' ▲') : '');
+    const luckArrow = (key, cur, dir) => (cur === key ? (dir === -1 ? ' ▼' : ' ▲') : '');
     const buildLuckRows = (sel) => {
         if (sel === 'all') {
             return [...new Set(Object.values(data.teamSeasons).map((t) => t.rosterID))]
@@ -229,10 +227,10 @@
         <p class="note">Actual wins minus all-play expected wins — positive means the schedule handed them wins, negative means their scoring deserved better. Click a column header to sort.</p>
         <table class="dataTable">
             <thead>
-                <tr><th class="sortable" on:click={() => sortLuckBy('name')}>Team{luckArrow('name')}</th><th class="sortable" on:click={() => sortLuckBy('wins')}>Wins{luckArrow('wins')}</th><th class="sortable" on:click={() => sortLuckBy('expectedWins')}>Exp. Wins{luckArrow('expectedWins')}</th><th class="sortable" on:click={() => sortLuckBy('luck')}>Luck{luckArrow('luck')}</th></tr>
+                <tr><th>Team</th><th class="sortable" on:click={() => sortLuckBy('wins')}>Wins{luckArrow('wins', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('expectedWins')}>Exp. Wins{luckArrow('expectedWins', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('luck')}>Luck{luckArrow('luck', luckSortKey, luckSortDir)}</th></tr>
             </thead>
             <tbody>
-                {#each luckRows as row}
+                {#each sortLuck(luckRows, luckSortKey, luckSortDir) as row}
                     <tr><td>{row.name}</td><td>{fmtWins(row.wins)}</td><td>{fmt2(row.expectedWins)}</td><td><strong>{fmtLuck(row.luck)}</strong></td></tr>
                 {/each}
             </tbody>
