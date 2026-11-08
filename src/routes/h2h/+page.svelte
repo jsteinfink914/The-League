@@ -26,8 +26,13 @@
         loading = false;
     });
 
-    const teamName = (season, rosterID) => teamManagers?.[season]?.[rosterID]?.team?.name || `Team ${rosterID}`;
-    const teamAvatar = (season, rosterID) => teamManagers?.[season]?.[rosterID]?.team?.avatar;
+    const teamInfo = (season, rosterID) => teamManagers?.teamManagersMap?.[season]?.[rosterID];
+    const teamName = (season, rosterID) => {
+        const info = teamInfo(season, rosterID);
+        const uid = info?.managers?.[0];
+        return (uid && teamManagers?.users?.[uid]?.display_name) || info?.team?.name || `Team ${rosterID}`;
+    };
+    const teamAvatar = (season, rosterID) => teamInfo(season, rosterID)?.team?.avatar;
 
     // Default to the team with the most extreme luck story that season.
     const defaultRoster = (season) => {
@@ -56,14 +61,6 @@
     const fmt2 = (n) => (Math.round(n * 100) / 100).toFixed(2);
     const fmtSigned1 = (n) => (n > 0 ? `+${fmt1(n)}` : fmt1(n));
 
-    // Group averages at or above these lines get flagged on the danger board.
-    const DANGER = { QB: 21, RB: 36, WR: 36, TE: 14 };
-    const groupLine = (season, rosterID) => {
-        const ts = data.teamSeasons[`${season}-${rosterID}`];
-        if (!ts || !ts.games) return [];
-        return data.groups.map((pos) => ({ pos, avg: ts.groups[pos] / ts.games, danger: ts.groups[pos] / ts.games >= DANGER[pos] }));
-    };
-
     const verdict = (t) => {
         if (!t) return '';
         let luckPart;
@@ -85,30 +82,6 @@
 {:else if error}
     <p class="loading">{error}</p>
 {:else if data}
-    {#if data.upcoming}
-        <section>
-            <h2>Week {data.upcoming.week} Danger Board</h2>
-            <p class="note">Each team's positional scoring averages this season. A ⚠ marks a group producing at a level that historically wrecks win rates — opposing RBs are the big one (see the laws below).</p>
-            <div class="dangerGrid">
-                {#each data.upcoming.pairs as pair}
-                    <div class="dangerCard">
-                        {#each [pair.a, pair.b] as rid, i}
-                            <div class="dangerTeam">
-                                <span class="dangerName">{teamName(data.upcoming.season, rid)}</span>
-                                <span class="dangerGroups">
-                                    {#each groupLine(data.upcoming.season, rid) as g}
-                                        <span class:danger={g.danger}>{g.pos} {fmt1(g.avg)}{g.danger ? ' ⚠' : ''}</span>
-                                    {/each}
-                                </span>
-                            </div>
-                            {#if i === 0}<div class="vs">vs</div>{/if}
-                        {/each}
-                    </div>
-                {/each}
-            </div>
-        </section>
-    {/if}
-
     <section>
         <h2>The Laws of the League</h2>
         <p class="note">Across {data.laws.teamGames} team-games ({data.seasons[data.seasons.length - 1]}–{data.seasons[0]}). First: what actually tracks with winning — and how much it changes year to year.</p>
@@ -246,13 +219,6 @@
     .splitBig { font-size: 1.6em; font-weight: bold; margin: 0.15em 0; }
     .splitLabel { font-size: 0.5em; font-weight: normal; color: #555; }
     .splitSub { font-size: 0.8em; color: #555; }
-    .dangerGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.75em; }
-    .dangerCard { border: 1px solid #ddd; border-radius: 8px; padding: 0.6em 0.8em; }
-    .dangerTeam { display: flex; flex-direction: column; gap: 0.15em; }
-    .dangerName { font-weight: bold; }
-    .dangerGroups { display: flex; flex-wrap: wrap; gap: 0.5em; font-size: 0.85em; color: #555; }
-    .dangerGroups .danger { color: #c0392b; font-weight: bold; }
-    .vs { text-align: center; font-size: 0.8em; color: #888; margin: 0.2em 0; }
     .selectors { display: flex; gap: 1em; margin: 0.5em 0 1em; flex-wrap: wrap; }
     .selectors select { margin-left: 0.4em; padding: 0.3em; font-size: 1em; }
     .teamHead { display: flex; align-items: center; gap: 0.6em; margin-top: 0.5em; }
@@ -275,4 +241,19 @@
     .edgeBar { position: absolute; top: 3px; bottom: 3px; background: #2e86c1; border-radius: 3px; }
     .edgeBar.neg { background: #c0392b; }
     .edgeVal { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* Dark mode: follow the OS setting, same as the site's SMUI dark theme. */
+    @media (prefers-color-scheme: dark) {
+        .note, .splitTitle, .splitSub, .splitLabel, .teamRecord, .tileRank, .tileLabel { color: #aaa; }
+        .dataTable th, .dataTable td { border-color: #444; }
+        .dataTable th { background: #1e1e1e; }
+        .dataTable tr.pooled { background: #242424; }
+        .splitCard, .tile { border-color: #444; }
+        .edgeTrack { background: #1e1e1e; }
+        .edgeZero { background: #777; }
+        .tileVal.hot { color: #e74c3c; }
+        .tileVal.cold { color: #5dade2; }
+        .edgeBar { background: #5dade2; }
+        .edgeBar.neg { background: #e74c3c; }
+    }
 </style>

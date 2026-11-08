@@ -4,7 +4,7 @@ import { getNflState } from './nflState';
 import { loadPlayers } from './players';
 import { GROUPS, buildTeamSeasons, addExpectedWins, addSosAndRanks, computeLaws } from './recordAnatomyMath';
 
-// Data layer for the Record Anatomy page. Walks the league chain back to
+// Data layer for the H2H page. Walks the league chain back to
 // the first season, pulls every regular-season matchup, and reduces it to
 // team-games (one team's side of one matchup) that the math module in
 // recordAnatomyMath.js aggregates into league laws and per-team anatomy.
@@ -69,26 +69,16 @@ export const getRecordAnatomy = async () => {
 
     const games = [];
     const weekScores = {};
-    let upcoming = null;
 
     for (const season of chain) {
         const regularWeeks = season.playoffWeekStart - 1;
         const isCurrent = season.year === currentYear;
         const completedThrough = isCurrent ? Math.min(lastCompletedWeek, regularWeeks) : regularWeeks;
-        // For the current season also fetch the next week's pairings (danger board).
-        const fetchThrough = isCurrent ? Math.min(completedThrough + 1, regularWeeks) : regularWeeks;
-        const weeks = await fetchSeasonWeeks(season.seasonID, fetchThrough);
+        const weeks = await fetchSeasonWeeks(season.seasonID, completedThrough);
         weekScores[season.year] = {};
 
         for (const { week, entries } of weeks) {
             if (!entries.length) continue;
-            if (isCurrent && week === completedThrough + 1 && week <= regularWeeks) {
-                const pairs = {};
-                for (const e of entries) (pairs[e.matchup_id] = pairs[e.matchup_id] || []).push(e.roster_id);
-                const pairList = Object.values(pairs).filter((p) => p.length === 2).map(([a, b]) => ({ a, b }));
-                if (pairList.length) upcoming = { season: season.year, week, pairs: pairList };
-                continue;
-            }
             if (week > completedThrough) continue;
             weekScores[season.year][week] = entries.map((e) => ({ rosterID: e.roster_id, points: e.points || 0 }));
             const pairs = {};
@@ -120,7 +110,6 @@ export const getRecordAnatomy = async () => {
         games,
         teamSeasons,
         laws,
-        upcoming,
         seasons: chain.map((s) => s.year).sort((a, b) => b - a),
         currentYear,
         groups: GROUPS,
