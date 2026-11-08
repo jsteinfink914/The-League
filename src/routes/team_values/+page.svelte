@@ -498,7 +498,7 @@
       {/each}
     </select>
 
-    {#if selectedManager}
+    {#if selectedManager && managerRosters[selectedManager]}
       <table>
         <thead>
           <tr>
