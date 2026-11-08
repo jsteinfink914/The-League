@@ -156,11 +156,11 @@ export const computeLaws = (games, teamSeasons) => {
             loWinPct: round2(winPctOf(lo) * 100), loN: lo.length,
         };
     };
-    const splits = GROUPS.map((pos) => splitFor(games, pos, 'myGroups'));
+    const splits = GROUPS.map((pos) => splitFor(games, pos, 'groups'));
     const splitsBySeason = seasons.map((season) => ({
         season,
         splits: GROUPS.map((pos) => {
-            const inSeason = games.filter((g) => g.season === season && (g.myGroups[pos] || 0) >= GO_OFF[pos]);
+            const inSeason = games.filter((g) => g.season === season && (g.groups[pos] || 0) >= GO_OFF[pos]);
             return { pos, winPct: round2(winPctOf(inSeason) * 100), n: inSeason.length };
         }),
     }));
