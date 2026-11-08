@@ -1,7 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { getRecordAnatomy } from '$lib/utils/helperFunctions/recordAnatomy';
-    import { computePersonalSplits, GO_OFF } from '$lib/utils/helperFunctions/recordAnatomyMath';
+
     import { getLeagueTeamManagers } from '$lib/utils/helperFunctions/leagueTeamManagers';
 
     let loading = true;
@@ -45,7 +45,6 @@
         ? Object.values(data.teamSeasons).filter((t) => t.season === selectedSeason).sort((a, b) => teamName(selectedSeason, a.rosterID).localeCompare(teamName(selectedSeason, b.rosterID)))
         : [];
     $: team = data && selectedRoster != null ? data.teamSeasons[`${selectedSeason}-${selectedRoster}`] : null;
-    $: personal = data && team ? computePersonalSplits(data.games, selectedSeason, selectedRoster) : null;
     $: myGames = data && team ? data.games.filter((g) => g.season === selectedSeason && g.rosterID === selectedRoster) : [];
     $: recordCounts = {
         w: myGames.filter((g) => g.win === 1).length,
@@ -83,8 +82,8 @@
     <p class="loading">{error}</p>
 {:else if data}
     <section>
-        <h2>The Laws of the League</h2>
-        <p class="note">Across {data.laws.teamGames} team-games ({data.seasons[data.seasons.length - 1]}–{data.seasons[0]}). First: what actually tracks with winning — and how much it changes year to year.</p>
+        <h3>Point Correlation</h3>
+        <p class="note">Across {data.laws.teamGames} team-games ({data.seasons[data.seasons.length - 1]}–{data.seasons[0]}): what actually tracks with winning — and how much it changes year to year.</p>
         <table class="dataTable">
             <thead>
                 <tr><th>Season</th><th>Points For ↔ Record</th><th>Points Against ↔ Record</th><th>Verdict</th></tr>
@@ -186,16 +185,6 @@
                 {/each}
             </div>
 
-            <h3>Their record in the spots that matter</h3>
-            <table class="dataTable">
-                <thead><tr><th>Spot</th><th>Record</th><th>Games</th></tr></thead>
-                <tbody>
-                    {#each personal.rows as row}
-                        <tr><td>{row.label}</td><td>{row.n ? `${row.w}–${row.l}${row.t ? `–${row.t}` : ''}` : '—'}</td><td>{row.n}</td></tr>
-                    {/each}
-                </tbody>
-            </table>
-            <p class="note">Their own 20-point ladder: {#each personal.ladder as rung, i}{rung.label} over 20 → {rung.n ? `${rung.w}–${rung.l}${rung.t ? `–${rung.t}` : ''}` : 'no games'}{i < personal.ladder.length - 1 ? ' · ' : ''}{/each}</p>
         {/if}
     </section>
 {/if}
