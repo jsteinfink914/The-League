@@ -68,14 +68,21 @@
             sortDirection = 'asc'; // Default to ascending on new column
         }
 
-        // Apply sorting based on the column and direction
+        // Apply sorting based on the column and direction.
+        // Points totals and SOS values are strings (e.g. "1102.40",
+        // "112.41 (6)"), so compare them by their numeric value — as raw
+        // text, "987.65" would wrongly sort above "1102.40". Non-numeric
+        // values (streaks, etc.) fall back to plain text comparison.
         standings = [...standings].sort((a, b) => {
             const valA = a[columnField];
             const valB = b[columnField];
+            const numA = parseFloat(valA);
+            const numB = parseFloat(valB);
+            const cmp = (!isNaN(numA) && !isNaN(numB))
+                ? (numA < numB ? -1 : numA > numB ? 1 : 0)
+                : (valA < valB ? -1 : valA > valB ? 1 : 0);
 
-            if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-            if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-            return 0;
+            return sortDirection === 'asc' ? cmp : -cmp;
         });
     };
 </script>
