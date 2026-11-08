@@ -54,15 +54,29 @@
     $: maxEdge = team ? Math.max(5, ...Object.values(team.edges).map((v) => Math.abs(v))) : 5;
 
     const fmtLuck = (v) => `${v > 0 ? '+' : ''}${fmt1(v)}`;
-    $: seasonsAsc = data ? [...data.seasons].sort((a, b) => a - b) : [];
-    $: luckRows = data
-        ? [...new Set(Object.values(data.teamSeasons).map((t) => t.rosterID))]
-            .map((rosterID) => {
-                const values = seasonsAsc.map((s) => data.teamSeasons[`${s}-${rosterID}`]?.luck ?? null);
-                return { rosterID, name: teamName(data.currentYear, rosterID), values, total: values.reduce((sum, v) => sum + (v || 0), 0) };
-            })
-            .sort((a, b) => b.total - a.total)
-        : [];
+    const fmtWins = (w) => (Number.isInteger(w) ? `${w}` : fmt1(w));
+    let luckSeason = 'all';
+    $: luckRows = data ? buildLuckRows(luckSeason) : [];
+    const buildLuckRows = (sel) => {
+        if (sel === 'all') {
+            return [...new Set(Object.values(data.teamSeasons).map((t) => t.rosterID))]
+                .map((rosterID) => {
+                    const mine = Object.values(data.teamSeasons).filter((t) => t.rosterID === rosterID);
+                    return {
+                        name: teamName(data.currentYear, rosterID),
+                        wins: mine.reduce((s, t) => s + t.wins, 0),
+                        expectedWins: mine.reduce((s, t) => s + t.expectedWins, 0),
+                        luck: mine.reduce((s, t) => s + t.luck, 0),
+                    };
+                })
+                .sort((a, b) => b.luck - a.luck);
+        }
+        const season = Number(sel);
+        return Object.values(data.teamSeasons)
+            .filter((t) => t.season === season)
+            .map((t) => ({ name: teamName(season, t.rosterID), wins: t.wins, expectedWins: t.expectedWins, luck: t.luck }))
+            .sort((a, b) => b.luck - a.luck);
+    };
 
     const changeSeason = () => { selectedRoster = defaultRoster(selectedSeason); };
 
@@ -112,11 +126,11 @@
         </table>
         <p class="note">Correlation runs −1 to +1. Points For is always strongly positive; Points Against swings — nearly irrelevant in 2022, the strongest force in the league in 2023.</p>
 
-        <h3>When their group goes off, you lose</h3>
+        <h3>When your group goes off, you win</h3>
         <div class="splitGrid">
             {#each data.laws.splits as s}
                 <div class="splitCard">
-                    <div class="splitTitle">Their {s.pos}s score <strong class="splitThreshold">{s.threshold}+</strong></div>
+                    <div class="splitTitle">Your {s.pos}s score <strong class="splitThreshold">{s.threshold}+</strong></div>
                     <div class="splitBig">{s.hiWinPct}% <span class="splitLabel">win rate</span></div>
                     <div class="splitSub">vs {s.loWinPct}% when they don't · {s.hiN} games</div>
                 </div>
@@ -124,7 +138,7 @@
         </div>
         <table class="dataTable">
             <thead>
-                <tr><th>Season</th>{#each data.laws.splits as s}<th>Their {s.pos} <strong>{s.threshold}+</strong></th>{/each}</tr>
+                <tr><th>Season</th>{#each data.laws.splits as s}<th>Your {s.pos} <strong>{s.threshold}+</strong></th>{/each}</tr>
             </thead>
             <tbody>
                 {#each data.laws.splitsBySeason as row}
@@ -152,18 +166,22 @@
 
     <section>
         <h3>Luck Over Time</h3>
-        <p class="note">Every team's luck by season — actual wins minus all-play expected wins. Positive means the schedule handed them wins; negative means their scoring deserved better. Sorted by all-time luck.</p>
+        <div class="selectors">
+            <label>Season
+                <select bind:value={luckSeason}>
+                    <option value="all">All-time</option>
+                    {#each data.seasons as s}<option value={s}>{s}</option>{/each}
+                </select>
+            </label>
+        </div>
+        <p class="note">Actual wins minus all-play expected wins — positive means the schedule handed them wins, negative means their scoring deserved better. Sorted by luck.</p>
         <table class="dataTable">
             <thead>
-                <tr><th>Team</th>{#each seasonsAsc as s}<th>{s}</th>{/each}<th>All-time</th></tr>
+                <tr><th>Team</th><th>Wins</th><th>Exp. Wins</th><th>Luck</th></tr>
             </thead>
             <tbody>
                 {#each luckRows as row}
-                    <tr>
-                        <td>{row.name}</td>
-                        {#each row.values as v}<td>{v == null ? '—' : fmtLuck(v)}</td>{/each}
-                        <td><strong>{fmtLuck(row.total)}</strong></td>
-                    </tr>
+                    <tr><td>{row.name}</td><td>{fmtWins(row.wins)}</td><td>{fmt2(row.expectedWins)}</td><td><strong>{fmtLuck(row.luck)}</strong></td></tr>
                 {/each}
             </tbody>
         </table>

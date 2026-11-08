@@ -147,20 +147,20 @@ export const computeLaws = (games, teamSeasons) => {
     }
     correlations.push({ season: 'All', pf: round2(pearson(pooled.winPct, pooled.pf)), pa: round2(pearson(pooled.winPct, pooled.pa)) });
 
-    const splitFor = (list, pos) => {
-        const hi = list.filter((g) => (g.oppGroups[pos] || 0) >= GO_OFF[pos]);
-        const lo = list.filter((g) => (g.oppGroups[pos] || 0) < GO_OFF[pos]);
+    const splitFor = (list, pos, key = 'oppGroups') => {
+        const hi = list.filter((g) => (g[key][pos] || 0) >= GO_OFF[pos]);
+        const lo = list.filter((g) => (g[key][pos] || 0) < GO_OFF[pos]);
         return {
             pos, threshold: GO_OFF[pos],
             hiWinPct: round2(winPctOf(hi) * 100), hiN: hi.length,
             loWinPct: round2(winPctOf(lo) * 100), loN: lo.length,
         };
     };
-    const splits = GROUPS.map((pos) => splitFor(games, pos));
+    const splits = GROUPS.map((pos) => splitFor(games, pos, 'myGroups'));
     const splitsBySeason = seasons.map((season) => ({
         season,
         splits: GROUPS.map((pos) => {
-            const inSeason = games.filter((g) => g.season === season && (g.oppGroups[pos] || 0) >= GO_OFF[pos]);
+            const inSeason = games.filter((g) => g.season === season && (g.myGroups[pos] || 0) >= GO_OFF[pos]);
             return { pos, winPct: round2(winPctOf(inSeason) * 100), n: inSeason.length };
         }),
     }));
