@@ -38,6 +38,8 @@ export const getLeagueStandings = async () => {
             ties: roster.settings.ties,
             fpts: round(roster.settings.fpts + (roster.settings.fpts_decimal / 100)),
             fptsAgainst: round(roster.settings.fpts_against + (roster.settings.fpts_against_decimal / 100)),
+            sos: 0,
+            sosRecord: 0,
             streak: roster.metadata?.streak || 0,
             divisionWins: divisions ? 0 : null,
             divisionLosses: divisions ? 0 : null,
@@ -78,8 +80,28 @@ export const getLeagueStandings = async () => {
         const matchupsData = await waitForAll(...matchupsJsonPromises).catch((err) => { console.error(err); }).catch((err) => { console.error(err); });
 
         // process all the matchups
+        const scheduleInfo = { points: {}, games: {}, faced: {} };
         for(const matchup of matchupsData) {
-            standings = processStandings(matchup, standings, rosters);
+            standings = processStandings(matchup, standings, rosters, scheduleInfo);
+        }
+
+        // Strength of schedule, two flavors, both averaged over the opponents
+        // each team has faced this season (facing an opponent twice counts
+        // them twice). Higher means a tougher slate of opponents either way.
+        //   sos:       the faced opponents' average weekly score
+        //   sosRecord: the faced opponents' combined win percentage
+        const winPct = (s) => {
+            const played = (s.wins || 0) + (s.losses || 0) + (s.ties || 0);
+            return played ? ((s.wins || 0) + 0.5 * (s.ties || 0)) / played : 0;
+        };
+        for(const rosterID in standings) {
+            const faced = scheduleInfo.faced[rosterID] || [];
+            if(faced.length) {
+                const oppPpgTotal = faced.reduce((sum, oppID) => sum + (scheduleInfo.games[oppID] ? scheduleInfo.points[oppID] / scheduleInfo.games[oppID] : 0), 0);
+                standings[rosterID].sos = round(oppPpgTotal / faced.length);
+                const oppWinPctTotal = faced.reduce((sum, oppID) => sum + (standings[oppID] ? winPct(standings[oppID]) : 0), 0);
+                standings[rosterID].sosRecord = (Math.round((oppWinPctTotal / faced.length + Number.EPSILON) * 1000) / 1000).toFixed(3);
+            }
         }
     }
 
@@ -93,7 +115,7 @@ export const getLeagueStandings = async () => {
 	return response;
 }
 
-const processStandings = (matchup, standingsData, rosters) => {
+const processStandings = (matchup, standingsData, rosters, scheduleInfo) => {
 	const matchups = {};
 	for(const match of matchup) {
 		if(!matchups[match.matchup_id]) {
@@ -111,7 +133,15 @@ const processStandings = (matchup, standingsData, rosters) => {
 	for(const matchupKey in matchups) {
 		const teamA = matchups[matchupKey][0];
 		const teamB = matchups[matchupKey][1];
-	
+
+		if(teamB && scheduleInfo) {
+			for(const [team, opp] of [[teamA, teamB], [teamB, teamA]]) {
+				scheduleInfo.points[team.rosterID] = (scheduleInfo.points[team.rosterID] || 0) + team.points;
+				scheduleInfo.games[team.rosterID] = (scheduleInfo.games[team.rosterID] || 0) + 1;
+				(scheduleInfo.faced[team.rosterID] = scheduleInfo.faced[team.rosterID] || []).push(opp.rosterID);
+			}
+		}
+
 		const divisionMatchup = teamA.division && teamB.division && teamA.division == teamB.division;
 
         if(divisionMatchup) {

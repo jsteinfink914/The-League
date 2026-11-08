@@ -21,6 +21,8 @@
         { name: "Div L", field: "divisionLosses" },
         { name: "FPTS", field: "fpts" },
         { name: "FPTS Against", field: "fptsAgainst" },
+        { name: "SOS (Pts)", field: "sos" },
+        { name: "SOS (Rec)", field: "sosRecord" },
         { name: "Streak", field: "streak" }
     ];
 
@@ -109,6 +111,13 @@
         margin: 0.5em 0 5em;
     }
 
+    .sosNote {
+        font-size: 0.85em;
+        font-style: italic;
+        margin-top: 0.75em;
+        text-align: left;
+    }
+
     .sortable {
         cursor: pointer;
         user-select: none;
@@ -161,5 +170,6 @@
                 {/each}
             </Body>
         </DataTable>
+        <p class="sosNote">SOS (Pts) = average weekly points scored by the opponents each team has faced this season. SOS (Rec) = those opponents' combined win percentage. Higher means a tougher schedule either way.</p>
     </div>
 {/if}
