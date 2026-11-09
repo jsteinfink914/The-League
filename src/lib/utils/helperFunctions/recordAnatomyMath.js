@@ -144,6 +144,22 @@ export const addSosAndRanks = (teamSeasons) => {
     return teamSeasons;
 };
 
+// Win split for one position group at an arbitrary "go-off" threshold: how
+// often teams won when their starters at `pos` combined for at least
+// `threshold` points, vs when they didn't. Works on any game list (pooled
+// or a single season), so the Stats page can recompute it live at whatever
+// threshold its sliders are set to. `key` selects whose groups: 'groups'
+// (the team's own) or 'oppGroups'.
+export const goOffSplit = (games, pos, threshold, key = 'groups') => {
+    const hi = games.filter((g) => (g[key][pos] || 0) >= threshold);
+    const lo = games.filter((g) => (g[key][pos] || 0) < threshold);
+    return {
+        pos, threshold,
+        hiWinPct: round2(winPctOf(hi) * 100), hiN: hi.length,
+        loWinPct: round2(winPctOf(lo) * 100), loN: lo.length,
+    };
+};
+
 // League-wide "laws": correlations per season, positional go-off splits,
 // and the 20+ scorers ladder.
 export const computeLaws = (games, teamSeasons) => {
@@ -160,15 +176,7 @@ export const computeLaws = (games, teamSeasons) => {
     }
     correlations.push({ season: 'All', pf: round2(pearson(pooled.winPct, pooled.pf)), pa: round2(pearson(pooled.winPct, pooled.pa)) });
 
-    const splitFor = (list, pos, key = 'oppGroups') => {
-        const hi = list.filter((g) => (g[key][pos] || 0) >= GO_OFF[pos]);
-        const lo = list.filter((g) => (g[key][pos] || 0) < GO_OFF[pos]);
-        return {
-            pos, threshold: GO_OFF[pos],
-            hiWinPct: round2(winPctOf(hi) * 100), hiN: hi.length,
-            loWinPct: round2(winPctOf(lo) * 100), loN: lo.length,
-        };
-    };
+    const splitFor = (list, pos, key = 'oppGroups') => goOffSplit(list, pos, GO_OFF[pos], key);
     const splits = GROUPS.map((pos) => splitFor(games, pos, 'groups'));
     const splitsBySeason = seasons.map((season) => ({
         season,

@@ -3,6 +3,7 @@
     import { page } from '$app/stores';
     import { createSetParams } from '$lib/utils/urlParams';
     import { getRecordAnatomy } from '$lib/utils/helperFunctions/recordAnatomy';
+    import { GROUPS, GO_OFF, goOffSplit } from '$lib/utils/helperFunctions/recordAnatomyMath';
 
     // Which H2H section this route shows: 'luck' | 'anatomy' | 'stats'.
     export let section = 'luck';
@@ -49,6 +50,35 @@
 
     // Filters live in the URL query string so views are shareable.
     const setParams = createSetParams(page);
+
+    // Go-off thresholds for the Stats page sliders. Defaults are the
+    // round-number lines in GO_OFF; a slider's value lives in the URL
+    // (?qb=, ?rb=, ?wr=, ?te=) whenever it differs from the default.
+    const THRESH_RANGES = { QB: [15, 40], RB: [25, 70], WR: [25, 70], TE: [8, 30] };
+    const initThreshold = (param, pos) => {
+        const raw = Number($page.url.searchParams.get(param));
+        const [lo, hi] = THRESH_RANGES[pos];
+        return Number.isInteger(raw) && raw >= lo && raw <= hi ? raw : GO_OFF[pos];
+    };
+    let thresholds = {
+        QB: initThreshold('qb', 'QB'), RB: initThreshold('rb', 'RB'),
+        WR: initThreshold('wr', 'WR'), TE: initThreshold('te', 'TE'),
+    };
+    const syncThresholdParams = () => setParams({
+        qb: thresholds.QB === GO_OFF.QB ? null : thresholds.QB,
+        rb: thresholds.RB === GO_OFF.RB ? null : thresholds.RB,
+        wr: thresholds.WR === GO_OFF.WR ? null : thresholds.WR,
+        te: thresholds.TE === GO_OFF.TE ? null : thresholds.TE,
+    });
+    $: splits = data ? GROUPS.map((pos) => goOffSplit(data.games, pos, thresholds[pos])) : [];
+    $: splitsBySeason = data ? [...new Set(data.games.map((g) => g.season))].sort((a, b) => a - b)
+        .map((season) => ({
+            season,
+            splits: GROUPS.map((pos) => {
+                const sp = goOffSplit(data.games.filter((g) => g.season === season), pos, thresholds[pos]);
+                return { pos, winPct: sp.hiWinPct, n: sp.hiN };
+            }),
+        })) : [];
 
     // Default to the team with the most extreme luck story that season.
     const defaultRoster = (season) => {
@@ -171,21 +201,23 @@
         <p class="note">Correlation runs −1 to +1. Points For is always strongly positive; Points Against swings — nearly irrelevant in 2022, the strongest force in the league in 2023.</p>
 
         <h3>When your group goes off, you win</h3>
+        <p class="note">Drag a slider to move that group's line — the cards and the season table below update together.</p>
         <div class="splitGrid">
-            {#each data.laws.splits as s}
+            {#each splits as s}
                 <div class="splitCard">
                     <div class="splitTitle">Your {s.pos}s score <strong class="splitThreshold">{s.threshold}+</strong></div>
                     <div class="splitBig">{s.hiWinPct}% <span class="splitLabel">win rate</span></div>
                     <div class="splitSub">vs {s.loWinPct}% when they don't · {s.hiN} games</div>
+                    <input class="splitSlider" type="range" min={THRESH_RANGES[s.pos][0]} max={THRESH_RANGES[s.pos][1]} step="1" bind:value={thresholds[s.pos]} on:change={syncThresholdParams} aria-label="{s.pos} go-off threshold" />
                 </div>
             {/each}
         </div>
         <table class="dataTable">
             <thead>
-                <tr><th>Season</th>{#each data.laws.splits as s}<th>Your {s.pos} <strong>{s.threshold}+</strong></th>{/each}</tr>
+                <tr><th>Season</th>{#each splits as s}<th>Your {s.pos} <strong>{s.threshold}+</strong></th>{/each}</tr>
             </thead>
             <tbody>
-                {#each data.laws.splitsBySeason as row}
+                {#each splitsBySeason as row}
                     <tr>
                         <td>{row.season}</td>
                         {#each row.splits as s}<td>{s.n ? `${s.winPct}%` : '—'}{#if s.n} <span class="gamesN">({s.n})</span>{/if}</td>{/each}
@@ -313,6 +345,7 @@
     .gamesN { color: var(--g555); font-size: 0.85em; }
     .splitLabel { font-size: 0.5em; font-weight: normal; color: var(--g555); }
     .splitSub { font-size: 0.8em; color: var(--g555); }
+    .splitSlider { width: 100%; margin-top: 0.55em; accent-color: #2e86c1; }
     .selectors { display: flex; gap: 1em; margin: 0.5em 0 1em; flex-wrap: wrap; }
     .selectors select { margin-left: 0.4em; padding: 0.3em; font-size: 1em; }
     .teamHead { display: flex; align-items: center; gap: 0.6em; margin-top: 0.5em; }

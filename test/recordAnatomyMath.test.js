@@ -91,3 +91,26 @@ test('schedule luck: a team whose opponents no-show gets positive luck and rank 
     assert.equal(ts['2026-1'].scheduleLuck, 80);
     assert.equal(ts['2026-1'].scheduleLuckRank, 1);
 });
+
+import { goOffSplit } from '../src/lib/utils/helperFunctions/recordAnatomyMath.js';
+
+test('goOffSplit: arbitrary thresholds recompute the split', () => {
+    const G = (rb) => ({ QB: 0, RB: rb, WR: 0, TE: 0 });
+    const games = [
+        { season: 2026, rosterID: 1, win: 1, groups: G(50), oppGroups: G(0) },
+        { season: 2026, rosterID: 2, win: 0, groups: G(47), oppGroups: G(0) },
+        { season: 2026, rosterID: 3, win: 1, groups: G(44), oppGroups: G(0) },
+        { season: 2026, rosterID: 4, win: 0.5, groups: G(30), oppGroups: G(0) },
+    ];
+    const at45 = goOffSplit(games, 'RB', 45);
+    assert.equal(at45.hiN, 2);
+    assert.equal(at45.hiWinPct, 50); // 1 win in 2 games
+    assert.equal(at45.loN, 2);
+    assert.equal(at45.loWinPct, 75); // win + tie(0.5) in 2 games
+    const at50 = goOffSplit(games, 'RB', 50);
+    assert.equal(at50.hiN, 1);
+    assert.equal(at50.hiWinPct, 100);
+    const at51 = goOffSplit(games, 'RB', 51);
+    assert.equal(at51.hiN, 0);
+    assert.equal(at51.hiWinPct, 0);
+});
