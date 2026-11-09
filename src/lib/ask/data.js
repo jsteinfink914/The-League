@@ -7,13 +7,16 @@ import { getLeagueTeamManagers } from '$lib/utils/helperFunctions/leagueTeamMana
 import { loadPlayers } from '$lib/utils/helperFunctions/players';
 import { managers as leagueManagers, leagueID } from '$lib/utils/leagueInfo';
 import { aggregatePlayerTotals } from './playerTotals.js';
+import { loadManagerOverviewData } from '$lib/utils/helperFunctions/managerOverviewData';
 
 let anatomyPromise = null;
+let combinedPromise = null;
 let managersPromise = null;
 let playersPromise = null;
 const totalsPromises = {};
 
 export const loadAnatomy = () => (anatomyPromise ??= getRecordAnatomy());
+export const loadCombined = () => (combinedPromise ??= loadManagerOverviewData().then((d) => d.combined || []));
 export const loadManagers = () => (managersPromise ??= getLeagueTeamManagers());
 export const loadPlayersMap = () => (playersPromise ??= loadPlayers().then((r) => r.players || {}));
 
@@ -82,6 +85,7 @@ export const buildContext = async (needs) => {
     }
     if (needs.includes('players')) jobs.push(loadPlayersMap().then((p) => { ctx.players = p; }));
     if (needs.includes('playerTotals')) ctx.playerTotals = loadPlayerTotals;
+    if (needs.includes('combined')) jobs.push(loadCombined().then((c) => { ctx.combined = c; }));
     await Promise.all(jobs);
     if (!ctx.nameFor) ctx.nameFor = (_s, rosterID) => `Team ${rosterID}`;
     return ctx;

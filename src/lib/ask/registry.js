@@ -53,7 +53,8 @@ export const ENTRIES = [
     // Computed answers
     // ------------------------------------------------------------------
     {
-        id: 'luck', kind: 'query', needs: ['anatomy'],
+        id: 'luck', kind: 'query',
+        params: ['season'], needs: ['anatomy'],
         title: 'Luckiest managers (wins vs all-play expected wins)',
         blurb: 'Actual wins minus the wins each team would expect if every team played every other team each week. Positive = the schedule handed them wins.',
         aliases: ['luckiest', 'luck', 'lucky', 'unluckiest', 'who is the luckiest', 'luck rankings', 'most lucky', 'least lucky'],
@@ -78,7 +79,8 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'schedule-luck', kind: 'query', needs: ['anatomy'],
+        id: 'schedule-luck', kind: 'query',
+        params: ['season'], needs: ['anatomy'],
         title: 'Schedule luck (opponents vs their own averages)',
         blurb: 'How far opponents\' scoring against each team ran from those opponents\' own season averages, per game. Positive = opponents kept no-showing against them.',
         aliases: ['schedule luck', 'sched luck', 'opponent luck', 'who has the easiest schedule', 'softest schedule', 'opponents underperform'],
@@ -101,7 +103,8 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'sos', kind: 'query', needs: ['anatomy'],
+        id: 'sos', kind: 'query',
+        params: ['season'], needs: ['anatomy'],
         title: 'Toughest schedule (strength of schedule by points)',
         blurb: 'The average weekly score of the opponents each team has faced. Higher = a tougher road.',
         aliases: ['toughest schedule', 'hardest schedule', 'strongest schedule', 'strength of schedule', 'sos', 'easiest schedule', 'weakest schedule'],
@@ -122,7 +125,8 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'team-points', kind: 'query', needs: ['anatomy'],
+        id: 'team-points', kind: 'query',
+        params: ['season', 'topN'], needs: ['anatomy'],
         title: 'Most points by a team in a season',
         blurb: 'Total fantasy points scored by each team over a season (regular season).',
         aliases: ['most points', 'highest scoring team', 'most fantasy points team', 'top scoring team', 'points leaderboard team', 'who scored the most points'],
@@ -145,7 +149,8 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'player-points', kind: 'query', needs: ['playerTotals', 'players', 'anatomy'],
+        id: 'player-points', kind: 'query',
+        params: ['season', 'pos', 'topN'], needs: ['playerTotals', 'players', 'anatomy'],
         title: 'Most points by a player in a season',
         blurb: 'Total starter points by player over a season, in this league\'s scoring. Only weeks the player was started count.',
         aliases: ['most points player', 'highest scoring player', 'top players', 'player leaderboard', 'best player', 'who scored the most fantasy points', 'top fantasy players'],
@@ -170,7 +175,8 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'go-off', kind: 'query', needs: ['anatomy'],
+        id: 'go-off', kind: 'query',
+        params: ['pos', 'threshold'], needs: ['anatomy'],
         title: 'Go-off splits (win rate when a position group goes off)',
         blurb: 'How often teams win when their own starters at a position group combine for at least the threshold. Thresholds are adjustable on the Stats page.',
         aliases: ['go off', 'goes off', 'going off', 'go-off', 'when your group goes off', 'position group win rate', 'rb go off'],
@@ -192,7 +198,8 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'ladder', kind: 'query', needs: ['anatomy'],
+        id: 'ladder', kind: 'query',
+        params: [], needs: ['anatomy'],
         title: 'The 20-point ladder',
         blurb: 'Win rate by how many of a team\'s starters score 20+ in a game.',
         aliases: ['20 point ladder', 'twenty point ladder', 'ladder', 'starters over 20', 'players over 20'],
@@ -206,7 +213,8 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'correlation', kind: 'query', needs: ['anatomy'],
+        id: 'correlation', kind: 'query',
+        params: [], needs: ['anatomy'],
         title: 'Points for vs points against: which drives winning?',
         blurb: 'Correlation between a team\'s scoring (or its opponents\' scoring) and its win percentage, by season.',
         aliases: ['points for or points against', 'pf vs pa', 'correlation', 'what drives winning', 'scoring or defense', 'does defense matter'],
@@ -226,7 +234,8 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'anatomy', kind: 'query', needs: ['anatomy'],
+        id: 'anatomy', kind: 'query',
+        params: ['season', 'manager'], needs: ['anatomy'],
         title: "A team's record, dissected",
         blurb: 'One team, one season: record vs expected wins, luck, schedule strength, and positional edges vs the league average.',
         aliases: ['record anatomy', 'anatomy of a record', 'team breakdown', 'how good is', 'season breakdown'],
@@ -255,6 +264,73 @@ export const ENTRIES = [
         },
     },
 
+    {
+        id: 'best-drafter', kind: 'query', needs: ['combined'], params: [],
+        title: 'Best at drafting (draft picks ranked by what they produced)',
+        blurb: 'Managers ranked by the total starter points their draft picks produced — the Draft Analysis numbers, rolled up per manager.',
+        aliases: ['best at drafting', 'best drafter', 'best draft', 'drafting', 'who drafts best', 'best at the draft', 'worst drafter', 'draft king', 'best drafting'],
+        keywords: ['drafting', 'drafter', 'draft'],
+        examples: ['Best at drafting', 'Who is the best drafter?'],
+        run(ctx) {
+            const rows = [...(ctx.combined || [])]
+                .sort((a, b) => (b.draftTotalPts || 0) - (a.draftTotalPts || 0))
+                .map((r) => ({
+                    label: r.manager,
+                    value: `${Math.round(r.draftTotalPts || 0)} pts`,
+                    sub: `#${r.draftRank} · ${(r.draftAvgPtsPerPick || 0).toFixed(1)} per pick`,
+                }));
+            return {
+                headline: 'Best at drafting (starter points from draft picks, all seasons in the data)',
+                rows,
+                href: '/manager_overview/leaderboard', hrefLabel: 'See Manager Overview',
+            };
+        },
+    },
+    {
+        id: 'best-trader', kind: 'query', needs: ['combined'], params: [],
+        title: 'Best at trading (net starter points gained in trades)',
+        blurb: 'Managers ranked by net starter-point surplus from completed trades: what they received minus what they gave up, post-trade points only.',
+        aliases: ['best at trading', 'best trader', 'best trades', 'who trades best', 'trade king', 'worst trader', 'best at trades'],
+        keywords: ['trading', 'trader', 'trades'],
+        examples: ['Best at trading', 'Who is the best trader?'],
+        run(ctx) {
+            const rows = [...(ctx.combined || [])]
+                .sort((a, b) => (b.netTradeSurplus || 0) - (a.netTradeSurplus || 0))
+                .map((r) => ({
+                    label: r.manager,
+                    value: `${fmt1(r.netTradeSurplus || 0)} pts`,
+                    sub: `#${r.tradeRank} · ${r.tradeCount || 0} trades`,
+                }));
+            return {
+                headline: 'Best at trading (net starter points gained, post-trade only)',
+                rows,
+                href: '/manager_overview/leaderboard', hrefLabel: 'See Manager Overview',
+            };
+        },
+    },
+    {
+        id: 'best-manager', kind: 'query', needs: ['combined'], params: [],
+        title: 'Best all-around manager (average of cap, trade, and draft ranks)',
+        blurb: 'The Manager Overview leaderboard: each manager\'s average rank across cap efficiency, trade outcomes, and draft output. Lower is better.',
+        aliases: ['best manager', 'best all around', 'best overall manager', 'manager leaderboard', 'top manager', 'best gm'],
+        keywords: ['manager', 'best', 'overall', 'leaderboard'],
+        examples: ['Who is the best all-around manager?'],
+        run(ctx) {
+            const rows = [...(ctx.combined || [])]
+                .sort((a, b) => (a.avgRank ?? 99) - (b.avgRank ?? 99))
+                .map((r) => ({
+                    label: r.manager,
+                    value: `avg rank ${(r.avgRank || 0).toFixed(1)}`,
+                    sub: `Cap #${r.capRank} · Trades #${r.tradeRank} · Draft #${r.draftRank}`,
+                }));
+            return {
+                headline: 'Best all-around manager (average rank: cap, trades, draft)',
+                rows,
+                href: '/manager_overview/leaderboard', hrefLabel: 'See Manager Overview',
+            };
+        },
+    },
+
     // ------------------------------------------------------------------
     // Guides
     // ------------------------------------------------------------------
@@ -278,6 +354,7 @@ export const ENTRIES = [
             { text: 'Start with luck vs expected wins. If your wins track your all-play expected wins, they\'re earned; a big gap either way is the schedule talking.', entryId: 'luck' },
             { text: 'Schedule luck tells you whether opponents kept having their worst weeks against you.', entryId: 'schedule-luck' },
             { text: 'Draft Analysis grades every pick by what it produced after the draft — the cleanest "knows ball" evidence there is.', entryId: 'page-draft-analysis' },
+            { text: 'Or skip straight to the roll-up: who is best at drafting, by total starter points their picks produced.', entryId: 'best-drafter' },
             { text: 'Trade Analysis scores every completed trade by post-trade starter points, for and against.', entryId: 'page-trade-analysis' },
             { text: 'Manager Overview rolls cap, trades, and draft into one leaderboard with an average rank per manager.', entryId: 'page-manager-overview' },
         ],

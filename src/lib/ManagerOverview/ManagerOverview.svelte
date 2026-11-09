@@ -2,22 +2,12 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { createSetParams } from '$lib/utils/urlParams';
-  import Papa from 'papaparse';
+  import { loadManagerOverviewData } from '$lib/utils/helperFunctions/managerOverviewData';
   import { Chart, registerables } from 'chart.js';
-  import { buildCapAnalysisData } from '$lib/utils/helperFunctions/capAnalysis';
-  import { buildTradeAnalysisData } from '$lib/utils/helperFunctions/tradeAnalysis';
-  import { buildDraftAnalysisData } from '$lib/utils/helperFunctions/draftAnalysis';
-  import { buildCombined } from '$lib/utils/helperFunctions/managerOverview';
-  import {
-    buildRookieContracts,
-    buildValueIndexes,
-    parseFantasyProsMarketCsv,
-  } from '$lib/utils/playerNameLookup';
 
   Chart.register(...registerables);
 
   const CHART_COLORS = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#e91e63','#00bcd4','#8bc34a','#ff5722','#607d8b','#795548','#ffc107','#673ab7','#34495e'];
-  const VALUE_YEAR = '2026';
 
   let loading = true;
   let loadingStep = 'Loading player data…';
@@ -100,65 +90,11 @@
 
   onMount(async () => {
     try {
-      loadingStep = 'Loading player data…';
-      const [playerMapRes, managerMapRes, playerValuesRes, nflPlayersRes] = await Promise.all([
-        fetch('/fp_sleeper_mapping.txt'),
-        fetch('/Manager_map.txt'),
-        fetch('/Player_Values.txt'),
-        fetch('https://api.sleeper.app/v1/players/nfl')
-      ]);
-
-      const [playerMapText, managerMapText, playerValuesText, nflPlayers] = await Promise.all([
-        playerMapRes.text(),
-        managerMapRes.text(),
-        playerValuesRes.text(),
-        nflPlayersRes.json()
-      ]);
-
-      const playerMappings = Papa.parse(playerMapText, { header: true }).data;
-      const sleeperToFantasyPros = new Map(
-        playerMappings.filter(e => e.Sleeper && e.Fantasy_Pros).map(e => [e.Sleeper, e.Fantasy_Pros])
-      );
-
-      const managerMappings = Papa.parse(managerMapText, { header: true }).data;
-      const managerMapRaw = new Map(managerMappings.map(e => [e.Index, e.Name]));
-
-      const playerValues = Papa.parse(playerValuesText, { header: true, skipEmptyLines: true }).data;
-      const historyRows = playerValues
-        .filter(e => e.Year && e.Name)
-        .map(e => ({ Year: Number(e.Year), Name: String(e.Name).trim(), Value: parseFloat(e.Value) || 0, Rookie: Number(e.Rookie) === 1 ? 1 : 0 }));
-
-      const yearRows = historyRows.filter(e => String(e.Year) === VALUE_YEAR);
-      const valueIndexes = { ...buildValueIndexes(yearRows), sleeperToFantasyPros };
-      const rookieContracts = buildRookieContracts(historyRows);
-
-      let marketValueByName = new Map();
-      try {
-        const mktRes = await fetch(`/fantasypros-${VALUE_YEAR}.csv`);
-        if (mktRes.ok) marketValueByName = parseFantasyProsMarketCsv(await mktRes.text());
-      } catch (e) { console.warn('FP market file not loaded:', e); }
-
-      let preloadedHistory = null;
-      try {
-        const histRes = await fetch('/cap-history.json');
-        if (histRes.ok) {
-          const histJson = await histRes.json();
-          if (Array.isArray(histJson.seasonTrends)) {
-            preloadedHistory = histJson.seasonTrends;
-          }
-        }
-      } catch (e) { console.warn('[ManagerOverview] cap-history.json not available:', e.message); }
-
-      loadingStep = 'Building cap analysis…';
-      capData = await buildCapAnalysisData({ historyRows, marketValueByName, rookieContracts, valueIndexes, players: nflPlayers, managerMapRaw, valueYear: VALUE_YEAR, preloadedHistory });
-
-      loadingStep = 'Building trade analysis…';
-      tradeData = await buildTradeAnalysisData({ players: nflPlayers });
-
-      loadingStep = 'Building draft analysis…';
-      draftData = await buildDraftAnalysisData({ players: nflPlayers });
-
-      combined = buildCombined(capData, tradeData, draftData);
+      const data = await loadManagerOverviewData((step) => { loadingStep = step; });
+      capData = data.capData;
+      tradeData = data.tradeData;
+      draftData = data.draftData;
+      combined = data.combined;
     } catch (e) {
       console.error(e);
       error = e.message;

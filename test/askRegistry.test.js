@@ -52,3 +52,51 @@ test('playerTotals: sums starters only, skips the 0 slot, rounds', () => {
     const totals = aggregatePlayerTotals(weeks);
     assert.deepEqual(totals, [{ id: 'b', points: 27.25 }, { id: 'a', points: 15.5 }]);
 });
+
+import { resolveTurn } from '../src/lib/ask/matcher.js';
+import { validatePick, buildCatalog } from '../src/lib/ask/llmRoute.js';
+
+test("matcher: 'Best at drafting' lands on the drafter query", () => {
+    assert.equal(matchEntry(ENTRIES, 'Best at drafting', CTX).entry.id, 'best-drafter');
+    assert.equal(matchEntry(ENTRIES, 'best at trading', CTX).entry.id, 'best-trader');
+    assert.equal(matchEntry(ENTRIES, 'Who scored the most fantasy points in 2025, top 15?', CTX).entry.id, 'player-points');
+});
+
+test('resolveTurn: param-only follow-ups re-run the previous entry with merged params', () => {
+    const last = { entry: entryById('player-points'), params: { season: 2025, topN: 15 } };
+    const t1 = resolveTurn(ENTRIES, 'what about 2024?', CTX, last);
+    assert.equal(t1.entry.id, 'player-points');
+    assert.equal(t1.followUp, true);
+    assert.deepEqual(t1.params, { season: 2024, topN: 15 });
+    const t2 = resolveTurn(ENTRIES, 'and just the RBs, top 5', CTX, last);
+    assert.equal(t2.entry.id, 'player-points');
+    assert.deepEqual(t2.params, { season: 2025, topN: 5, pos: 'RB' });
+    const t3 = resolveTurn(ENTRIES, 'who is the luckiest manager?', CTX, last);
+    assert.equal(t3.entry.id, 'luck');
+    assert.equal(t3.followUp, false);
+    const t4 = resolveTurn(ENTRIES, 'asdf qwer', CTX, last);
+    assert.equal(t4, null);
+});
+
+test('registry: drafter/trader queries rank combined rows', () => {
+    const combined = [
+        { manager: 'A', draftRank: 2, draftTotalPts: 100, draftAvgPtsPerPick: 5, tradeRank: 1, netTradeSurplus: 40, tradeCount: 3, capRank: 4, avgRank: 2.3 },
+        { manager: 'B', draftRank: 1, draftTotalPts: 250, draftAvgPtsPerPick: 9, tradeRank: 2, netTradeSurplus: -10, tradeCount: 1, capRank: 1, avgRank: 1.3 },
+    ];
+    const d = entryById('best-drafter').run({ combined }, {});
+    assert.equal(d.rows[0].label, 'B');
+    const t = entryById('best-trader').run({ combined }, {});
+    assert.equal(t.rows[0].label, 'A');
+    const m = entryById('best-manager').run({ combined }, {});
+    assert.equal(m.rows[0].label, 'B');
+});
+
+test('llmRoute: catalog covers queries with params; validatePick sanitizes', () => {
+    const cat = buildCatalog(ENTRIES);
+    assert.ok(cat.find((c) => c.id === 'player-points')?.params.includes('topN'));
+    const pick = validatePick({ entryId: 'player-points', params: { season: 2025, topN: 999, pos: 'K', bogus: 1 } }, ENTRIES, []);
+    assert.equal(pick.entry.id, 'player-points');
+    assert.deepEqual(pick.params, { season: 2025, topN: 50 });
+    assert.equal(validatePick({ entryId: 'nope', params: {} }, ENTRIES, []), null);
+    assert.equal(validatePick(null, ENTRIES, []), null);
+});

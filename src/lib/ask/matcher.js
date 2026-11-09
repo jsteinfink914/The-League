@@ -55,27 +55,69 @@ export const extractParams = (text, { seasonsDesc = [], managerNames = [] } = {}
 };
 
 // Score every entry against the question and return the best match.
-// An entry scores for each of its aliases found in the text (longer
-// aliases count more — they're more specific) and for each keyword hit.
+// Scoring: a full alias phrase in the text is the strongest signal; an
+// alias whose words ALL appear (any order) is nearly as strong — that's
+// what makes "best at drafting" or "drafting, who's best" land. Keyword
+// hits add a little. Ties prefer computed answers over guides over
+// plain page links.
+const KIND_PRIORITY = { query: 3, guide: 2, page: 1 };
+
 export const matchEntry = (entries, text, ctx = {}) => {
     const norm = normalizeText(text);
     if (norm.trim().length < 3) return null;
+    const words = new Set(norm.split(' ').filter(Boolean));
     const params = extractParams(text, ctx);
     let best = null;
     for (const entry of entries) {
-        let score = 0;
+        let phraseScore = 0;
+        let tokenScore = 0;
         for (const alias of entry.aliases || []) {
-            const a = normalizeText(alias);
-            if (a.trim() && norm.includes(a)) score += 10 + a.trim().length;
+            const a = normalizeText(alias).trim();
+            if (!a) continue;
+            if (norm.includes(a)) {
+                phraseScore += 10 + a.length;
+            } else {
+                const aliasWords = a.split(' ').filter(Boolean);
+                if (aliasWords.length > 1 && aliasWords.every((w) => words.has(w))) {
+                    tokenScore += 8 + a.length;
+                }
+            }
         }
+        let keywordScore = 0;
         for (const kw of entry.keywords || []) {
-            if (norm.includes(` ${kw.toLowerCase()} `)) score += 4;
+            if (words.has(kw.toLowerCase())) keywordScore += 4;
         }
-        if (score > 0 && (!best || score > best.score)) {
-            best = { entry, params, score };
+        // A contiguous alias phrase is a much stronger signal than
+        // scattered words: any entry with a phrase hit outranks every
+        // token-only entry (that's what keeps "most fantasy points" on
+        // the player leaderboard instead of the team one).
+        const score = phraseScore > 0 ? 1000 + phraseScore + keywordScore : tokenScore + keywordScore;
+        if (score > 0) {
+            const better = !best || score > best.score
+                || (score === best.score && (KIND_PRIORITY[entry.kind] || 0) > (KIND_PRIORITY[best.entry.kind] || 0));
+            if (better) best = { entry, params, score };
         }
     }
     return best;
+};
+
+// One conversational turn. A clear new intent (a real alias hit) starts
+// a fresh question. A fragment carrying only parameters ("what about
+// 2024?", "top 5", "and for RBs?") re-runs the previous entry with the
+// new parameters merged in — that's what makes it feel like a chat
+// instead of a search box.
+const NEW_INTENT_MIN = 1000;
+
+export const resolveTurn = (entries, text, ctx = {}, last = null) => {
+    const match = matchEntry(entries, text, ctx);
+    if (match && match.score >= NEW_INTENT_MIN) return { ...match, followUp: false };
+    if (last) {
+        const params = extractParams(text, ctx);
+        if (Object.keys(params).length > 0) {
+            return { entry: last.entry, params: { ...last.params, ...params }, score: match?.score || 0, followUp: true };
+        }
+    }
+    return match ? { ...match, followUp: false } : null;
 };
 
 // The closest entries even when nothing clears the bar — used for
