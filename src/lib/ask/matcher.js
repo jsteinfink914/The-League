@@ -7,6 +7,12 @@
 
 export const normalizeText = (text) => ` ${(text || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ')} `;
 
+// Light singularization so "drafts" and "draft" (and "players"/"player")
+// count as the same word in token and keyword matching — without it,
+// "who drafts well" scored zero against the drafting entry. Phrase
+// matching still runs on the raw normalized text.
+const stemWord = (w) => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w);
+
 const POSITION_WORDS = {
     QB: ['qb', 'qbs', 'quarterback', 'quarterbacks'],
     RB: ['rb', 'rbs', 'running back', 'running backs', 'runningback'],
@@ -65,7 +71,7 @@ const KIND_PRIORITY = { query: 3, guide: 2, page: 1 };
 export const matchEntry = (entries, text, ctx = {}) => {
     const norm = normalizeText(text);
     if (norm.trim().length < 3) return null;
-    const words = new Set(norm.split(' ').filter(Boolean));
+    const words = new Set(norm.split(' ').filter(Boolean).map(stemWord));
     const params = extractParams(text, ctx);
     let best = null;
     for (const entry of entries) {
@@ -78,14 +84,14 @@ export const matchEntry = (entries, text, ctx = {}) => {
                 phraseScore += 10 + a.length;
             } else {
                 const aliasWords = a.split(' ').filter(Boolean);
-                if (aliasWords.length > 1 && aliasWords.every((w) => words.has(w))) {
+                if (aliasWords.length > 1 && aliasWords.every((w) => words.has(stemWord(w)))) {
                     tokenScore += 8 + a.length;
                 }
             }
         }
         let keywordScore = 0;
         for (const kw of entry.keywords || []) {
-            if (words.has(kw.toLowerCase())) keywordScore += 4;
+            if (words.has(stemWord(kw.toLowerCase()))) keywordScore += 4;
         }
         // A contiguous alias phrase is a much stronger signal than
         // scattered words: any entry with a phrase hit outranks every

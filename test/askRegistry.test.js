@@ -100,3 +100,10 @@ test('llmRoute: catalog covers queries with params; validatePick sanitizes', () 
     assert.equal(validatePick({ entryId: 'nope', params: {} }, ENTRIES, []), null);
     assert.equal(validatePick(null, ENTRIES, []), null);
 });
+
+test('Jake phrasings: drafting questions reach best-drafter, not the player board or a page card', () => {
+    assert.equal(matchEntry(ENTRIES, 'Who drafts well', CTX)?.entry.id, 'best-drafter');
+    assert.equal(matchEntry(ENTRIES, 'Who drafts the best players', CTX)?.entry.id, 'best-drafter');
+    assert.equal(matchEntry(ENTRIES, 'Who are the best players in 2025?', CTX)?.entry.id, 'player-points');
+    assert.equal(matchEntry(ENTRIES, 'show me the draft boards', CTX)?.entry.id, 'page-drafts');
+});

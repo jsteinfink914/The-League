@@ -38,20 +38,36 @@
         push({ id: loadingId, role: 'bot', kind: 'loading' });
         if (entry.kind === 'page') {
             replace(loadingId, { kind: 'page', entry });
-            return;
+            return { headline: entry.title };
         }
         if (entry.kind === 'guide') {
             replace(loadingId, { kind: 'guide', entry });
-            return;
+            return { headline: entry.title };
         }
         try {
             const ctx = await buildContext(entry.needs || []);
             const result = await entry.run(ctx, params);
             replace(loadingId, { kind: 'answer', entry, result, note });
             lastMatch = { entry, params };
+            return { headline: result.headline };
         } catch (e) {
             replace(loadingId, { kind: 'error', text: e.message || 'Something went wrong loading that data.' });
+            return null;
         }
+    };
+
+    // Fire-and-forget turn log (ask_log table): question, what it
+    // matched, which route answered, and the headline — so misses and
+    // misroutes are visible instead of anecdotal. Never blocks the chat.
+    const logTurn = (question, entryId, via, headline) => {
+        try {
+            fetch('/api/ask/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, entryId, via, headline }),
+                keepalive: true,
+            }).catch(() => {});
+        } catch { /* logging must never break the chat */ }
     };
 
     const llmRoute = async (text) => {
@@ -79,17 +95,35 @@
         push({ role: 'user', kind: 'text', text });
         try {
             const turn = resolveTurn(ENTRIES, text, MATCH_CTX, lastMatch);
+            if (turn && turn.entry.kind !== 'query') {
+                // A page/guide hit can hide a stat question ("who
+                // drafts well" used to land on the Drafts page card).
+                // Give the router a shot at a computed answer first;
+                // the card is the fallback, not the answer.
+                const routed = await llmRoute(text);
+                if (routed && routed.entry.kind === 'query') {
+                    const r = await runEntry(routed.entry, routed.params);
+                    logTurn(text, routed.entry.id, 'llm', r?.headline);
+                    return;
+                }
+                const r = await runEntry(turn.entry, turn.params);
+                logTurn(text, turn.entry.id, 'local', r?.headline);
+                return;
+            }
             if (turn) {
-                await runEntry(turn.entry, turn.params, turn.followUp ? 'Same stat, new filter.' : '');
+                const r = await runEntry(turn.entry, turn.params, turn.followUp ? 'Same stat, new filter.' : '');
+                logTurn(text, turn.entry.id, turn.followUp ? 'followup' : 'local', r?.headline);
                 return;
             }
             const routed = await llmRoute(text);
             if (routed) {
-                await runEntry(routed.entry, routed.params);
+                const r = await runEntry(routed.entry, routed.params);
+                logTurn(text, routed.entry.id, 'llm', r?.headline);
                 return;
             }
             const [suggestion] = closestEntries(ENTRIES, text, MATCH_CTX, 1);
             push({ role: 'bot', kind: 'miss', suggestion: suggestion || null });
+            logTurn(text, null, 'miss', null);
         } finally {
             sending = false;
             scrollDown();

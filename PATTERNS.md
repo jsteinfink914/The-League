@@ -70,6 +70,12 @@ or error page. About a minute. A green build alone is not verification.
 - A query's run() must call the same functions and loaders the pages
   use; never re-derive a metric in the registry. When a calculation
   changes, the answer changes with it.
+- Every chat turn is logged to the ask_log table via POST /api/ask/log
+  (question, matched entry, route taken — local/followup/llm/miss —
+  and the answer headline). Before adding aliases for a phrasing,
+  check GET /api/ask/log?misses=1 for what the matcher actually
+  missed; a page/guide hit that was really a stat question is a
+  misroute, so the chat asks the LLM router before showing a card.
 - Adding a metric = add the page function first (with a test), then one
   registry entry that calls it (with a test). The matcher stays dumb:
   aliases and parameter extraction only, no numbers.

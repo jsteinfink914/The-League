@@ -268,7 +268,7 @@ export const ENTRIES = [
         id: 'best-drafter', kind: 'query', needs: ['combined'], params: [],
         title: 'Best at drafting (draft picks ranked by what they produced)',
         blurb: 'Managers ranked by the total starter points their draft picks produced — the Draft Analysis numbers, rolled up per manager.',
-        aliases: ['best at drafting', 'best drafter', 'best draft', 'drafting', 'who drafts best', 'best at the draft', 'worst drafter', 'draft king', 'best drafting'],
+        aliases: ['best at drafting', 'best drafter', 'best draft', 'drafting', 'who drafts best', 'best at the draft', 'worst drafter', 'draft king', 'best drafting', 'drafts well', 'who drafts well', 'drafts the best players', 'draft the best players', 'drafts good players', 'good at drafting', 'drafts the best'],
         keywords: ['drafting', 'drafter', 'draft'],
         examples: ['Best at drafting', 'Who is the best drafter?'],
         run(ctx) {
