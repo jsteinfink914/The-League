@@ -54,7 +54,7 @@ test('playerTotals: sums starters only, skips the 0 slot, rounds', () => {
 });
 
 import { resolveTurn } from '../src/lib/ask/matcher.js';
-import { validatePick, buildCatalog } from '../src/lib/ask/llmRoute.js';
+import { validatePick, validatePicks, buildCatalog, narrationIsGrounded } from '../src/lib/ask/llmRoute.js';
 
 test("matcher: 'Best at drafting' lands on the drafter query", () => {
     assert.equal(matchEntry(ENTRIES, 'Best at drafting', CTX).entry.id, 'best-drafter');
@@ -115,4 +115,24 @@ test('router catalog carries blurbs and example asks so the model can route free
     assert.ok(Array.isArray(drafter.asksLike) && drafter.asksLike.length > 0);
     const page = cat.find((c) => c.id === 'page-drafts');
     assert.ok(page.blurb && !('asksLike' in page));
+});
+
+test('validatePicks: multi-pick, legacy shape, dedupe and the 3-pick cap', () => {
+    const multi = validatePicks({ picks: [{ entryId: 'luck' }, { entryId: 'best-drafter' }] }, ENTRIES, ['Jake']);
+    assert.deepEqual(multi.map((p) => p.entry.id), ['luck', 'best-drafter']);
+    const legacy = validatePicks({ entryId: 'luck', params: { season: 2025 } }, ENTRIES, ['Jake']);
+    assert.equal(legacy.length, 1);
+    assert.equal(legacy[0].params.season, 2025);
+    const capped = validatePicks({ picks: [{ entryId: 'luck' }, { entryId: 'luck' }, { entryId: 'best-drafter' }, { entryId: 'best-trader' }, { entryId: 'player-points' }] }, ENTRIES, ['Jake']);
+    assert.deepEqual(capped.map((p) => p.entry.id), ['luck', 'best-drafter', 'best-trader']);
+    assert.deepEqual(validatePicks({ picks: [{ entryId: 'nope' }] }, ENTRIES, ['Jake']), []);
+    assert.deepEqual(validatePicks(null, ENTRIES, ['Jake']), []);
+});
+
+test('narration grounding: prose may restate figures, never invent them', () => {
+    const source = 'Player scoring, 2025 — starter points only\nJonathan Taylor: 325.90 (RB)';
+    assert.equal(narrationIsGrounded('Taylor tops 2025 with 325.90 points.', source), true);
+    assert.equal(narrationIsGrounded('Taylor tops the board with about 326 points.', source), true);
+    assert.equal(narrationIsGrounded('Taylor ran away with it, scoring 412.50.', source), false);
+    assert.equal(narrationIsGrounded('A huge season from the RB1.', source), true);
 });

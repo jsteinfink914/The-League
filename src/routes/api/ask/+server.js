@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { ENTRIES } from '$lib/ask/registry';
 import { managers as leagueManagers } from '$lib/utils/leagueInfo';
-import { buildCatalog, validatePick, ROUTER_SYSTEM_PROMPT } from '$lib/ask/llmRoute';
+import { buildCatalog, validatePicks, ROUTER_SYSTEM_PROMPT } from '$lib/ask/llmRoute';
 
 // Optional freeform routing for the Ask chat. When ASK_LLM_KEY is set,
 // questions the local matcher can't place are sent to a small model
@@ -43,9 +43,9 @@ export async function POST({ request }) {
         const data = await res.json();
         const text = data?.choices?.[0]?.message?.content || '';
         const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
-        const pick = validatePick(parsed, ENTRIES, leagueManagers.map((m) => m.name));
-        if (!pick) return json({ ok: false, reason: 'no_match' });
-        return json({ ok: true, entryId: pick.entry.id, params: pick.params });
+        const picks = validatePicks(parsed, ENTRIES, leagueManagers.map((m) => m.name));
+        if (!picks.length) return json({ ok: false, reason: 'no_match' });
+        return json({ ok: true, picks: picks.map((p) => ({ entryId: p.entry.id, params: p.params })) });
     } catch (e) {
         console.error('ask router failed', e);
         return json({ ok: false, reason: 'llm_error' });

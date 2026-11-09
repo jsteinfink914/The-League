@@ -79,10 +79,62 @@
             });
             if (!res.ok) return null;
             const data = await res.json();
-            if (!data.ok) return null;
-            const entry = entryById(data.entryId);
-            return entry ? { entry, params: data.params || {} } : null;
+            if (!data.ok || !Array.isArray(data.picks)) return null;
+            const picks = data.picks
+                .map((p) => {
+                    const entry = entryById(p.entryId);
+                    return entry ? { entry, params: p.params || {} } : null;
+                })
+                .filter(Boolean);
+            return picks.length ? picks : null;
         } catch {
+            return null;
+        }
+    };
+
+    // One or two sentences about already-computed results. The server
+    // only returns prose whose numbers all appear in the results, so
+    // a null here just means "show the plain tables".
+    const narrate = async (question, results) => {
+        try {
+            const res = await fetch('/api/ask/narrate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question,
+                    results: results.map((r) => ({
+                        headline: r.headline,
+                        note: r.note || '',
+                        rows: (r.rows || []).slice(0, 8).map((row) => ({ label: row.label, value: row.value, sub: row.sub || '' })),
+                    })),
+                }),
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data.ok && data.text ? data.text : null;
+        } catch {
+            return null;
+        }
+    };
+
+    // A routed turn: compute every picked entry, then narrate over
+    // the computed results and show them in one bubble.
+    const runRouted = async (picks, question) => {
+        const loadingId = nextId;
+        push({ id: loadingId, role: 'bot', kind: 'loading' });
+        try {
+            const results = [];
+            for (const pick of picks) {
+                const ctx = await buildContext(pick.entry.needs || []);
+                results.push(await pick.entry.run(ctx, pick.params));
+            }
+            const prose = await narrate(question, results);
+            replace(loadingId, { kind: 'answer', results, prose });
+            const lastPick = picks[picks.length - 1];
+            lastMatch = { entry: lastPick.entry, params: lastPick.params };
+            return { headline: results[0]?.headline };
+        } catch (e) {
+            replace(loadingId, { kind: 'error', text: e.message || 'Something went wrong loading that data.' });
             return null;
         }
     };
@@ -107,10 +159,15 @@
                 logTurn(text, turn.entry.id, 'followup', r?.headline);
                 return;
             }
-            const routed = await llmRoute(text);
-            if (routed) {
-                const r = await runEntry(routed.entry, routed.params);
-                logTurn(text, routed.entry.id, 'llm', r?.headline);
+            const picks = await llmRoute(text);
+            if (picks) {
+                if (picks.length === 1 && picks[0].entry.kind !== 'query') {
+                    const r = await runEntry(picks[0].entry, picks[0].params);
+                    logTurn(text, picks[0].entry.id, 'llm', r?.headline);
+                    return;
+                }
+                const r = await runRouted(picks, text);
+                logTurn(text, picks.map((p) => p.entry.id).join('+'), 'llm', r?.headline);
                 return;
             }
             if (turn) {
@@ -159,25 +216,28 @@
                     <div class="bubble user"><p class="msg-text">{m.text}</p></div>
                 {:else if m.kind === 'loading'}
                     <div class="bubble bot"><p class="msg-text muted">Pulling the numbers…</p></div>
-                {:else if m.kind === 'answer' && m.result}
+                {:else if m.kind === 'answer' && (m.result || m.results)}
                     <div class="bubble bot wide">
-                        <p class="headline">{m.result.headline}</p>
+                        {#if m.prose}<p class="prose">{m.prose}</p>{/if}
                         {#if m.note}<p class="follow-note">{m.note}</p>{/if}
-                        {#if m.result.rows?.length}
-                            <table>
-                                <tbody>
-                                    {#each m.result.rows as row}
-                                        <tr>
-                                            <td class="lbl">{row.label}</td>
-                                            <td class="val">{row.value}</td>
-                                            <td class="sub">{row.sub || ''}</td>
-                                        </tr>
-                                    {/each}
-                                </tbody>
-                            </table>
-                        {/if}
-                        {#if m.result.note}<p class="note">{m.result.note}</p>{/if}
-                        {#if m.result.href}<a class="go" href={m.result.href}>{m.result.hrefLabel || 'See it on the site'} →</a>{/if}
+                        {#each (m.results || [m.result]) as result}
+                            <p class="headline">{result.headline}</p>
+                            {#if result.rows?.length}
+                                <table>
+                                    <tbody>
+                                        {#each result.rows as row}
+                                            <tr>
+                                                <td class="lbl">{row.label}</td>
+                                                <td class="val">{row.value}</td>
+                                                <td class="sub">{row.sub || ''}</td>
+                                            </tr>
+                                        {/each}
+                                    </tbody>
+                                </table>
+                            {/if}
+                            {#if result.note}<p class="note">{result.note}</p>{/if}
+                            {#if result.href}<a class="go" href={result.href}>{result.hrefLabel || 'See it on the site'} →</a>{/if}
+                        {/each}
                     </div>
                 {:else if m.kind === 'page' && m.entry}
                     <div class="bubble bot">
@@ -267,6 +327,7 @@
     .bubble.user { background: var(--blueOne); color: var(--fff); align-self: flex-end; }
     .msg-text { margin: 4px 0; }
     .muted { color: var(--g555); }
+    .prose { margin: 0 0 10px; line-height: 1.45; }
     .headline { font-weight: 700; margin: 2px 0 6px; }
     .follow-note { color: var(--g555); font-size: 0.85rem; margin: 0 0 6px; font-style: italic; }
     .examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }

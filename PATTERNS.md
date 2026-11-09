@@ -81,6 +81,12 @@ or error page. About a minute. A green build alone is not verification.
   The local matcher handles param-only follow-ups and is the
   fallback when the router is unconfigured or unsure — do not grow
   the alias list to chase phrasings the router already handles.
+- The router may return up to 3 picks for comparison questions.
+  Narration (POST /api/ask/narrate) writes prose ABOUT computed
+  results only: the server returns it solely when every number in
+  the prose appears in the results (narrationIsGrounded). The model
+  phrases numbers; it never originates one. Any failure anywhere in
+  the chain degrades to the plain computed tables.
 - Adding a metric = add the page function first (with a test), then one
   registry entry that calls it (with a test). The matcher stays dumb:
   aliases and parameter extraction only, no numbers.
