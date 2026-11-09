@@ -27,6 +27,7 @@
         { name: "FPTS Against", field: "fptsAgainst", format: (row) => fmt2(row.fptsAgainst) },
         { name: "SOS (Pts)", field: "sos", format: (row) => `${fmt2(row.sos)} (${row.sosRank})` },
         { name: "SOS (Rec)", field: "sosRecord", format: (row) => `${row.sosRecord.toFixed(3)} (${row.sosRecordRank})` },
+        { name: "SOS (Luck)", field: "sosLuck", format: (row) => `${row.sosLuck > 0 ? '+' : ''}${row.sosLuck.toFixed(1)} (${row.sosLuckRank})` },
         { name: "Luck", field: "luck", format: (row) => `${row.luck > 0 ? '+' : ''}${row.luck.toFixed(1)}` },
         { name: "Streak", field: "streak" }
     ];
@@ -178,6 +179,6 @@
                 {/each}
             </Body>
         </DataTable>
-        <p class="sosNote">SOS (Pts) = average weekly points scored by the opponents each team has faced this season. SOS (Rec) = those opponents' combined win percentage. Higher means a tougher schedule either way; the number in parentheses is the league rank (1 = toughest). Luck = wins minus all-play expected wins — positive means the schedule has handed them wins, negative means their scoring deserved better.</p>
+        <p class="sosNote">SOS (Pts) = average weekly points scored by the opponents each team has faced this season. SOS (Rec) = those opponents' combined win percentage. Higher means a tougher schedule either way; the number in parentheses is the league rank (1 = toughest). Luck = wins minus all-play expected wins — positive means the schedule has handed them wins, negative means their scoring deserved better. SOS (Luck) = how far opponents' scoring against each team ran from those opponents' own season averages, in points per game — positive means opponents underperformed against them (rank 1 = luckiest).</p>
     </div>
 {/if}

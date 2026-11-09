@@ -5,7 +5,7 @@ import { getLeagueRosters } from "./leagueRosters"
 import { waitForAll } from './multiPromise';
 import { get } from 'svelte/store';
 import {standingsStore} from '$lib/stores';
-import { expectedWinsByRoster, luckValue, sosValues, roundTo } from './standingsMath';
+import { expectedWinsByRoster, luckValue, scheduleLuckValues, sosValues, roundTo } from './standingsMath';
 
 export const getLeagueStandings = async () => {
 	if(get(standingsStore).standingsInfo) {
@@ -96,6 +96,10 @@ export const getLeagueStandings = async () => {
             Object.assign(standings[rosterID], sos[rosterID]);
         }
         const expectedWins = expectedWinsByRoster(scheduleInfo.weekScores || []);
+        const schedLuck = scheduleLuckValues(scheduleInfo.weekScores || [], scheduleInfo.faced);
+        for(const rosterID in schedLuck) {
+            Object.assign(standings[rosterID], schedLuck[rosterID]);
+        }
         for(const rosterID in standings) {
             standings[rosterID].luck = luckValue(standings[rosterID].wins, standings[rosterID].ties, expectedWins[rosterID]);
         }

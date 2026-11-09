@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+  import { createSetParams } from '$lib/utils/urlParams';
   import { Chart, registerables } from 'chart.js';
   import { buildDraftAnalysisData } from '$lib/utils/helperFunctions/draftAnalysis';
 
@@ -16,14 +16,7 @@
   // Which section this route shows: 'team' | 'position' | 'log'.
   export let section = 'team';
   // Filters and sorts live in the URL query string so views are shareable.
-  const setParams = (updates) => {
-    const url = new URL($page.url);
-    for (const [k, v] of Object.entries(updates)) {
-      if (v == null || v === '') url.searchParams.delete(k);
-      else url.searchParams.set(k, v);
-    }
-    goto(url.pathname + url.search, { replaceState: true, keepFocus: true, noScroll: true });
-  };
+  const setParams = createSetParams(page);
   const initParams = $page.url.searchParams;
   let pointsMode = initParams.get('points') === 'roster' ? 'roster' : 'starter';
   let data = null;

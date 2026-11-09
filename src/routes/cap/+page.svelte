@@ -2,17 +2,10 @@
   import Papa from 'papaparse';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+  import { createSetParams } from '$lib/utils/urlParams';
 
   // Filters live in the URL query string so views are shareable.
-  const setParams = (updates) => {
-    const url = new URL($page.url);
-    for (const [k, v] of Object.entries(updates)) {
-      if (v == null || v === '') url.searchParams.delete(k);
-      else url.searchParams.set(k, v);
-    }
-    goto(url.pathname + url.search, { replaceState: true, keepFocus: true, noScroll: true });
-  };
+  const setParams = createSetParams(page);
   const initParams = $page.url.searchParams;
 
   let years = [];
@@ -153,7 +146,7 @@
   }
   th, td {
     padding: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--ddd);
     text-align: center;
   }
   th {

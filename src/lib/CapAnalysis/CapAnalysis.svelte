@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+  import { createSetParams } from '$lib/utils/urlParams';
   import Papa from 'papaparse';
   import { Chart, registerables } from 'chart.js';
   import { leagueID } from '$lib/utils/leagueInfo';
@@ -37,14 +37,7 @@
   // Which section this route shows: 'allocation' | 'efficiency' | 'trends'.
   export let section = 'allocation';
   // Filters live in the URL query string so views are shareable.
-  const setParams = (updates) => {
-    const url = new URL($page.url);
-    for (const [k, v] of Object.entries(updates)) {
-      if (v == null || v === '') url.searchParams.delete(k);
-      else url.searchParams.set(k, v);
-    }
-    goto(url.pathname + url.search, { replaceState: true, keepFocus: true, noScroll: true });
-  };
+  const setParams = createSetParams(page);
   const initParams = $page.url.searchParams;
   let pointsMode = initParams.get('points') === 'roster' ? 'roster' : 'starter';
   let trendView = initParams.get('view') === 'weekly' ? 'weekly' : 'season';
@@ -759,8 +752,8 @@
     color: var(--g111);
   }
 
-  h2 { margin-bottom: 0.25rem; color: var(--g111); }
-  h3 { color: var(--g111); }
+  h2 { font-size: 1.4rem; margin-bottom: 0.25rem; color: var(--g111); }
+  h3 { font-size: 1.1rem; color: var(--g111); }
 
   .subtitle {
     color: var(--g555);

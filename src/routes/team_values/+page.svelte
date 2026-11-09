@@ -2,7 +2,7 @@
   import Papa from 'papaparse';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+  import { createSetParams } from '$lib/utils/urlParams';
   import { Chart, registerables } from 'chart.js';
   import { leagueID } from '$lib/utils/leagueInfo';
   import {
@@ -49,14 +49,7 @@
 
   let managers = [];
   // The manager filter lives in the URL query string so the view is shareable.
-  const setParams = (updates) => {
-    const url = new URL($page.url);
-    for (const [k, v] of Object.entries(updates)) {
-      if (v == null || v === '') url.searchParams.delete(k);
-      else url.searchParams.set(k, v);
-    }
-    goto(url.pathname + url.search, { replaceState: true, keepFocus: true, noScroll: true });
-  };
+  const setParams = createSetParams(page);
   let selectedManager = $page.url.searchParams.get('manager') || "";
   let managerRosters = {};
   let totalValues = [];
@@ -315,7 +308,7 @@
   }
 
   th, td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--ddd);
     padding: 5px;
     text-align: center;
 
@@ -353,7 +346,7 @@
     padding: 0.75rem 1rem;
     font-size: 13px;
     text-align: left;
-    border: 1px solid #ddd;
+    border: 1px solid var(--ddd);
     border-radius: 4px;
     box-sizing: border-box;
   }

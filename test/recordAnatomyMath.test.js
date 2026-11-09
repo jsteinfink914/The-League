@@ -51,3 +51,43 @@ test('all-play expected wins and luck from week scores', () => {
     assert.equal(ts['2026-1'].luck, 0);
     assert.equal(ts['2026-2'].luck, 0);
 });
+
+test('schedule luck: opponent scoring vs their own average, sign-flipped', () => {
+    const G = { QB: 0, RB: 0, WR: 0, TE: 0 };
+    const game = (rosterID, points, oppID, oppPoints, win) => ({
+        season: 2026, rosterID, points, oppID, oppPoints, win, groups: { ...G }, oppGroups: { ...G },
+    });
+    // R1 beats R2 100-80, then loses 90-130. R2's two scores vs R1 are 80 and
+    // 130; against its excl-game averages (130 and 80) that's -50 and +50 for
+    // R2's scoring, so R1's luck is -(+... ) -> diffs for R1: (80-130) and
+    // (130-80) = -50/+50 -> luck 0. R2's diffs: (100-90) and (90-100) = +10/-10 -> 0.
+    // Asymmetric check below uses a third game.
+    const games = [
+        game(1, 100, 2, 80, 1), game(2, 80, 1, 100, 0),
+        game(1, 90, 2, 130, 0), game(2, 130, 1, 90, 1),
+        game(1, 110, 2, 60, 1), game(2, 60, 1, 110, 0),
+    ];
+    const ts = addSosAndRanks(buildTeamSeasons(games));
+    // R2 totals 270 over 3 games. R1's diffs: 80-(270-80)/2=-15, 130-(270-130)/2=+60,
+    // 60-(270-60)/2=-45 -> mean 0 -> luck 0.
+    assert.equal(ts['2026-1'].scheduleLuck, 0);
+    // R1 totals 300. R2's diffs: 100-(300-100)/2=0, 90-(300-90)/2=-15, 110-(300-110)/2=+15 -> 0.
+    assert.equal(ts['2026-2'].scheduleLuck, 0);
+});
+
+test('schedule luck: a team whose opponents no-show gets positive luck and rank 1', () => {
+    const G = { QB: 0, RB: 0, WR: 0, TE: 0 };
+    const game = (rosterID, points, oppID, oppPoints, win) => ({
+        season: 2026, rosterID, points, oppID, oppPoints, win, groups: { ...G }, oppGroups: { ...G },
+    });
+    // R2 scores 140 and 140 against R3 but only 60 against R1.
+    const games = [
+        game(1, 100, 2, 60, 1), game(2, 60, 1, 100, 0),
+        game(2, 140, 3, 100, 1), game(3, 100, 2, 140, 0),
+        game(2, 140, 3, 110, 1), game(3, 110, 2, 140, 0),
+    ];
+    const ts = addSosAndRanks(buildTeamSeasons(games));
+    // R1's only game: R2 scored 60 vs its excl-game average of 140 -> luck +80.
+    assert.equal(ts['2026-1'].scheduleLuck, 80);
+    assert.equal(ts['2026-1'].scheduleLuckRank, 1);
+});

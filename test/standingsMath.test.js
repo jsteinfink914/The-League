@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { expectedWinsByRoster, luckValue, sosValues, roundTo } from '../src/lib/utils/helperFunctions/standingsMath.js';
+import { expectedWinsByRoster, luckValue, scheduleLuckValues, sosValues, roundTo } from '../src/lib/utils/helperFunctions/standingsMath.js';
 
 test('all-play expected wins: weekly shares of the league beaten', () => {
     const weekScores = [
@@ -47,4 +47,29 @@ test('roundTo rounds half up at the requested decimals', () => {
     assert.equal(roundTo(112.414, 2), 112.41);
     assert.equal(roundTo(112.415, 2), 112.42);
     assert.equal(roundTo(0.5474, 3), 0.547);
+});
+
+
+test('schedule luck: symmetric home/away splits cancel out', () => {
+    const weekScores = [
+        [{ rosterID: 1, points: 100 }, { rosterID: 2, points: 80 }],
+        [{ rosterID: 1, points: 100 }, { rosterID: 2, points: 120 }],
+    ];
+    const faced = { 1: [2, 2], 2: [1, 1] };
+    const out = scheduleLuckValues(weekScores, faced);
+    assert.equal(out[1].sosLuck, 0);
+    assert.equal(out[2].sosLuck, 0);
+});
+
+test('schedule luck: opponents underperforming against you is positive luck', () => {
+    const weekScores = [
+        [{ rosterID: 1, points: 90 }, { rosterID: 2, points: 70 }, { rosterID: 3, points: 110 }],
+        [{ rosterID: 2, points: 100 }, { rosterID: 3, points: 95 }, { rosterID: 1, points: 105 }],
+        [{ rosterID: 2, points: 100 }, { rosterID: 3, points: 88 }, { rosterID: 1, points: 99 }],
+    ];
+    const faced = { 1: [2, 3, 3], 2: [1, 3, 3], 3: [2, 2, 1] };
+    const out = scheduleLuckValues(weekScores, faced);
+    assert.equal(out[1].sosLuck, 16.2);
+    assert.equal(out[1].sosLuckRank, 1);
+    assert.equal(out[3].sosLuck, 4.5);
 });

@@ -1,7 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
-    import { goto } from '$app/navigation';
+    import { createSetParams } from '$lib/utils/urlParams';
     import { getRecordAnatomy } from '$lib/utils/helperFunctions/recordAnatomy';
 
     // Which H2H section this route shows: 'luck' | 'anatomy' | 'stats'.
@@ -29,7 +29,7 @@
             selectedRoster = data.teamSeasons[`${selectedSeason}-${teamParam}`] ? teamParam : defaultRoster(selectedSeason);
             if (seasonParam && data.seasons.includes(seasonParam)) luckSeason = seasonParam;
             const sortParam = params.get('sort');
-            if (['wins', 'expectedWins', 'luck'].includes(sortParam)) luckSortKey = sortParam;
+            if (['wins', 'expectedWins', 'luck', 'schedLuck'].includes(sortParam)) luckSortKey = sortParam;
             if (params.get('dir') === 'asc') luckSortDir = 1;
             else if (params.get('dir') === 'desc') luckSortDir = -1;
         } catch (err) {
@@ -48,14 +48,7 @@
     const teamAvatar = (season, rosterID) => teamInfo(season, rosterID)?.team?.avatar;
 
     // Filters live in the URL query string so views are shareable.
-    const setParams = (updates) => {
-        const url = new URL($page.url);
-        for (const [k, v] of Object.entries(updates)) {
-            if (v == null || v === '') url.searchParams.delete(k);
-            else url.searchParams.set(k, v);
-        }
-        goto(url.pathname + url.search, { replaceState: true, keepFocus: true, noScroll: true });
-    };
+    const setParams = createSetParams(page);
 
     // Default to the team with the most extreme luck story that season.
     const defaultRoster = (season) => {
@@ -100,6 +93,9 @@
                         wins: mine.reduce((s, t) => s + t.wins, 0),
                         expectedWins: mine.reduce((s, t) => s + t.expectedWins, 0),
                         luck: mine.reduce((s, t) => s + t.luck, 0),
+                        schedLuck: mine.reduce((s, t) => s + t.games, 0)
+                            ? mine.reduce((s, t) => s + t.scheduleLuck * t.games, 0) / mine.reduce((s, t) => s + t.games, 0)
+                            : 0,
                     };
                 })
                 .sort((a, b) => b.luck - a.luck);
@@ -107,7 +103,7 @@
         const season = Number(sel);
         return Object.values(data.teamSeasons)
             .filter((t) => t.season === season)
-            .map((t) => ({ name: teamName(season, t.rosterID), wins: t.wins, expectedWins: t.expectedWins, luck: t.luck }))
+            .map((t) => ({ name: teamName(season, t.rosterID), wins: t.wins, expectedWins: t.expectedWins, luck: t.luck, schedLuck: t.scheduleLuck }))
             .sort((a, b) => b.luck - a.luck);
     };
 
@@ -227,11 +223,11 @@
         <p class="note">Actual wins minus all-play expected wins — positive means the schedule handed them wins, negative means their scoring deserved better. Click a column header to sort.</p>
         <table class="dataTable">
             <thead>
-                <tr><th>Team</th><th class="sortable" on:click={() => sortLuckBy('wins')}>Wins{luckArrow('wins', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('expectedWins')}>Exp. Wins{luckArrow('expectedWins', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('luck')}>Luck{luckArrow('luck', luckSortKey, luckSortDir)}</th></tr>
+                <tr><th>Team</th><th class="sortable" on:click={() => sortLuckBy('wins')}>Wins{luckArrow('wins', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('expectedWins')}>Exp. Wins{luckArrow('expectedWins', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('luck')}>Luck{luckArrow('luck', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('schedLuck')}>Sched. Luck{luckArrow('schedLuck', luckSortKey, luckSortDir)}</th></tr>
             </thead>
             <tbody>
                 {#each sortLuck(luckRows, luckSortKey, luckSortDir) as row}
-                    <tr><td>{row.name}</td><td>{fmtWins(row.wins)}</td><td>{fmt2(row.expectedWins)}</td><td><strong>{fmtLuck(row.luck)}</strong></td></tr>
+                    <tr><td>{row.name}</td><td>{fmtWins(row.wins)}</td><td>{fmt2(row.expectedWins)}</td><td><strong>{fmtLuck(row.luck)}</strong></td><td>{fmtLuck(row.schedLuck)}</td></tr>
                 {/each}
             </tbody>
         </table>
@@ -267,6 +263,7 @@
                 <div class="tile"><div class="tileVal">{fmt1(team.paPerGame)} <span class="tileRank">(#{team.paRank})</span></div><div class="tileLabel">Points Against / game</div></div>
                 <div class="tile"><div class="tileVal">{fmt2(team.sosPts)} <span class="tileRank">(#{team.sosPtsRank})</span></div><div class="tileLabel">SOS (Pts)</div></div>
                 <div class="tile"><div class="tileVal">{team.sosRec.toFixed(3)} <span class="tileRank">(#{team.sosRecRank})</span></div><div class="tileLabel">SOS (Rec)</div></div>
+                <div class="tile"><div class="tileVal">{fmtLuck(team.scheduleLuck)} <span class="tileRank">(#{team.scheduleLuckRank})</span></div><div class="tileLabel">Schedule Luck (opp vs their avg)</div></div>
                 <div class="tile"><div class="tileVal">{fmt1(team.expectedWins)}</div><div class="tileLabel">Expected wins (all-play)</div></div>
                 <div class="tile"><div class="tileVal" class:hot={team.luck >= 1} class:cold={team.luck <= -1}>{team.luck > 0 ? '+' : ''}{fmt1(team.luck)}</div><div class="tileLabel">Luck (wins vs expected)</div></div>
             </div>
@@ -292,70 +289,61 @@
 
 <style>
     h1 { font-size: 2.2em; line-height: 1.3em; margin: 1.5em 0 0.3em; }
-    h2 { margin: 1.3em 0 0.35em; }
-    h3 { margin: 1.1em 0 0.35em; }
+    h2 { font-size: 1.4rem; margin: 1.3em 0 0.35em; }
+    h3 { font-size: 1.1rem; margin: 1.1em 0 0.35em; }
     .intro { max-width: 720px; }
-    .note { font-size: 0.85em; font-style: italic; color: #555; max-width: 720px; }
+    .note { font-size: 0.85em; font-style: italic; color: var(--g555); max-width: 720px; }
     .note.inline { font-size: 0.75em; font-weight: normal; }
     .loading { display: block; margin: 80px auto; text-align: center; }
     section { margin-bottom: 1.6em; }
-    .tabBar { display: flex; gap: 0.4em; flex-wrap: wrap; margin: 1em 0 0.4em; border-bottom: 2px solid #ddd; }
-    .tabBtn { background: none; border: none; text-decoration: none; display: inline-block; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 0.45em 0.8em; font-size: 1.05em; font-weight: bold; color: #555; cursor: pointer; }
-    .tabBtn:hover { color: #222; }
-    .tabBtn.active { color: #222; border-bottom-color: #2e86c1; }
+    .tabBar { display: flex; gap: 0.4em; flex-wrap: wrap; margin: 1em 0 0.4em; border-bottom: 2px solid var(--ddd); }
+    .tabBtn { background: none; border: none; text-decoration: none; display: inline-block; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 0.45em 0.8em; font-size: 1.05em; font-weight: bold; color: var(--g555); cursor: pointer; }
+    .tabBtn:hover { color: var(--g111); }
+    .tabBtn.active { color: var(--g111); border-bottom-color: #2e86c1; }
     .dataTable { border-collapse: collapse; width: 100%; max-width: 720px; margin: 0.4em 0 0.8em; }
-    .dataTable th, .dataTable td { border: 1px solid #ddd; padding: 0.35em 0.55em; text-align: left; font-size: 0.95em; }
-    .dataTable th { background: #f4f4f4; }
+    .dataTable th, .dataTable td { border: 1px solid var(--ddd); padding: 0.35em 0.55em; text-align: left; font-size: 0.95em; }
+    .dataTable th { background: var(--f3f3f3); }
     .dataTable th.sortable { cursor: pointer; user-select: none; }
-    .dataTable tr.pooled { font-weight: bold; background: #fafafa; }
+    .dataTable tr.pooled { font-weight: bold; background: var(--f3f3f3); }
     .splitGrid { display: flex; flex-wrap: wrap; gap: 0.6em; margin: 0.4em 0 0.8em; }
-    .splitCard { border: 1px solid #ddd; border-radius: 8px; padding: 0.6em 0.85em; min-width: 150px; flex: 1; max-width: 220px; }
-    .splitTitle { font-size: 0.85em; color: #555; }
-    .splitThreshold { font-size: 1.35em; color: #222; }
+    .splitCard { border: 1px solid var(--ddd); border-radius: 8px; padding: 0.6em 0.85em; min-width: 150px; flex: 1; max-width: 220px; }
+    .splitTitle { font-size: 0.85em; color: var(--g555); }
+    .splitThreshold { font-size: 1.35em; color: var(--g111); }
     .splitBig { font-size: 1.6em; font-weight: normal; margin: 0.15em 0; }
-    .gamesN { color: #555; font-size: 0.85em; }
-    .splitLabel { font-size: 0.5em; font-weight: normal; color: #555; }
-    .splitSub { font-size: 0.8em; color: #555; }
+    .gamesN { color: var(--g555); font-size: 0.85em; }
+    .splitLabel { font-size: 0.5em; font-weight: normal; color: var(--g555); }
+    .splitSub { font-size: 0.8em; color: var(--g555); }
     .selectors { display: flex; gap: 1em; margin: 0.5em 0 1em; flex-wrap: wrap; }
     .selectors select { margin-left: 0.4em; padding: 0.3em; font-size: 1em; }
     .teamHead { display: flex; align-items: center; gap: 0.6em; margin-top: 0.5em; }
     .avatar { width: 36px; height: 36px; border-radius: 50%; }
     .teamName { font-size: 1.3em; font-weight: bold; }
-    .teamRecord { font-size: 1.3em; color: #555; }
+    .teamRecord { font-size: 1.3em; color: var(--g555); }
     .verdict { max-width: 720px; font-size: 1.05em; }
     .tileGrid { display: flex; flex-wrap: wrap; gap: 0.6em; margin: 0.8em 0; }
-    .tile { border: 1px solid #ddd; border-radius: 8px; padding: 0.6em 0.9em; min-width: 140px; flex: 1; max-width: 200px; }
+    .tile { border: 1px solid var(--ddd); border-radius: 8px; padding: 0.6em 0.9em; min-width: 140px; flex: 1; max-width: 200px; }
     .tileVal { font-size: 1.4em; font-weight: bold; }
     .tileVal.hot { color: #c0392b; }
     .tileVal.cold { color: #2471a3; }
-    .tileRank { font-size: 0.6em; color: #555; font-weight: normal; }
-    .tileLabel { font-size: 0.8em; color: #555; }
+    .tileRank { font-size: 0.6em; color: var(--g555); font-weight: normal; }
+    .tileLabel { font-size: 0.8em; color: var(--g555); }
     .edges { max-width: 560px; }
     .edgeRow { display: flex; align-items: center; gap: 0.6em; margin: 0.3em 0; }
     .edgePos { width: 30px; font-weight: bold; }
-    .edgeTrack { position: relative; flex: 1; height: 18px; background: #f4f4f4; border-radius: 4px; }
-    .edgeZero { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #999; }
+    .edgeTrack { position: relative; flex: 1; height: 18px; background: var(--f3f3f3); border-radius: 4px; }
+    .edgeZero { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--g555); }
     .edgeBar { position: absolute; top: 3px; bottom: 3px; background: #2e86c1; border-radius: 3px; }
     .edgeBar.neg { background: #c0392b; }
     .edgeVal { width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
 
-    /* Dark mode: follow the OS setting, same as the site's SMUI dark theme. */
+    /* Dark mode: neutrals come from the theme variables above (they flip
+       with the site's SMUI dark theme). Only accent colors need a brighter
+       dark variant. */
     @media (prefers-color-scheme: dark) {
-        .note, .splitTitle, .splitSub, .splitLabel, .teamRecord, .tileRank, .tileLabel, .gamesN { color: #aaa; }
-        .splitThreshold { color: #eee; }
-        .dataTable th, .dataTable td { border-color: #444; }
-        .dataTable th { background: #1e1e1e; }
-        .dataTable tr.pooled { background: #242424; }
-        .splitCard, .tile { border-color: #444; }
-        .edgeTrack { background: #1e1e1e; }
-        .edgeZero { background: #777; }
         .tileVal.hot { color: #e74c3c; }
         .tileVal.cold { color: #5dade2; }
         .edgeBar { background: #5dade2; }
         .edgeBar.neg { background: #e74c3c; }
-        .tabBar { border-bottom-color: #444; }
-        .tabBtn { color: #aaa; }
-        .tabBtn:hover { color: #eee; }
-        .tabBtn.active { color: #eee; border-bottom-color: #5dade2; }
+        .tabBtn.active { border-bottom-color: #5dade2; }
     }
 </style>

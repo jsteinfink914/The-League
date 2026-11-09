@@ -61,7 +61,8 @@
     "smui-theme-light": "smui-theme compile static/smui.css -i src/theme",
     "smui-theme-dark": "smui-theme compile static/smui-dark.css -i src/theme/dark",
     "lint": "prettier --check --plugin-search-dir=. .",
-    "format": "prettier --write --plugin-search-dir=. ."
+    "format": "prettier --write --plugin-search-dir=. .",
+    "smoke": "node scripts/smoke.mjs"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "5.2.12",

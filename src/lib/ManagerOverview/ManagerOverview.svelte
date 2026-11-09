@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
+  import { createSetParams } from '$lib/utils/urlParams';
   import Papa from 'papaparse';
   import { Chart, registerables } from 'chart.js';
   import { buildCapAnalysisData } from '$lib/utils/helperFunctions/capAnalysis';
@@ -30,14 +30,7 @@
   let draftData = null;
   let combined = [];
   // Filters and sort live in the URL query string so views are shareable.
-  const setParams = (updates) => {
-    const url = new URL($page.url);
-    for (const [k, v] of Object.entries(updates)) {
-      if (v == null || v === '') url.searchParams.delete(k);
-      else url.searchParams.set(k, v);
-    }
-    goto(url.pathname + url.search, { replaceState: true, keepFocus: true, noScroll: true });
-  };
+  const setParams = createSetParams(page);
   let selectedManager = $page.url.searchParams.get('manager') || null;
 
   let overviewSortKey = $page.url.searchParams.get('sort') || 'avgRank';

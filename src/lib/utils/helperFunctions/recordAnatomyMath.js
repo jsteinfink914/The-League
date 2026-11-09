@@ -44,7 +44,7 @@ export const buildTeamSeasons = (games) => {
                 pointsFor: 0, pointsAgainst: 0,
                 groups: { QB: 0, RB: 0, WR: 0, TE: 0 },
                 oppGroups: { QB: 0, RB: 0, WR: 0, TE: 0 },
-                faced: [], expectedWins: 0,
+                faced: [], facedGames: [], expectedWins: 0,
             };
         }
         const ts = seasons[key];
@@ -57,6 +57,7 @@ export const buildTeamSeasons = (games) => {
             ts.oppGroups[pos] += g.oppGroups[pos] || 0;
         }
         ts.faced.push(g.oppID);
+        ts.facedGames.push({ oppID: g.oppID, oppPoints: g.oppPoints });
     }
     return seasons;
 };
@@ -111,7 +112,18 @@ export const addSosAndRanks = (teamSeasons) => {
         const allPf = teams.map((t) => t.pfPerGame);
         const allPa = teams.map((t) => t.paPerGame);
         const allSosPts = teams.map((t) => t.sosPts);
+        for (const ts of teams) {
+            let diffSum = 0, diffN = 0;
+            for (const fg of ts.facedGames) {
+                const opp = lookup[fg.oppID];
+                if (!opp || opp.games < 2) continue;
+                diffSum += fg.oppPoints - (opp.pointsFor - fg.oppPoints) / (opp.games - 1);
+                diffN++;
+            }
+            ts.scheduleLuck = diffN ? -(diffSum / diffN) + 0 : 0; // +0 normalizes -0
+        }
         const allSosRec = teams.map((t) => t.sosRec);
+        const allSchedLuck = teams.map((t) => t.scheduleLuck);
         // League-average positional scoring, the baseline for edge numbers.
         const leagueGroups = {};
         for (const pos of GROUPS) {
@@ -122,6 +134,7 @@ export const addSosAndRanks = (teamSeasons) => {
             ts.paRank = rankDesc(allPa, ts.paPerGame);
             ts.sosPtsRank = rankDesc(allSosPts, ts.sosPts);
             ts.sosRecRank = rankDesc(allSosRec, ts.sosRec);
+            ts.scheduleLuckRank = rankDesc(allSchedLuck, ts.scheduleLuck);
             ts.edges = {};
             for (const pos of GROUPS) {
                 ts.edges[pos] = (ts.games ? ts.groups[pos] / ts.games : 0) - leagueGroups[pos];

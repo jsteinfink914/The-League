@@ -63,3 +63,46 @@ export const sosValues = (standings, scheduleInfo) => {
     }
     return result;
 };
+
+// Schedule luck: for each game, the opponent's score in that game minus the
+// opponent's season average (excluding that game). Averaged over the team's
+// games and sign-flipped, so positive means opponents underperformed against
+// this team (lucky) and negative means they brought their best (unlucky).
+// Points per game, one decimal. Rank 1 = luckiest, ties share a rank.
+// weekScores: an array of weeks, each a list of { rosterID, points }.
+// faced: { rosterID: [oppID, ...] } in the order the games were played —
+// weekScores[i] must be the week of the i-th faced entry (leagueStandings
+// builds both in the same pass over the same matchup weeks, and every team
+// plays every week in this league).
+export const scheduleLuckValues = (weekScores, faced) => {
+    const totals = {}, counts = {}, byWeek = [];
+    for (const week of weekScores || []) {
+        const map = {};
+        for (const e of week) {
+            map[e.rosterID] = e.points;
+            totals[e.rosterID] = (totals[e.rosterID] || 0) + e.points;
+            counts[e.rosterID] = (counts[e.rosterID] || 0) + 1;
+        }
+        byWeek.push(map);
+    }
+    const raw = {};
+    for (const rosterID in faced || {}) {
+        let sum = 0, n = 0;
+        (faced[rosterID] || []).forEach((oppID, i) => {
+            const oppGamePts = byWeek[i] ? byWeek[i][oppID] : undefined;
+            if (oppGamePts === undefined || (counts[oppID] || 0) < 2) return;
+            const oppAvgExcl = (totals[oppID] - oppGamePts) / (counts[oppID] - 1);
+            sum += oppGamePts - oppAvgExcl;
+            n++;
+        });
+        raw[rosterID] = n ? -(sum / n) : 0;
+    }
+    const result = {};
+    for (const rosterID in raw) {
+        result[rosterID] = {
+            sosLuck: roundTo(raw[rosterID], 1),
+            sosLuckRank: 1 + Object.values(raw).filter((v) => v > raw[rosterID]).length,
+        };
+    }
+    return result;
+};
