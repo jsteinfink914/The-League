@@ -62,3 +62,14 @@ names it `groups`). Pure helpers live in `*Math.js` modules with tests in
 Unit tests, the manager-name drift check, a production build, and a preview
 sweep of every route plus the known deep links, failing on any server error
 or error page. About a minute. A green build alone is not verification.
+
+## Ask registry (src/lib/ask)
+- The registry is the single source of truth for what the site can show
+  and answer: the /ask directory renders from it, and the Ask bot's
+  answers come from its query entries.
+- A query's run() must call the same functions and loaders the pages
+  use; never re-derive a metric in the registry. When a calculation
+  changes, the answer changes with it.
+- Adding a metric = add the page function first (with a test), then one
+  registry entry that calls it (with a test). The matcher stays dumb:
+  aliases and parameter extraction only, no numbers.

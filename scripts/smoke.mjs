@@ -42,6 +42,7 @@ const GUARDED = [
     'src/lib/TradeAnalysis/TradeAnalysis.svelte', 'src/lib/DraftAnalysis/DraftAnalysis.svelte',
     'src/lib/CapAnalysis/CapAnalysis.svelte', 'src/lib/Standings/index.svelte',
     'src/routes/cap/+page.svelte', 'src/routes/team_values/+page.svelte',
+    'src/lib/ask/Ask.svelte',
 ];
 const hexGuard = () => {
     const offenders = [];

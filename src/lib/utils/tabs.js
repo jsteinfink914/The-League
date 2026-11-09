@@ -17,6 +17,11 @@ export const tabs = [
         dest: '/transactions',
     },
     {
+        icon: 'search',
+        label: 'Ask',
+        dest: '/ask',
+    },
+    {
         icon: 'view_comfy',
         label: 'League',
         nest: true,
