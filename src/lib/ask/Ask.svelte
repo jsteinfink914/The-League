@@ -335,16 +335,6 @@
         <div class="directory">
             <input class="dir-filter" type="text" bind:value={directoryFilter} placeholder="Filter the directory…" aria-label="Filter the directory" />
 
-            <h3 class="group-h">Things you can ask</h3>
-            <div class="grid">
-                {#each ENTRIES.filter((e) => e.kind === 'query' && filterHit(e)) as e}
-                    <button class="dir-card btn-card" on:click={() => send(e.examples?.[0] || e.title)}>
-                        <strong>{e.title}</strong>
-                        <span>{e.blurb}</span>
-                    </button>
-                {/each}
-            </div>
-
             {#each groups as g}
                 {#if pageEntries().some((e) => e.group === g && filterHit(e))}
                     <h3 class="group-h">{g}</h3>
@@ -401,5 +391,4 @@
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
     .dir-card { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--ddd); border-radius: 10px; padding: 12px; text-decoration: none; color: var(--g111); background: var(--fff); text-align: left; }
     .dir-card span { color: var(--g555); font-size: 0.9rem; }
-    .btn-card { cursor: pointer; font: inherit; }
 </style>
