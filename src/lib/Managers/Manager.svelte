@@ -60,7 +60,7 @@
             goto(`/managers`);
         }
         manager = newManager;
-        goto(`/manager?manager=${newManager}`, {noscroll});
+        goto(managers[newManager] ? `/manager_overview/cards?manager=${encodeURIComponent(managers[newManager].name)}` : '/managers', {noscroll});
     }
 </script>
 

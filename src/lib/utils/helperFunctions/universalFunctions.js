@@ -37,6 +37,15 @@ const max = (stats, roundOverride) => {
     return Math.ceil(num / roundOverride) * roundOverride;
 }
 
+// There is no /manager route on this site (the template's manager detail
+// page was never carried over). Manager links land on the Manager Overview
+// cards view with that manager preselected; unknown managers go to the
+// managers list.
+export const managerDest = (managersIndex) => {
+    const m = managersObj[managersIndex];
+    return m ? `/manager_overview/cards?manager=${encodeURIComponent(m.name)}` : '/managers';
+};
+
 export const gotoManager = ({leagueTeamManagers, managerID, rosterID, year}) => {
     if(!managersObj.length) return;
     let managersIndex = -1;
@@ -56,7 +65,7 @@ export const gotoManager = ({leagueTeamManagers, managerID, rosterID, year}) => 
                 for(const mID of leagueTeamManagers.teamManagersMap[year][rID].managers) {
                     if(mID == managerID) {
                         managersIndex =  managersObj.findIndex(m => m.roster == rID);
-                        goto(`/manager?manager=${managersIndex}`);
+                        goto(managerDest(managersIndex));
                         return;
                     }
                 }
@@ -68,7 +77,7 @@ export const gotoManager = ({leagueTeamManagers, managerID, rosterID, year}) => 
             for(const mID of leagueTeamManagers.teamManagersMap[year][rosterID].managers) {
                 managersIndex = managersObj.findIndex(m => m.managerID == mID);
                 if(managersIndex > -1) {
-                    goto(`/manager?manager=${managersIndex}`);
+                    goto(managerDest(managersIndex));
                     return;
                 }
             }
@@ -79,13 +88,13 @@ export const gotoManager = ({leagueTeamManagers, managerID, rosterID, year}) => 
     }
 
     // if no manager exists for that roster, -1 will take you to the main managers page
-    goto(`/manager?manager=${managersIndex}`);
+    goto(managerDest(managersIndex));
 }
 
 export const getAuthor = (leagueTeamManagers, author) => {
     for(const userID in leagueTeamManagers.users) {
         if(leagueTeamManagers.users[userID].user_name.toLowerCase() == author.toLowerCase()) {
-            return [`<a href="/manager?manager=${managersObj.findIndex(m => m.managerID == String(userID))}">${leagueTeamManagers.users[userID].display_name}</a>`, ]
+            return [`<a href="${managerDest(managersObj.findIndex(m => m.managerID == String(userID)))}">${leagueTeamManagers.users[userID].display_name}</a>`, ]
         }
     }
     return author;

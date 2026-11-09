@@ -229,7 +229,7 @@
     }
 </style>
 
-<div class="manager" style="{retired ? "background-image: url(/retired.png); background-color: var(--ddd)": ""}" on:click={() => goto(`/manager?manager=${key}`)}>
+<div class="manager" style="{retired ? "background-image: url(/retired.png); background-color: var(--ddd)": ""}" on:click={() => goto(`/manager_overview/cards?manager=${encodeURIComponent(manager.name)}`)}>
     <div class="avatarHolder">
         <img class="photo" src="{manager.photo}" alt="{manager.name}" />
         {#if commissioner}
