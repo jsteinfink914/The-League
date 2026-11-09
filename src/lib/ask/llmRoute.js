@@ -44,6 +44,7 @@ Rules:
 - If the question names a year, set season to that year on every pick that accepts it. If it says all-time/ever, set season to "all" where accepted.
 - Prefer a computed (kind "query") entry whenever the question asks for a stat, a ranking, a comparison, or who is best/worst at something. Pick a "page" or "guide" entry only when the user asks to see, open, or find that page.
 - A previous-answer line may be included. If the question is a follow-up about that answer (for example "exclude cap", "just the trades part"), pick the entry or plan that can honor the change, with the parameters it needs.
+- If the question asks for the BOTTOM of a ranking (unluckiest, worst, lowest), prefer a plan with sortDir "asc" over a best-first entry, so the answer's top rows are what was asked for.
 - OR return a single plan instead of picks: {"plan": {"dataset": "<id>", "filters": {...}, "rankBy": [...], "sortBy": "<field>", "sortDir": "asc|desc", "limit": N}} when the question ranks, filters, or re-weights one of the datasets in the catalog — for example ranking managers by one component, excluding a component, or listing players, team totals, or luck with a season/position/manager filter. Return picks or a plan, never both.
 - Never invent statistics, names, or numbers. Your only job is choosing entries and their parameters.`;
 
@@ -168,4 +169,19 @@ export const validatePlan = (raw, datasets, managerNames = []) => {
         plan.limit = Math.max(1, Math.min(50, Math.round(raw.limit)));
     }
     return { dataset, plan };
+};
+
+// Decide what a router response amounts to: a validated plan, a
+// set of validated picks, or nothing (the caller may retry once —
+// the model occasionally returns an empty answer for a question
+// that plainly fits, and one retry makes that rare).
+export const pickOutcome = (parsed, entries, datasets, managerNames = []) => {
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (parsed.plan) {
+        const vp = validatePlan(parsed.plan, datasets, managerNames);
+        if (vp) return { plan: { dataset: vp.dataset.id, ...vp.plan } };
+    }
+    const picks = validatePicks(parsed, entries, managerNames);
+    if (picks.length) return { picks: picks.map((p) => ({ entryId: p.entry.id, params: p.params })) };
+    return null;
 };

@@ -54,7 +54,8 @@ test('playerTotals: sums starters only, skips the 0 slot, rounds', () => {
 });
 
 import { resolveTurn } from '../src/lib/ask/matcher.js';
-import { validatePick, validatePicks, buildCatalog, narrationIsGrounded, mergeExtractedParams, buildRoutePrompt } from '../src/lib/ask/llmRoute.js';
+import { validatePick, validatePicks, buildCatalog, narrationIsGrounded, mergeExtractedParams, buildRoutePrompt, pickOutcome } from '../src/lib/ask/llmRoute.js';
+import { DATASETS } from '../src/lib/ask/datasets.js';
 
 test("matcher: 'Best at drafting' lands on the drafter query", () => {
     assert.equal(matchEntry(ENTRIES, 'Best at drafting', CTX).entry.id, 'best-drafter');
@@ -165,4 +166,14 @@ test('buildRoutePrompt: previous-answer context is included when present', () =>
     const withCtx = buildRoutePrompt('What if u exclude cap', [], ['Jake'], { entryId: 'best-manager', headline: 'Best all-around manager (average rank: cap, trades, draft)' });
     assert.ok(withCtx.includes('Previous answer: entry "best-manager"'));
     assert.ok(!buildRoutePrompt('Hi', [], [], null).includes('Previous answer'));
+});
+
+test('pickOutcome: plan beats picks, empty/invalid responses are null', () => {
+    const plan = pickOutcome({ plan: { dataset: 'manager-leaderboard', rankBy: ['draft'] } }, ENTRIES, DATASETS, ['Jake']);
+    assert.equal(plan.plan.dataset, 'manager-leaderboard');
+    const picks = pickOutcome({ picks: [{ entryId: 'luck' }] }, ENTRIES, DATASETS, ['Jake']);
+    assert.equal(picks.picks[0].entryId, 'luck');
+    assert.equal(pickOutcome({ picks: [] }, ENTRIES, DATASETS, ['Jake']), null);
+    assert.equal(pickOutcome({ plan: { dataset: 'nope' } }, ENTRIES, DATASETS, ['Jake']), null);
+    assert.equal(pickOutcome(null, ENTRIES, DATASETS, ['Jake']), null);
 });
