@@ -4,7 +4,7 @@ import {
   getContractBreakdown,
   normalizeName
 } from '$lib/utils/playerNameLookup';
-import { allSettledWithConcurrency, fetchJson } from './request';
+import { allSettledWithConcurrency, fetchJson, fetchJsonCached } from './request';
 import { requireCompleteWeekResults } from './completeWeekResults';
 
 // ── Low-level helpers ──────────────────────────────────────────────────────
@@ -44,7 +44,7 @@ async function fetchSeasonMatchups(seasonID, playoffWeekStart) {
     urls.push(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${w}`);
   }
 
-  const results = await allSettledWithConcurrency(urls.map((url) => () => fetchJson(url)));
+  const results = await allSettledWithConcurrency(urls.map((url) => () => fetchJsonCached(url)));
   return requireCompleteWeekResults(results, 'Cap analysis matchup data')
     .map((entries, i) => ({ week: i + 1, entries }));
 }

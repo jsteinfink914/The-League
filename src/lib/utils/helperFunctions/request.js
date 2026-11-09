@@ -101,3 +101,29 @@ export async function allSettledWithConcurrency(tasks, concurrency = MAX_CONCURR
   );
   return results;
 }
+
+// Session-scoped cache for HISTORICAL reads (completed seasons and
+// weeks — data that cannot change during a visit). Concurrent calls
+// for the same URL share one in-flight request, fulfilled results
+// are kept for the rest of the session, and failures are evicted so
+// a later call can retry. Never use this for live data (the current
+// week's matchups, rosters during games): those must stay fresh.
+const jsonCache = new Map();
+
+export function fetchJsonCached(input, init = {}, options = {}) {
+  const url = typeof input === 'string' ? input : input?.url || '';
+  if (!url) return fetchJson(input, init, options);
+  const hit = jsonCache.get(url);
+  if (hit) return hit;
+  const promise = fetchJson(input, init, options).catch((error) => {
+    jsonCache.delete(url);
+    throw error;
+  });
+  jsonCache.set(url, promise);
+  return promise;
+}
+
+// Test hook: forget every cached response.
+export function clearFetchJsonCache() {
+  jsonCache.clear();
+}

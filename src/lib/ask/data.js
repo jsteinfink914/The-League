@@ -7,6 +7,7 @@ import { getLeagueTeamManagers } from '$lib/utils/helperFunctions/leagueTeamMana
 import { loadPlayers } from '$lib/utils/helperFunctions/players';
 import { managers as leagueManagers, leagueID } from '$lib/utils/leagueInfo';
 import { aggregatePlayerTotals } from './playerTotals.js';
+import { fetchJson, fetchJsonCached, allSettledWithConcurrency } from '$lib/utils/helperFunctions/request';
 import { loadManagerOverviewData } from '$lib/utils/helperFunctions/managerOverviewData';
 
 let anatomyPromise = null;
@@ -51,7 +52,7 @@ export const loadPlayerTotals = (season) => {
         let playoffStart = 15;
         while (current && !seen.has(current)) {
             seen.add(current);
-            const league = await (await fetch(`https://api.sleeper.app/v1/league/${current}`)).json();
+            const league = await fetchJsonCached(`https://api.sleeper.app/v1/league/${current}`);
             if (Number(league.season) === Number(season)) {
                 leagueId = current;
                 playoffStart = league.settings?.playoff_week_start || 15;
@@ -61,15 +62,18 @@ export const loadPlayerTotals = (season) => {
         }
         if (!leagueId) return [];
         let lastWeek = playoffStart - 1;
-        const state = await (await fetch('https://api.sleeper.app/v1/state/nfl')).json().catch(() => null);
+        const state = await fetchJson('https://api.sleeper.app/v1/state/nfl').catch(() => null);
         if (state && Number(state.season) === Number(season) && state.season_type === 'regular') {
             lastWeek = Math.min(lastWeek, Math.max(state.week - 1, 0));
         }
-        const weeks = [];
+        const urls = [];
         for (let w = 1; w <= lastWeek; w++) {
-            weeks.push(await (await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${w}`)).json());
+            urls.push(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${w}`);
         }
-        return aggregatePlayerTotals(weeks);
+        const results = await allSettledWithConcurrency(urls.map((url) => () => fetchJsonCached(url)));
+        const failed = results.find((r) => r.status === 'rejected');
+        if (failed) throw failed.reason;
+        return aggregatePlayerTotals(results.map((r) => r.value));
     })();
     return totalsPromises[season];
 };

@@ -1,5 +1,5 @@
 import { leagueID } from '$lib/utils/leagueInfo';
-import { allSettledWithConcurrency, fetchJson } from './request';
+import { allSettledWithConcurrency, fetchJson, fetchJsonCached } from './request';
 import { getNflState } from './nflState';
 import { loadPlayers } from './players';
 import { GROUPS, buildTeamSeasons, addExpectedWins, addSosAndRanks, computeLaws } from './recordAnatomyMath';
@@ -31,7 +31,7 @@ async function fetchSeasonWeeks(seasonID, weekCount) {
     for (let w = 1; w <= weekCount; w++) {
         urls.push(`https://api.sleeper.app/v1/league/${seasonID}/matchups/${w}`);
     }
-    const results = await allSettledWithConcurrency(urls.map((url) => () => fetchJson(url)));
+    const results = await allSettledWithConcurrency(urls.map((url) => () => fetchJsonCached(url)));
     return results.map((result, i) => ({
         week: i + 1,
         entries: result.status === 'fulfilled' && Array.isArray(result.value) ? result.value : [],

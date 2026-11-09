@@ -90,3 +90,5 @@ or error page. About a minute. A green build alone is not verification.
 - Adding a metric = add the page function first (with a test), then one
   registry entry that calls it (with a test). The matcher stays dumb:
   aliases and parameter extraction only, no numbers.
+
+- Sleeper reads: historical data (completed seasons/weeks) goes through fetchJsonCached in request.js (session promise cache, failures evicted); live data (current week, NFL state) is never cached. Parallelism is allSettledWithConcurrency (cap 6).
