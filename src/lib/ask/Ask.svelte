@@ -2,8 +2,9 @@
     import { onMount, tick } from 'svelte';
     import { page } from '$app/stores';
     import { ENTRIES, entryById, pageEntries } from './registry.js';
-    import { resolveTurn, closestEntries } from './matcher.js';
+    import { resolveTurn, closestEntries, extractParams } from './matcher.js';
     import { buildContext } from './data.js';
+    import { mergeExtractedParams } from './llmRoute.js';
     import { managers as leagueManagers } from '$lib/utils/leagueInfo';
 
     // The matcher accepts any plausible season at parse time; each
@@ -11,7 +12,7 @@
     const SEASONS_DESC = [2029, 2028, 2027, 2026, 2025, 2024, 2023, 2022];
     const MANAGER_NAMES = leagueManagers.map((m) => m.name);
     const MATCH_CTX = { seasonsDesc: SEASONS_DESC, managerNames: MANAGER_NAMES };
-    const EXAMPLES = ['Best at drafting', 'Who is the luckiest manager?', 'Who scored the most points in 2025?'];
+    const EXAMPLES = ['Best at drafting', 'Who is the luckiest manager?', 'Who scored the most fantasy points in 2025?'];
 
     let input = '';
     let messages = [];
@@ -80,10 +81,11 @@
             if (!res.ok) return null;
             const data = await res.json();
             if (!data.ok || !Array.isArray(data.picks)) return null;
+            const extracted = extractParams(text, MATCH_CTX);
             const picks = data.picks
                 .map((p) => {
                     const entry = entryById(p.entryId);
-                    return entry ? { entry, params: p.params || {} } : null;
+                    return entry ? { entry, params: mergeExtractedParams(p.params || {}, extracted) } : null;
                 })
                 .filter(Boolean);
             return picks.length ? picks : null;

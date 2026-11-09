@@ -40,6 +40,7 @@ Rules:
 - Respond with ONLY a JSON object: {"picks": [{"entryId": "<id>", "params": {...}}]} — one pick normally, or {"picks": []} if nothing fits.
 - Return 2 or 3 picks ONLY when the question compares people/topics or clearly asks for more than one stat (for example "who is luckier and who drafts better"). Otherwise exactly one pick.
 - params may include only the keys listed for that entry: season (a 4-digit year, or "all" for all-time), manager (an exact manager name from the question), pos ("QB"|"RB"|"WR"|"TE"), topN (an integer), threshold (an integer).
+- If the question names a year, set season to that year on every pick that accepts it. If it says all-time/ever, set season to "all" where accepted.
 - Prefer a computed (kind "query") entry whenever the question asks for a stat, a ranking, a comparison, or who is best/worst at something. Pick a "page" or "guide" entry only when the user asks to see, open, or find that page.
 - Never invent statistics, names, or numbers. Your only job is choosing entries and their parameters.`;
 
@@ -81,4 +82,17 @@ const numbersIn = (text) => [...String(text || '').matchAll(/(?<![A-Za-z0-9])\d[
 export const narrationIsGrounded = (text, sourceText) => {
     const allowed = numbersIn(sourceText);
     return numbersIn(text).every((n) => allowed.some((a) => Math.abs(a - n) < 0.6));
+};
+
+// Fill any parameter the router left out with the value the local
+// extractor read straight from the question text. A year or a
+// position named in the question is unambiguous text — the model
+// occasionally drops it, the extractor doesn't. Router values win
+// on conflict.
+export const mergeExtractedParams = (pickParams = {}, extracted = {}) => {
+    const merged = { ...pickParams };
+    for (const [k, v] of Object.entries(extracted)) {
+        if (merged[k] === undefined && v !== undefined) merged[k] = v;
+    }
+    return merged;
 };

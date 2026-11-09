@@ -128,10 +128,10 @@ export const ENTRIES = [
         id: 'team-points', kind: 'query',
         params: ['season', 'topN'], needs: ['anatomy'],
         title: 'Most points by a team in a season',
-        blurb: 'Total fantasy points scored by each team over a season (regular season).',
-        aliases: ['most points', 'highest scoring team', 'most fantasy points team', 'top scoring team', 'points leaderboard team', 'who scored the most points'],
+        blurb: 'Team totals: each manager\'s whole team combined, total fantasy points over a season (regular season). Use when the question is about teams/managers\' totals, not individual players.',
+        aliases: ['most points', 'highest scoring team', 'most fantasy points team', 'top scoring team', 'points leaderboard team', 'who scored the most points as a team'],
         keywords: ['points', 'scored', 'team', 'most'],
-        examples: ['Who scored the most points in 2025?', 'Highest scoring team 2023'],
+        examples: ['Highest scoring team 2025', 'Which team scored the most points in 2023?'],
         run(ctx, params) {
             const season = resolveSeason(ctx.anatomy, params, 'current');
             const effSeason = season === 'all' ? ctx.anatomy.currentYear : season;
@@ -152,10 +152,10 @@ export const ENTRIES = [
         id: 'player-points', kind: 'query',
         params: ['season', 'pos', 'topN'], needs: ['playerTotals', 'players', 'anatomy'],
         title: 'Most points by a player in a season',
-        blurb: 'Total starter points by player over a season, in this league\'s scoring. Only weeks the player was started count.',
+        blurb: 'Individual players ranked by total starter points over a season, in this league\'s scoring. Only weeks the player was started count. This is the default for \'who scored the most points\' questions.',
         aliases: ['most points player', 'highest scoring player', 'top players', 'player leaderboard', 'best player', 'who scored the most fantasy points', 'top fantasy players'],
         keywords: ['player', 'points', 'top', 'scored'],
-        examples: ['Who scored the most fantasy points in 2025? Top 15', 'Top 10 RBs in 2024'],
+        examples: ['Who scored the most fantasy points in 2025? Top 15', 'Who scored the most points in 2025?', 'Top 10 RBs in 2024'],
         async run(ctx, params) {
             const season = params.season && params.season !== 'all' && ctx.anatomy.seasons.includes(params.season) ? params.season : ctx.anatomy.currentYear;
             const totals = await ctx.playerTotals(season);

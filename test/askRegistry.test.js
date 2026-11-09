@@ -54,7 +54,7 @@ test('playerTotals: sums starters only, skips the 0 slot, rounds', () => {
 });
 
 import { resolveTurn } from '../src/lib/ask/matcher.js';
-import { validatePick, validatePicks, buildCatalog, narrationIsGrounded } from '../src/lib/ask/llmRoute.js';
+import { validatePick, validatePicks, buildCatalog, narrationIsGrounded, mergeExtractedParams } from '../src/lib/ask/llmRoute.js';
 
 test("matcher: 'Best at drafting' lands on the drafter query", () => {
     assert.equal(matchEntry(ENTRIES, 'Best at drafting', CTX).entry.id, 'best-drafter');
@@ -135,4 +135,10 @@ test('narration grounding: prose may restate figures, never invent them', () => 
     assert.equal(narrationIsGrounded('Taylor tops the board with about 326 points.', source), true);
     assert.equal(narrationIsGrounded('Taylor ran away with it, scoring 412.50.', source), false);
     assert.equal(narrationIsGrounded('A huge season from the RB1.', source), true);
+});
+
+test('mergeExtractedParams: question text fills what the router dropped, router wins conflicts', () => {
+    assert.deepEqual(mergeExtractedParams({}, { season: 2025 }), { season: 2025 });
+    assert.deepEqual(mergeExtractedParams({ season: 'all' }, { season: 2025 }), { season: 'all' });
+    assert.deepEqual(mergeExtractedParams({ topN: 10 }, { season: 2025, topN: 15 }), { topN: 10, season: 2025 });
 });
