@@ -92,3 +92,10 @@ or error page. About a minute. A green build alone is not verification.
   aliases and parameter extraction only, no numbers.
 
 - Sleeper reads: historical data (completed seasons/weeks) goes through fetchJsonCached in request.js (session promise cache, failures evicted); live data (current week, NFL state) is never cached. Parallelism is allSettledWithConcurrency (cap 6).
+- The router may also return a PLAN against a dataset in
+  src/lib/ask/datasets.js (filters / rankBy / sort / limit),
+  validated by validatePlan and executed by the spec's own
+  execute(). Datasets are typed views over tables the pages
+  already compute; the model sees only their schemas. Transform
+  questions ("rank by draft only", "exclude cap") are plans, not
+  new registry entries. Bespoke analytics stay fixed entries.

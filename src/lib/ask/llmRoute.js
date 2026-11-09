@@ -43,7 +43,8 @@ Rules:
 - params may include only the keys listed for that entry: season (a 4-digit year, or "all" for all-time), manager (an exact manager name from the question), pos ("QB"|"RB"|"WR"|"TE"), topN (an integer), threshold (an integer), excludeCap (boolean true, only where listed).
 - If the question names a year, set season to that year on every pick that accepts it. If it says all-time/ever, set season to "all" where accepted.
 - Prefer a computed (kind "query") entry whenever the question asks for a stat, a ranking, a comparison, or who is best/worst at something. Pick a "page" or "guide" entry only when the user asks to see, open, or find that page.
-- A previous-answer line may be included. If the question is a follow-up about that answer (for example "exclude cap", "just the trades part"), pick the entry that can honor the change, with the parameters it needs.
+- A previous-answer line may be included. If the question is a follow-up about that answer (for example "exclude cap", "just the trades part"), pick the entry or plan that can honor the change, with the parameters it needs.
+- OR return a single plan instead of picks: {"plan": {"dataset": "<id>", "filters": {...}, "rankBy": [...], "sortBy": "<field>", "sortDir": "asc|desc", "limit": N}} when the question ranks, filters, or re-weights one of the datasets in the catalog — for example ranking managers by one component, excluding a component, or listing players, team totals, or luck with a season/position/manager filter. Return picks or a plan, never both.
 - Never invent statistics, names, or numbers. Your only job is choosing entries and their parameters.`;
 
 // Validate the router's answer into 1-3 safe picks. Accepts the
@@ -109,4 +110,62 @@ export const buildRoutePrompt = (question, catalog, managerNames = [], context =
     }
     lines.push(`Question: ${question}`);
     return lines.join('\n\n');
+};
+
+// The dataset half of the catalog: schemas only, never row data.
+export const buildDatasetCatalog = (datasets) => datasets.map((d) => ({
+    id: d.id,
+    description: d.description,
+    filters: Object.keys(d.filters || {}),
+    ...(d.components ? { rankByComponents: Object.keys(d.components) } : {}),
+    ...(d.sorts ? { sortBy: d.sorts } : {}),
+    examples: d.examples || [],
+}));
+
+// Validate a router plan against a dataset spec. Strict on values:
+// a bad filter value, an unknown component, or an unsortable field
+// rejects the whole plan (the caller falls back to entry picks).
+// Unknown filter keys are ignored — only declared filters are read.
+export const validatePlan = (raw, datasets, managerNames = []) => {
+    if (!raw || typeof raw !== 'object') return null;
+    const dataset = datasets.find((d) => d.id === raw.dataset);
+    if (!dataset) return null;
+    const plan = {};
+    const rawFilters = (raw.filters && typeof raw.filters === 'object') ? raw.filters : {};
+    const filters = {};
+    for (const [key, type] of Object.entries(dataset.filters || {})) {
+        const v = rawFilters[key];
+        if (v === undefined) continue;
+        if (type === 'season') {
+            if (v === 'all') filters.season = 'all';
+            else if (Number.isInteger(v) && v >= 2000 && v <= 2100) filters.season = v;
+            else return null;
+        } else if (type === 'pos') {
+            if (POSITIONS.includes(v)) filters.pos = v;
+            else return null;
+        } else if (type === 'manager') {
+            if (managerNames.includes(v)) filters.manager = v;
+            else return null;
+        }
+    }
+    if (Object.keys(filters).length) plan.filters = filters;
+    if (raw.rankBy !== undefined) {
+        if (!dataset.components || !Array.isArray(raw.rankBy)) return null;
+        const chosen = [...new Set(raw.rankBy)];
+        if (!chosen.length || chosen.some((k) => !dataset.components[k])) return null;
+        plan.rankBy = chosen;
+    }
+    if (raw.sortBy !== undefined) {
+        if (!(dataset.sorts || []).includes(raw.sortBy)) return null;
+        plan.sortBy = raw.sortBy;
+    }
+    if (raw.sortDir !== undefined) {
+        if (raw.sortDir !== 'asc' && raw.sortDir !== 'desc') return null;
+        plan.sortDir = raw.sortDir;
+    }
+    if (raw.limit !== undefined) {
+        if (!Number.isFinite(raw.limit)) return null;
+        plan.limit = Math.max(1, Math.min(50, Math.round(raw.limit)));
+    }
+    return { dataset, plan };
 };

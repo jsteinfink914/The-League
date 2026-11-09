@@ -20,18 +20,18 @@
 
 import { GO_OFF, goOffSplit } from '../utils/helperFunctions/recordAnatomyMath.js';
 
-const fmt1 = (v) => `${v > 0 ? '+' : ''}${(Math.round(v * 10) / 10).toFixed(1)}`;
-const fmt2 = (v) => (Math.round(v * 100) / 100).toFixed(2);
+export const fmt1 = (v) => `${v > 0 ? '+' : ''}${(Math.round(v * 10) / 10).toFixed(1)}`;
+export const fmt2 = (v) => (Math.round(v * 100) / 100).toFixed(2);
 
 // Resolve the season a question is about: an explicit season wins, then
 // the entry's default ('current' or 'all'), validated against the data.
-const resolveSeason = (anatomy, params, fallback) => {
+export const resolveSeason = (anatomy, params, fallback) => {
     if (params.season === 'all') return 'all';
     if (params.season && anatomy.seasons.includes(params.season)) return params.season;
     return fallback === 'all' ? 'all' : anatomy.currentYear;
 };
 
-const teamRows = (anatomy, nameFor, season, pick) => {
+export const teamRows = (anatomy, nameFor, season, pick) => {
     if (season === 'all') {
         const byRoster = new Map();
         for (const t of Object.values(anatomy.teamSeasons)) {

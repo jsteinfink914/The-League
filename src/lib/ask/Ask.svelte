@@ -5,6 +5,7 @@
     import { resolveTurn, closestEntries, extractParams } from './matcher.js';
     import { buildContext } from './data.js';
     import { mergeExtractedParams } from './llmRoute.js';
+    import { datasetById, executePlan } from './datasets.js';
     import { managers as leagueManagers } from '$lib/utils/leagueInfo';
 
     // The matcher accepts any plausible season at parse time; each
@@ -17,6 +18,7 @@
     let input = '';
     let messages = [];
     let lastMatch = null; // { entry, params, headline } of the last computed answer
+    let lastAnswerCtx = null; // { entryId, headline } sent to the router as previous-answer context
     let sending = false;
     let threadEl = null;
     let inputEl = null;
@@ -50,6 +52,7 @@
     const newChat = () => {
         messages = [];
         lastMatch = null;
+        lastAnswerCtx = null;
         input = '';
         try { localStorage.removeItem(STORE_KEY); } catch { /* ignore */ }
     };
@@ -83,6 +86,7 @@
             const result = await entry.run(ctx, params);
             replace(loadingId, { kind: 'answer', entry, result, note });
             lastMatch = { entry, params, headline: result.headline };
+            lastAnswerCtx = { entryId: entry.id, headline: result.headline };
             return { headline: result.headline };
         } catch (e) {
             replace(loadingId, { kind: 'error', text: e.message || 'Something went wrong loading that data.' });
@@ -112,12 +116,17 @@
                 signal: AbortSignal.timeout(15000),
                 body: JSON.stringify({
                     question: text,
-                    context: lastMatch ? { entryId: lastMatch.entry.id, headline: lastMatch.headline || '' } : null,
+                    context: lastAnswerCtx,
                 }),
             });
             if (!res.ok) return null;
             const data = await res.json();
-            if (!data.ok || !Array.isArray(data.picks)) return null;
+            if (!data.ok) return null;
+            if (data.plan?.dataset) {
+                const dataset = datasetById(data.plan.dataset);
+                if (dataset) return { plan: { ...data.plan, dataset } };
+            }
+            if (!Array.isArray(data.picks)) return null;
             const extracted = extractParams(text, MATCH_CTX);
             const picks = data.picks
                 .map((p) => {
@@ -125,7 +134,7 @@
                     return entry ? { entry, params: mergeExtractedParams(p.params || {}, extracted) } : null;
                 })
                 .filter(Boolean);
-            return picks.length ? picks : null;
+            return picks.length ? { picks } : null;
         } catch {
             return null;
         }
@@ -172,7 +181,28 @@
             replace(loadingId, { kind: 'answer', results, prose });
             const lastPick = picks[picks.length - 1];
             lastMatch = { entry: lastPick.entry, params: lastPick.params, headline: results[0]?.headline };
+            lastAnswerCtx = { entryId: lastPick.entry.id, headline: results[0]?.headline || '' };
             return { headline: results[0]?.headline };
+        } catch (e) {
+            replace(loadingId, { kind: 'error', text: e.message || 'Something went wrong loading that data.' });
+            return null;
+        }
+    };
+
+    // A routed plan: execute it against the dataset's table, then
+    // narrate over the computed result like any other answer.
+    const runPlan = async (routedPlan, question) => {
+        const { dataset, ...plan } = routedPlan;
+        const loadingId = nextId;
+        push({ id: loadingId, role: 'bot', kind: 'loading' });
+        try {
+            const ctx = await buildContext(dataset.needs || []);
+            const result = await executePlan(dataset, ctx, plan);
+            const prose = await narrate(question, [result]);
+            replace(loadingId, { kind: 'answer', results: [result], prose });
+            lastMatch = null;
+            lastAnswerCtx = { entryId: `dataset:${dataset.id}`, headline: result.headline };
+            return { headline: result.headline };
         } catch (e) {
             replace(loadingId, { kind: 'error', text: e.message || 'Something went wrong loading that data.' });
             return null;
@@ -199,8 +229,14 @@
                 logTurn(text, turn.entry.id, 'followup', r?.headline);
                 return;
             }
-            const picks = await llmRoute(text);
-            if (picks) {
+            const routed = await llmRoute(text);
+            if (routed?.plan) {
+                const r = await runPlan(routed.plan, text);
+                logTurn(text, `plan:${routed.plan.dataset.id}`, 'llm', r?.headline);
+                return;
+            }
+            if (routed?.picks) {
+                const picks = routed.picks;
                 if (picks.length === 1 && picks[0].entry.kind !== 'query') {
                     const r = await runEntry(picks[0].entry, picks[0].params);
                     logTurn(text, picks[0].entry.id, 'llm', r?.headline);
