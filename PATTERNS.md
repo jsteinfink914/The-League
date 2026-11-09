@@ -76,6 +76,11 @@ or error page. About a minute. A green build alone is not verification.
   check GET /api/ask/log?misses=1 for what the matcher actually
   missed; a page/guide hit that was really a stat question is a
   misroute, so the chat asks the LLM router before showing a card.
+- Routing is LLM-primary for fresh questions (the router only picks
+  a registry entry + params; numbers are always computed locally).
+  The local matcher handles param-only follow-ups and is the
+  fallback when the router is unconfigured or unsure — do not grow
+  the alias list to chase phrasings the router already handles.
 - Adding a metric = add the page function first (with a test), then one
   registry entry that calls it (with a test). The matcher stays dumb:
   aliases and parameter extraction only, no numbers.

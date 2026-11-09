@@ -95,30 +95,27 @@
         push({ role: 'user', kind: 'text', text });
         try {
             const turn = resolveTurn(ENTRIES, text, MATCH_CTX, lastMatch);
-            if (turn && turn.entry.kind !== 'query') {
-                // A page/guide hit can hide a stat question ("who
-                // drafts well" used to land on the Drafts page card).
-                // Give the router a shot at a computed answer first;
-                // the card is the fallback, not the answer.
-                const routed = await llmRoute(text);
-                if (routed && routed.entry.kind === 'query') {
-                    const r = await runEntry(routed.entry, routed.params);
-                    logTurn(text, routed.entry.id, 'llm', r?.headline);
-                    return;
-                }
-                const r = await runEntry(turn.entry, turn.params);
-                logTurn(text, turn.entry.id, 'local', r?.headline);
-                return;
-            }
-            if (turn) {
-                const r = await runEntry(turn.entry, turn.params, turn.followUp ? 'Same stat, new filter.' : '');
-                logTurn(text, turn.entry.id, turn.followUp ? 'followup' : 'local', r?.headline);
+            // Routing order: a param-only follow-up re-runs the last
+            // stat locally (deterministic, no model needed). Every
+            // fresh question goes to the LLM router FIRST — it handles
+            // freeform phrasing far better than a hand-kept alias list
+            // ever will — and the local matcher is the fallback for
+            // when the router is unconfigured, down, or unsure. The
+            // registry computes every number either way.
+            if (turn?.followUp) {
+                const r = await runEntry(turn.entry, turn.params, 'Same stat, new filter.');
+                logTurn(text, turn.entry.id, 'followup', r?.headline);
                 return;
             }
             const routed = await llmRoute(text);
             if (routed) {
                 const r = await runEntry(routed.entry, routed.params);
                 logTurn(text, routed.entry.id, 'llm', r?.headline);
+                return;
+            }
+            if (turn) {
+                const r = await runEntry(turn.entry, turn.params);
+                logTurn(text, turn.entry.id, 'local', r?.headline);
                 return;
             }
             const [suggestion] = closestEntries(ENTRIES, text, MATCH_CTX, 1);

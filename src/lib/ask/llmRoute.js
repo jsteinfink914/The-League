@@ -7,7 +7,8 @@ export const buildCatalog = (entries) => entries.map((e) => ({
     id: e.id,
     kind: e.kind,
     title: e.title,
-    ...(e.kind === 'query' ? { params: e.params || [] } : {}),
+    blurb: e.blurb,
+    ...(e.kind === 'query' ? { params: e.params || [], asksLike: e.examples || [] } : {}),
 }));
 
 const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
@@ -36,4 +37,5 @@ export const ROUTER_SYSTEM_PROMPT = `You route questions for a fantasy football 
 Rules:
 - Respond with ONLY a JSON object: {"entryId": "<id>", "params": {...}} or {"entryId": null} if nothing fits.
 - params may include only the keys listed for that entry: season (a 4-digit year, or "all" for all-time), manager (an exact manager name from the question), pos ("QB"|"RB"|"WR"|"TE"), topN (an integer), threshold (an integer).
+- Prefer a computed (kind "query") entry whenever the question asks for a stat, a ranking, a comparison, or who is best/worst at something. Pick a "page" or "guide" entry only when the user asks to see, open, or find that page.
 - Never invent statistics, names, or numbers. Your only job is choosing the entry and its parameters.`;

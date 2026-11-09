@@ -107,3 +107,12 @@ test('Jake phrasings: drafting questions reach best-drafter, not the player boar
     assert.equal(matchEntry(ENTRIES, 'Who are the best players in 2025?', CTX)?.entry.id, 'player-points');
     assert.equal(matchEntry(ENTRIES, 'show me the draft boards', CTX)?.entry.id, 'page-drafts');
 });
+
+test('router catalog carries blurbs and example asks so the model can route freeform', () => {
+    const cat = buildCatalog(ENTRIES);
+    const drafter = cat.find((c) => c.id === 'best-drafter');
+    assert.ok(drafter.blurb && drafter.blurb.length > 10);
+    assert.ok(Array.isArray(drafter.asksLike) && drafter.asksLike.length > 0);
+    const page = cat.find((c) => c.id === 'page-drafts');
+    assert.ok(page.blurb && !('asksLike' in page));
+});
