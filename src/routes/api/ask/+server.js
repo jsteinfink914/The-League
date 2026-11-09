@@ -32,14 +32,19 @@ export async function POST({ request }) {
                 ],
             }),
         });
-        if (!res.ok) return json({ ok: false, reason: 'llm_error' });
+        if (!res.ok) {
+            const detail = (await res.text().catch(() => '')).slice(0, 300);
+            console.error('ask router upstream error', res.status, detail);
+            return json({ ok: false, reason: 'llm_error', status: res.status, detail });
+        }
         const data = await res.json();
         const text = data?.choices?.[0]?.message?.content || '';
         const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
         const pick = validatePick(parsed, ENTRIES, leagueManagers.map((m) => m.name));
         if (!pick) return json({ ok: false, reason: 'no_match' });
         return json({ ok: true, entryId: pick.entry.id, params: pick.params });
-    } catch {
-        return json({ ok: false, reason: 'llm_error' });
+    } catch (e) {
+        console.error('ask router failed', e);
+        return json({ ok: false, reason: 'llm_error', detail: String(e?.message || e).slice(0, 300) });
     }
 }
