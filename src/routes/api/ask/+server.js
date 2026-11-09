@@ -22,6 +22,9 @@ export async function POST({ request }) {
     try {
         const res = await fetch(`${base}/chat/completions`, {
             method: 'POST',
+            // A slow model must degrade to the local matcher, not hang
+            // the question until the platform kills the function.
+            signal: AbortSignal.timeout(20000),
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
             body: JSON.stringify({
                 model,
@@ -35,7 +38,7 @@ export async function POST({ request }) {
         if (!res.ok) {
             const detail = (await res.text().catch(() => '')).slice(0, 300);
             console.error('ask router upstream error', res.status, detail);
-            return json({ ok: false, reason: 'llm_error', status: res.status, detail });
+            return json({ ok: false, reason: 'llm_error' });
         }
         const data = await res.json();
         const text = data?.choices?.[0]?.message?.content || '';
@@ -45,6 +48,6 @@ export async function POST({ request }) {
         return json({ ok: true, entryId: pick.entry.id, params: pick.params });
     } catch (e) {
         console.error('ask router failed', e);
-        return json({ ok: false, reason: 'llm_error', detail: String(e?.message || e).slice(0, 300) });
+        return json({ ok: false, reason: 'llm_error' });
     }
 }
