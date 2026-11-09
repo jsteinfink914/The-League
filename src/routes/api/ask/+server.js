@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { ENTRIES } from '$lib/ask/registry';
 import { managers as leagueManagers } from '$lib/utils/leagueInfo';
-import { buildCatalog, validatePicks, ROUTER_SYSTEM_PROMPT } from '$lib/ask/llmRoute';
+import { buildCatalog, validatePicks, buildRoutePrompt, ROUTER_SYSTEM_PROMPT } from '$lib/ask/llmRoute';
 
 // Optional freeform routing for the Ask chat. When ASK_LLM_KEY is set,
 // questions the local matcher can't place are sent to a small model
@@ -16,6 +16,10 @@ export async function POST({ request }) {
     const body = await request.json().catch(() => ({}));
     const question = String(body.question || '').slice(0, 500).trim();
     if (!question) return json({ ok: false, reason: 'empty' });
+    const rawCtx = (body.context && typeof body.context === 'object') ? body.context : null;
+    const context = rawCtx && ENTRIES.some((e) => e.id === rawCtx.entryId)
+        ? { entryId: rawCtx.entryId, headline: String(rawCtx.headline || '').slice(0, 200) }
+        : null;
 
     const base = (process.env.ASK_LLM_BASE || 'https://api.openai.com/v1').replace(/\/$/, '');
     const model = process.env.ASK_LLM_MODEL || 'gpt-4o-mini';
@@ -31,7 +35,7 @@ export async function POST({ request }) {
                 temperature: 0,
                 messages: [
                     { role: 'system', content: ROUTER_SYSTEM_PROMPT },
-                    { role: 'user', content: `Catalog:\n${JSON.stringify(buildCatalog(ENTRIES))}\n\nManagers: ${leagueManagers.map((m) => m.name).join(', ')}\n\nQuestion: ${question}` },
+                    { role: 'user', content: buildRoutePrompt(question, buildCatalog(ENTRIES), leagueManagers.map((m) => m.name), context) },
                 ],
             }),
         });

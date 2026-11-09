@@ -114,14 +114,30 @@ export const matchEntry = (entries, text, ctx = {}) => {
 // instead of a search box.
 const NEW_INTENT_MIN = 1000;
 
+const FOLLOWUP_NOISE = new Set(['in', 'the', 'for', 'season', 'all', 'time', 'top', 'show', 'me', 'only', 'and', 'of', 'what', 'about']);
+
+// A follow-up is a bare parameter tweak ("in 2024", "top 10 RBs",
+// "for Jake") — not a fresh question that merely CONTAINS a year
+// or a position. Strip every token the extractor consumed, plus
+// filler; a true follow-up leaves at most one word standing. A
+// full question keeps its verbs and nouns and falls through to
+// normal routing instead of hijacking the previous stat.
+export const isParamOnlyText = (text, ctx = {}) => {
+    const params = extractParams(text, ctx);
+    if (Object.keys(params).length === 0) return false;
+    const posWords = new Set(Object.values(POSITION_WORDS).flat().flatMap((w) => [w, `${w}s`]));
+    const managerWords = new Set((ctx.managerNames || []).flatMap((n) => normalizeText(n).split(' ')));
+    const rest = normalizeText(text).split(' ').filter(Boolean).filter((w) =>
+        !FOLLOWUP_NOISE.has(w) && !posWords.has(w) && !managerWords.has(w) && !/^\d+$/.test(w));
+    return rest.length <= 1;
+};
+
 export const resolveTurn = (entries, text, ctx = {}, last = null) => {
     const match = matchEntry(entries, text, ctx);
     if (match && match.score >= NEW_INTENT_MIN) return { ...match, followUp: false };
-    if (last) {
+    if (last && isParamOnlyText(text, ctx)) {
         const params = extractParams(text, ctx);
-        if (Object.keys(params).length > 0) {
-            return { entry: last.entry, params: { ...last.params, ...params }, score: match?.score || 0, followUp: true };
-        }
+        return { entry: last.entry, params: { ...last.params, ...params }, score: match?.score || 0, followUp: true };
     }
     return match ? { ...match, followUp: false } : null;
 };

@@ -28,6 +28,7 @@ export const validatePick = (raw, entries, managerNames = []) => {
     if (Number.isFinite(p.topN)) params.topN = Math.max(1, Math.min(50, Math.round(p.topN)));
     if (Number.isFinite(p.threshold)) params.threshold = Math.max(1, Math.min(200, Math.round(p.threshold)));
     if (typeof p.manager === 'string' && managerNames.includes(p.manager)) params.manager = p.manager;
+    if (p.excludeCap === true) params.excludeCap = true;
     // Only keep params the entry actually accepts.
     const allowed = new Set(entry.params || []);
     for (const k of Object.keys(params)) if (!allowed.has(k)) delete params[k];
@@ -39,9 +40,10 @@ export const ROUTER_SYSTEM_PROMPT = `You route questions for a fantasy football 
 Rules:
 - Respond with ONLY a JSON object: {"picks": [{"entryId": "<id>", "params": {...}}]} — one pick normally, or {"picks": []} if nothing fits.
 - Return 2 or 3 picks ONLY when the question compares people/topics or clearly asks for more than one stat (for example "who is luckier and who drafts better"). Otherwise exactly one pick.
-- params may include only the keys listed for that entry: season (a 4-digit year, or "all" for all-time), manager (an exact manager name from the question), pos ("QB"|"RB"|"WR"|"TE"), topN (an integer), threshold (an integer).
+- params may include only the keys listed for that entry: season (a 4-digit year, or "all" for all-time), manager (an exact manager name from the question), pos ("QB"|"RB"|"WR"|"TE"), topN (an integer), threshold (an integer), excludeCap (boolean true, only where listed).
 - If the question names a year, set season to that year on every pick that accepts it. If it says all-time/ever, set season to "all" where accepted.
 - Prefer a computed (kind "query") entry whenever the question asks for a stat, a ranking, a comparison, or who is best/worst at something. Pick a "page" or "guide" entry only when the user asks to see, open, or find that page.
+- A previous-answer line may be included. If the question is a follow-up about that answer (for example "exclude cap", "just the trades part"), pick the entry that can honor the change, with the parameters it needs.
 - Never invent statistics, names, or numbers. Your only job is choosing entries and their parameters.`;
 
 // Validate the router's answer into 1-3 safe picks. Accepts the
@@ -95,4 +97,16 @@ export const mergeExtractedParams = (pickParams = {}, extracted = {}) => {
         if (merged[k] === undefined && v !== undefined) merged[k] = v;
     }
     return merged;
+};
+
+// The router's user message: catalog, manager names, an optional
+// previous-answer line (so follow-ups like "exclude cap" have
+// something to refer to), and the question.
+export const buildRoutePrompt = (question, catalog, managerNames = [], context = null) => {
+    const lines = [`Catalog:\n${JSON.stringify(catalog)}`, `Managers: ${managerNames.join(', ')}`];
+    if (context?.entryId) {
+        lines.push(`Previous answer: entry "${context.entryId}" — ${String(context.headline || '').slice(0, 200)}`);
+    }
+    lines.push(`Question: ${question}`);
+    return lines.join('\n\n');
 };

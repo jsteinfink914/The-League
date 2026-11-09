@@ -309,22 +309,26 @@ export const ENTRIES = [
         },
     },
     {
-        id: 'best-manager', kind: 'query', needs: ['combined'], params: [],
+        id: 'best-manager', kind: 'query', needs: ['combined'], params: ['excludeCap'],
         title: 'Best all-around manager (average of cap, trade, and draft ranks)',
-        blurb: 'The Manager Overview leaderboard: each manager\'s average rank across cap efficiency, trade outcomes, and draft output. Lower is better.',
+        blurb: 'The Manager Overview leaderboard: each manager\'s average rank across cap efficiency, trade outcomes, and draft output. Lower is better. Can exclude the cap component (excludeCap) to rank on trades + draft only.',
         aliases: ['best manager', 'best all around', 'best overall manager', 'manager leaderboard', 'top manager', 'best gm'],
         keywords: ['manager', 'best', 'overall', 'leaderboard'],
-        examples: ['Who is the best all-around manager?'],
-        run(ctx) {
+        examples: ['Who is the best all-around manager?', 'Best manager if you exclude cap'],
+        run(ctx, params = {}) {
+            const noCap = params.excludeCap === true;
+            const score = (r) => (noCap
+                ? ((r.tradeRank ?? 99) + (r.draftRank ?? 99)) / 2
+                : (r.avgRank ?? 99));
             const rows = [...(ctx.combined || [])]
-                .sort((a, b) => (a.avgRank ?? 99) - (b.avgRank ?? 99))
-                .map((r) => ({
-                    label: r.manager,
-                    value: `avg rank ${(r.avgRank || 0).toFixed(1)}`,
-                    sub: `Cap #${r.capRank} · Trades #${r.tradeRank} · Draft #${r.draftRank}`,
-                }));
+                .sort((a, b) => score(a) - score(b))
+                .map((r) => (noCap
+                    ? { label: r.manager, value: `avg rank ${score(r).toFixed(1)}`, sub: `Trades #${r.tradeRank} · Draft #${r.draftRank}` }
+                    : { label: r.manager, value: `avg rank ${(r.avgRank || 0).toFixed(1)}`, sub: `Cap #${r.capRank} · Trades #${r.tradeRank} · Draft #${r.draftRank}` }));
             return {
-                headline: 'Best all-around manager (average rank: cap, trades, draft)',
+                headline: noCap
+                    ? 'Best all-around manager, cap excluded (average rank: trades, draft)'
+                    : 'Best all-around manager (average rank: cap, trades, draft)',
                 rows,
                 href: '/manager_overview/leaderboard', hrefLabel: 'See Manager Overview',
             };

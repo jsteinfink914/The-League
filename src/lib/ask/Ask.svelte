@@ -16,10 +16,43 @@
 
     let input = '';
     let messages = [];
-    let lastMatch = null; // { entry, params } of the last computed answer
+    let lastMatch = null; // { entry, params, headline } of the last computed answer
     let sending = false;
     let threadEl = null;
+    let inputEl = null;
     let nextId = 1;
+
+    // Chat history persists on this device (localStorage), so a
+    // refresh or a trip to another page doesn't wipe the thread.
+    // "New chat" clears it. Restored entries are rehydrated by id —
+    // only plain result data is ever stored.
+    const STORE_KEY = 'ask-chat-v1';
+    let hydrated = false;
+    const PERSIST_KINDS = new Set(['text', 'answer', 'page', 'guide', 'miss']);
+    $: if (hydrated) {
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(messages.filter((m) => PERSIST_KINDS.has(m.kind)).slice(-40))); } catch { /* private mode etc. */ }
+    }
+    const restoreChat = () => {
+        try {
+            const raw = localStorage.getItem(STORE_KEY);
+            if (!raw) return;
+            const arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return;
+            messages = arr.filter((m) => m && PERSIST_KINDS.has(m.kind)).slice(-40).map((m) => {
+                const out = { ...m };
+                if (out.entry?.id) out.entry = entryById(out.entry.id) || null;
+                if (out.suggestion?.id) out.suggestion = entryById(out.suggestion.id) || null;
+                return out;
+            }).filter((m) => (m.kind !== 'page' && m.kind !== 'guide') || m.entry);
+            nextId = messages.reduce((mx, m) => Math.max(mx, m.id || 0), 0) + 1;
+        } catch { /* a corrupt store must never break the chat */ }
+    };
+    const newChat = () => {
+        messages = [];
+        lastMatch = null;
+        input = '';
+        try { localStorage.removeItem(STORE_KEY); } catch { /* ignore */ }
+    };
 
     let directoryOpen = false;
     let directoryFilter = '';
@@ -49,7 +82,7 @@
             const ctx = await buildContext(entry.needs || []);
             const result = await entry.run(ctx, params);
             replace(loadingId, { kind: 'answer', entry, result, note });
-            lastMatch = { entry, params };
+            lastMatch = { entry, params, headline: result.headline };
             return { headline: result.headline };
         } catch (e) {
             replace(loadingId, { kind: 'error', text: e.message || 'Something went wrong loading that data.' });
@@ -76,7 +109,11 @@
             const res = await fetch('/api/ask', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: text }),
+                signal: AbortSignal.timeout(15000),
+                body: JSON.stringify({
+                    question: text,
+                    context: lastMatch ? { entryId: lastMatch.entry.id, headline: lastMatch.headline || '' } : null,
+                }),
             });
             if (!res.ok) return null;
             const data = await res.json();
@@ -102,6 +139,7 @@
             const res = await fetch('/api/ask/narrate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                signal: AbortSignal.timeout(20000),
                 body: JSON.stringify({
                     question,
                     results: results.map((r) => ({
@@ -133,7 +171,7 @@
             const prose = await narrate(question, results);
             replace(loadingId, { kind: 'answer', results, prose });
             const lastPick = picks[picks.length - 1];
-            lastMatch = { entry: lastPick.entry, params: lastPick.params };
+            lastMatch = { entry: lastPick.entry, params: lastPick.params, headline: results[0]?.headline };
             return { headline: results[0]?.headline };
         } catch (e) {
             replace(loadingId, { kind: 'error', text: e.message || 'Something went wrong loading that data.' });
@@ -183,6 +221,7 @@
         } finally {
             sending = false;
             scrollDown();
+            try { inputEl?.focus({ preventScroll: true }); } catch { /* iOS may decline */ }
         }
     };
 
@@ -192,6 +231,8 @@
     };
 
     onMount(() => {
+        restoreChat();
+        hydrated = true;
         const q = $page.url.searchParams.get('q');
         if (q) send(q);
     });
@@ -202,6 +243,10 @@
     <p class="lede">Ask anything in plain English — follow-ups work too ("what about 2024?"). Every number is computed live from the same data the pages use; if a question can't be answered from the site's stats, I'll say so instead of making something up.</p>
 
     <div class="chat">
+        <div class="chat-tools">
+            <span class="chat-note">History stays on this device</span>
+            <button type="button" class="new-chat" on:click={newChat}>New chat</button>
+        </div>
         <div class="thread" bind:this={threadEl}>
             {#if messages.length === 0}
                 <div class="bubble bot">
@@ -277,8 +322,8 @@
         </div>
 
         <form class="composer" on:submit|preventDefault={() => send()}>
-            <input type="text" bind:value={input} placeholder="Ask a question…" aria-label="Ask a question" disabled={sending} />
-            <button type="submit" disabled={sending}>Ask</button>
+            <input type="text" bind:this={inputEl} bind:value={input} placeholder="Ask a question…" aria-label="Ask a question" />
+            <button type="submit" disabled={sending}>{sending ? 'Asking…' : 'Ask'}</button>
         </form>
     </div>
 
@@ -322,7 +367,10 @@
     h2 { font-size: 1.6rem; margin: 12px 0 6px; }
     .lede { color: var(--g555); margin: 0 0 14px; }
     .chat { border: 1px solid var(--ddd); border-radius: 12px; background: var(--fff); display: flex; flex-direction: column; }
-    .thread { display: flex; flex-direction: column; gap: 10px; padding: 14px; max-height: 65vh; overflow-y: auto; }
+    .chat-tools { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 0; }
+    .chat-note { font-size: .8rem; color: var(--g555); }
+    .new-chat { background: none; border: 1px solid var(--ddd); color: var(--g333); border-radius: 999px; padding: 5px 12px; cursor: pointer; font-size: .85rem; }
+    .thread { display: flex; flex-direction: column; gap: 10px; padding: 14px; max-height: 68dvh; overflow-y: auto; }
     .bubble { max-width: 92%; border-radius: 12px; padding: 10px 14px; }
     .bubble.bot { background: var(--f3f3f3); align-self: flex-start; }
     .bubble.bot.wide { width: 92%; }
@@ -343,7 +391,7 @@
     .go { color: var(--blueOne); font-weight: 600; text-decoration: none; }
     .go-btn { background: none; border: none; color: var(--blueOne); font-weight: 600; cursor: pointer; padding: 4px 0; font-size: 0.95rem; text-align: left; }
     .section-row { border-top: 1px solid var(--ddd); padding: 8px 0; }
-    .composer { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--ddd); }
+    .composer { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--ddd); position: sticky; bottom: 0; background: var(--fff); }
     .composer input { flex: 1; padding: 12px; border: 1px solid var(--ddd); border-radius: 8px; background: var(--fff); color: var(--g111); font-size: 1rem; }
     .composer button { padding: 12px 20px; border: none; border-radius: 8px; background: var(--blueOne); color: var(--fff); font-size: 1rem; cursor: pointer; }
     .dir-toggle { margin-top: 18px; background: none; border: none; color: var(--blueOne); font-weight: 600; font-size: 1rem; cursor: pointer; padding: 6px 0; }

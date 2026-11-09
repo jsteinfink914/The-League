@@ -54,7 +54,7 @@ test('playerTotals: sums starters only, skips the 0 slot, rounds', () => {
 });
 
 import { resolveTurn } from '../src/lib/ask/matcher.js';
-import { validatePick, validatePicks, buildCatalog, narrationIsGrounded, mergeExtractedParams } from '../src/lib/ask/llmRoute.js';
+import { validatePick, validatePicks, buildCatalog, narrationIsGrounded, mergeExtractedParams, buildRoutePrompt } from '../src/lib/ask/llmRoute.js';
 
 test("matcher: 'Best at drafting' lands on the drafter query", () => {
     assert.equal(matchEntry(ENTRIES, 'Best at drafting', CTX).entry.id, 'best-drafter');
@@ -141,4 +141,28 @@ test('mergeExtractedParams: question text fills what the router dropped, router 
     assert.deepEqual(mergeExtractedParams({}, { season: 2025 }), { season: 2025 });
     assert.deepEqual(mergeExtractedParams({ season: 'all' }, { season: 2025 }), { season: 'all' });
     assert.deepEqual(mergeExtractedParams({ topN: 10 }, { season: 2025, topN: 15 }), { topN: 10, season: 2025 });
+});
+
+test('follow-ups: a bare param tweak follows up; a fresh question containing a param does not', () => {
+    const last = { entry: ENTRIES.find((e) => e.id === 'player-points'), params: {} };
+    const tweak = resolveTurn(ENTRIES, 'in 2024', CTX, last);
+    assert.equal(tweak.followUp, true);
+    assert.equal(tweak.params.season, 2024);
+    const fresh = resolveTurn(ENTRIES, 'Who has drafted the best TEs and who has traded the best for WRs', CTX, last);
+    assert.notEqual(fresh?.followUp, true);
+});
+
+test('validatePick: excludeCap is boolean-true only, and only where declared', () => {
+    const bm = validatePick({ entryId: 'best-manager', params: { excludeCap: true } }, ENTRIES, []);
+    assert.equal(bm.params.excludeCap, true);
+    const sloppy = validatePick({ entryId: 'best-manager', params: { excludeCap: 'yes' } }, ENTRIES, []);
+    assert.equal('excludeCap' in sloppy.params, false);
+    const wrongEntry = validatePick({ entryId: 'player-points', params: { excludeCap: true } }, ENTRIES, []);
+    assert.equal('excludeCap' in wrongEntry.params, false);
+});
+
+test('buildRoutePrompt: previous-answer context is included when present', () => {
+    const withCtx = buildRoutePrompt('What if u exclude cap', [], ['Jake'], { entryId: 'best-manager', headline: 'Best all-around manager (average rank: cap, trades, draft)' });
+    assert.ok(withCtx.includes('Previous answer: entry "best-manager"'));
+    assert.ok(!buildRoutePrompt('Hi', [], [], null).includes('Previous answer'));
 });
