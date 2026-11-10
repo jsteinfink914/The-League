@@ -292,3 +292,7 @@ export async function buildTradeAnalysisData({ players }) {
 
   return { trades: processedTrades, teamSummary, managers: [...new Set(teamSummary.map(t => t.manager))].sort() };
 }
+
+// The Most Traded Players aggregation lives in mostTradedMath.js
+// (pure, shared with Ask); re-exported here for the page's import.
+export { aggregateMostTradedPlayers } from './mostTradedMath';

@@ -63,6 +63,20 @@ test("matcher: 'Best at drafting' lands on the drafter query", () => {
     assert.equal(matchEntry(ENTRIES, 'Who scored the most fantasy points in 2025, top 15?', CTX).entry.id, 'player-points');
 });
 
+test("matcher: 'most traded player' lands on the most-traded query, not team-points", () => {
+    // Regression (Nov 9 log): this phrasing tied team-points on the
+    // keyword 'most' and fell back to a page card.
+    assert.equal(matchEntry(ENTRIES, 'most traded player', CTX).entry.id, 'most-traded');
+    assert.equal(matchEntry(ENTRIES, 'Who is the most traded player?', CTX).entry.id, 'most-traded');
+    const rb = matchEntry(ENTRIES, 'most traded RBs', CTX);
+    assert.equal(rb.entry.id, 'most-traded');
+    assert.equal(rb.params.pos, 'RB');
+});
+
+test("matcher: 'most cap efficient' falls back to the efficiency page card, not player values", () => {
+    assert.equal(matchEntry(ENTRIES, 'most cap efficient player since the league started', CTX).entry.id, 'page-cap-efficiency');
+});
+
 test('resolveTurn: param-only follow-ups re-run the previous entry with merged params', () => {
     const last = { entry: entryById('player-points'), params: { season: 2025, topN: 15 } };
     const t1 = resolveTurn(ENTRIES, 'what about 2024?', CTX, last);

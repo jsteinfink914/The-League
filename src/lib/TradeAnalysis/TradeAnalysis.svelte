@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { createSetParams } from '$lib/utils/urlParams';
   import { Chart, registerables } from 'chart.js';
-  import { buildTradeAnalysisData } from '$lib/utils/helperFunctions/tradeAnalysis';
+  import { buildTradeAnalysisData, aggregateMostTradedPlayers } from '$lib/utils/helperFunctions/tradeAnalysis';
 
   Chart.register(...registerables);
 
@@ -53,27 +53,10 @@
   let mostTradedSortKey = 'tradeCount';
   let mostTradedSortDir = -1;
   let mostTradedFilterPos = initParams.get('pos') || 'All';
-  $: mostTradedPlayers = (() => {
-    if (!data) return [];
-    const counts = new Map(); // playerID -> { name, position, tradeCount, starterPts, rosterPts, managers: Set }
-    for (const trade of data.trades) {
-      for (const side of trade.sides) {
-        for (const pd of side.playerDetails || []) {
-          if (!counts.has(pd.playerID)) {
-            counts.set(pd.playerID, { playerID: pd.playerID, name: pd.name, position: pd.position, tradeCount: 0, starterPts: 0, rosterPts: 0, managers: new Set() });
-          }
-          const e = counts.get(pd.playerID);
-          e.tradeCount++;
-          e.starterPts = Math.round((e.starterPts + pd.starterPts) * 10) / 10;
-          e.rosterPts = Math.round((e.rosterPts + pd.rosterPts) * 10) / 10;
-          e.managers.add(side.manager);
-        }
-      }
-    }
-    return [...counts.values()]
-      .map(e => ({ ...e, managerCount: e.managers.size, managers: [...e.managers].sort().join(', ') }))
-      .filter(e => mostTradedFilterPos === 'All' || e.position === mostTradedFilterPos);
-  })();
+  $: mostTradedPlayers = data
+    ? aggregateMostTradedPlayers(data.trades)
+        .filter(e => mostTradedFilterPos === 'All' || e.position === mostTradedFilterPos)
+    : [];
   $: sortedMostTraded = [...mostTradedPlayers].sort((a, b) => {
     if (mostTradedSortKey === 'name') return mostTradedSortDir * a.name.localeCompare(b.name);
     return mostTradedSortDir * ((a[mostTradedSortKey] ?? 0) - (b[mostTradedSortKey] ?? 0));

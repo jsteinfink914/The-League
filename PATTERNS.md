@@ -99,3 +99,8 @@ or error page. About a minute. A green build alone is not verification.
   already compute; the model sees only their schemas. Transform
   questions ("rank by draft only", "exclude cap") are plans, not
   new registry entries. Bespoke analytics stay fixed entries.
+- Cap efficiency in Ask follows the settled definition: scoped by
+  season (unqualified = current season), the site's $/pt from that
+  season's points and that season's cap value; all-time = total
+  points ÷ total cap dollars across the same seasons (a
+  cost-weighted sum, never an average of yearly ratios).

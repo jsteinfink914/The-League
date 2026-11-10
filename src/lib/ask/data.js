@@ -11,13 +11,41 @@ import { fetchJson, fetchJsonCached, allSettledWithConcurrency } from '$lib/util
 import { loadManagerOverviewData } from '$lib/utils/helperFunctions/managerOverviewData';
 
 let anatomyPromise = null;
-let combinedPromise = null;
+let overviewPromise = null;
+let capEffPromise = null;
 let managersPromise = null;
 let playersPromise = null;
 const totalsPromises = {};
 
 export const loadAnatomy = () => (anatomyPromise ??= getRecordAnatomy());
-export const loadCombined = () => (combinedPromise ??= loadManagerOverviewData().then((d) => d.combined || []));
+// The full Manager Overview pipeline result ({ capData, tradeData,
+// draftData, combined }) — one load, shared by every consumer. The
+// builders inside it are the same ones the Trade/Draft/Cap Analysis
+// and Manager Overview pages run.
+export const loadOverview = () => (overviewPromise ??= loadManagerOverviewData());
+export const loadCombined = () => loadOverview().then((d) => d.combined || []);
+
+// Cap efficiency rows, assembled exactly like the Cap Analysis page:
+// historical player rows from static/cap-history.json plus the live
+// current-year playerEfficiency rows (tagged with the current year),
+// and the per-team seasonTrends (which include the current year).
+export const loadCapEfficiency = () => (capEffPromise ??= (async () => {
+    const overview = await loadOverview();
+    const capData = overview.capData || {};
+    let playerHistory = [];
+    try {
+        const res = await fetch('/cap-history.json');
+        if (res.ok) {
+            const histJson = await res.json();
+            if (Array.isArray(histJson.playerHistory)) playerHistory = histJson.playerHistory;
+        }
+    } catch (e) { console.warn('[Ask] cap-history.json not available:', e.message); }
+    const playerRows = [
+        ...playerHistory,
+        ...(capData.playerEfficiency || []).map((p) => ({ ...p, year: capData.currentYear })),
+    ];
+    return { playerRows, seasonTrends: capData.seasonTrends || [], currentYear: capData.currentYear };
+})());
 export const loadManagers = () => (managersPromise ??= getLeagueTeamManagers());
 export const loadPlayersMap = () => (playersPromise ??= loadPlayers().then((r) => r.players || {}));
 
@@ -90,6 +118,8 @@ export const buildContext = async (needs) => {
     if (needs.includes('players')) jobs.push(loadPlayersMap().then((p) => { ctx.players = p; }));
     if (needs.includes('playerTotals')) ctx.playerTotals = loadPlayerTotals;
     if (needs.includes('combined')) jobs.push(loadCombined().then((c) => { ctx.combined = c; }));
+    if (needs.includes('overview')) jobs.push(loadOverview().then((o) => { ctx.overview = o; ctx.combined = o.combined || []; }));
+    if (needs.includes('capEff')) jobs.push(loadCapEfficiency().then((c) => { ctx.capEff = c; }));
     await Promise.all(jobs);
     if (!ctx.nameFor) ctx.nameFor = (_s, rosterID) => `Team ${rosterID}`;
     return ctx;

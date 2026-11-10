@@ -19,6 +19,7 @@
 //           entryIds the UI renders as buttons).
 
 import { GO_OFF, goOffSplit } from '../utils/helperFunctions/recordAnatomyMath.js';
+import { aggregateMostTradedPlayers } from '../utils/helperFunctions/mostTradedMath.js';
 
 export const fmt1 = (v) => `${v > 0 ? '+' : ''}${(Math.round(v * 10) / 10).toFixed(1)}`;
 export const fmt2 = (v) => (Math.round(v * 100) / 100).toFixed(2);
@@ -309,6 +310,31 @@ export const ENTRIES = [
         },
     },
     {
+        id: 'most-traded', kind: 'query',
+        params: ['pos', 'topN'], needs: ['overview'],
+        title: 'Most traded players',
+        blurb: 'Players ranked by how many times they have been traded — the Trade Analysis Most Traded table. The points shown are post-trade starter points produced for the acquiring managers.',
+        aliases: ['most traded player', 'most traded players', 'most traded', 'times traded', 'traded the most', 'most frequently traded', 'player traded most'],
+        keywords: ['traded', 'most', 'player'],
+        examples: ['Who is the most traded player?', 'Most traded players', 'Most traded RBs'],
+        run(ctx, params) {
+            const rows = aggregateMostTradedPlayers(ctx.overview?.tradeData?.trades || [])
+                .filter((r) => !params.pos || r.position === params.pos)
+                .sort((a, b) => b.tradeCount - a.tradeCount || b.starterPts - a.starterPts)
+                .slice(0, params.topN || 15)
+                .map((r) => ({
+                    label: r.name,
+                    value: `${r.tradeCount} trades`,
+                    sub: `${r.position} · ${Math.round(r.starterPts * 10) / 10} starter pts after trades · ${r.managerCount} managers`,
+                }));
+            return {
+                headline: `Most traded players${params.pos ? ` — ${params.pos}` : ''}`,
+                rows,
+                href: '/trade_analysis/players', hrefLabel: 'See Most Traded Players',
+            };
+        },
+    },
+    {
         id: 'best-manager', kind: 'query', needs: ['combined'], params: ['excludeCap'],
         title: 'Best all-around manager (average of cap, trade, and draft ranks)',
         blurb: 'The Manager Overview leaderboard: each manager\'s average rank across cap efficiency, trade outcomes, and draft output. Lower is better. Can exclude the cap component (excludeCap) to rank on trades + draft only.',
@@ -375,10 +401,19 @@ export const ENTRIES = [
     { id: 'page-player-values', kind: 'page', group: 'Cap', title: 'Player Values', blurb: 'The frozen salary-cap value of every player, by season.', href: '/cap', aliases: ['player values', 'cap values', 'player prices', 'what is he worth', 'salary'], keywords: ['values', 'cap'] },
     { id: 'page-team-values', kind: 'page', group: 'Cap', title: 'Team Values', blurb: 'Each team\'s total cap number, who is over the $600 cap, and the luxury tax owed.', href: '/team_values', aliases: ['team values', 'cap space', 'over the cap', 'luxury tax', 'who is over'], keywords: ['cap', 'tax', 'over'] },
     { id: 'page-calculator', kind: 'page', group: 'Cap', title: 'Cap Trade Calculator', blurb: 'Test whether a trade keeps both sides under the cap.', href: '/calculator', aliases: ['trade calculator', 'cap calculator', 'calculator'], keywords: ['calculator'] },
-    { id: 'page-cap-analysis', kind: 'page', group: 'Analytics', title: 'Cap Analysis', blurb: 'How each manager allocates cap by position, cap efficiency, and spending trends.', href: '/cap_analysis/allocation', aliases: ['cap analysis', 'cap efficiency', 'spending'], keywords: ['cap', 'analysis'] },
+    { id: 'page-cap-analysis', kind: 'page', group: 'Analytics', title: 'Cap Analysis', blurb: 'How each manager allocates cap by position, cap efficiency, and spending trends.', href: '/cap_analysis/allocation', aliases: ['cap analysis', 'cap allocation', 'spending'], keywords: ['cap', 'analysis'] },
+    { id: 'page-cap-efficiency', kind: 'page', group: 'Analytics', title: 'Cap Analysis: Efficiency', blurb: 'Cap efficiency ($ per point) by player and team, per season and all time.', href: '/cap_analysis/efficiency', aliases: ['cap efficiency', 'cap efficient', 'most cap efficient', 'efficiency page', 'dollars per point'], keywords: ['cap', 'efficiency', 'efficient'] },
+    { id: 'page-cap-trends', kind: 'page', group: 'Analytics', title: 'Cap Analysis: Trends', blurb: 'How cap spending and efficiency trend season over season.', href: '/cap_analysis/trends', aliases: ['cap trends', 'spending trends', 'cap history'], keywords: ['cap', 'trends'] },
     { id: 'page-trade-analysis', kind: 'page', group: 'Analytics', title: 'Trade Analysis', blurb: 'Every trade scored by post-trade starter points — by team, position, player, or the full log.', href: '/trade_analysis/team', aliases: ['trade analysis', 'trade grades', 'who won the trade', 'best trades', 'worst trades'], keywords: ['trade', 'analysis'] },
+    { id: 'page-trade-players', kind: 'page', group: 'Analytics', title: 'Trade Analysis: Most Traded Players', blurb: 'The players who have changed teams most often, and what they produced after each move.', href: '/trade_analysis/players', aliases: ['most traded players page', 'traded players'], keywords: ['traded', 'players'] },
+    { id: 'page-trade-position', kind: 'page', group: 'Analytics', title: 'Trade Analysis: By Position', blurb: 'Trade production split by position for every manager.', href: '/trade_analysis/position', aliases: ['trade analysis by position', 'trade position'], keywords: ['trade', 'position'] },
+    { id: 'page-trade-log', kind: 'page', group: 'Analytics', title: 'Trade Analysis: Log', blurb: 'The full trade log — every completed trade, scored.', href: '/trade_analysis/log', aliases: ['trade log', 'trade history', 'list of trades'], keywords: ['trade', 'log'] },
     { id: 'page-draft-analysis', kind: 'page', group: 'Analytics', title: 'Draft Analysis', blurb: 'Every draft pick graded by the starter points it produced.', href: '/draft_analysis/team', aliases: ['draft analysis', 'draft grades', 'best draft', 'draft picks'], keywords: ['draft', 'analysis'] },
+    { id: 'page-draft-position', kind: 'page', group: 'Analytics', title: 'Draft Analysis: By Position', blurb: 'Draft production split by position for every manager.', href: '/draft_analysis/position', aliases: ['draft analysis by position', 'draft position'], keywords: ['draft', 'position'] },
+    { id: 'page-draft-log', kind: 'page', group: 'Analytics', title: 'Draft Analysis: Log', blurb: 'Every draft pick ever made, with the points it produced.', href: '/draft_analysis/log', aliases: ['draft log', 'draft pick log', 'every draft pick'], keywords: ['draft', 'log'] },
     { id: 'page-manager-overview', kind: 'page', group: 'Analytics', title: 'Manager Overview', blurb: 'Leaderboard, radar, and cards rolling cap, trades, and draft into one view per manager.', href: '/manager_overview/leaderboard', aliases: ['manager overview', 'best manager', 'manager rankings', 'leaderboard'], keywords: ['manager', 'overview'] },
+    { id: 'page-manager-radar', kind: 'page', group: 'Analytics', title: 'Manager Overview: Radar', blurb: 'Radar chart comparing managers across cap, trades, and draft.', href: '/manager_overview/radar', aliases: ['manager radar', 'radar chart', 'radar'], keywords: ['radar', 'manager'] },
+    { id: 'page-manager-cards', kind: 'page', group: 'Analytics', title: 'Manager Overview: Cards', blurb: 'One card per manager with their full cap, trade, and draft profile.', href: '/manager_overview/cards', aliases: ['manager cards'], keywords: ['manager', 'cards'] },
     { id: 'page-h2h-luck', kind: 'page', group: 'Analytics', title: 'H2H: Luck Over Time', blurb: 'Luck and schedule luck by team and season — the luck tables.', href: '/h2h/luck', aliases: ['luck over time', 'h2h luck', 'luck table'], keywords: ['luck', 'h2h'] },
     { id: 'page-h2h-anatomy', kind: 'page', group: 'Analytics', title: 'H2H: Anatomy of a Record', blurb: 'Any team-season dissected: expected wins, schedule, positional edges.', href: '/h2h/anatomy', aliases: ['anatomy page', 'record anatomy page'], keywords: ['anatomy', 'h2h'] },
     { id: 'page-h2h-stats', kind: 'page', group: 'Analytics', title: 'H2H: Stats', blurb: 'Point correlation, go-off splits with adjustable sliders, and the 20-point ladder.', href: '/h2h/stats', aliases: ['h2h stats', 'stats page', 'go off page', 'laws of the league'], keywords: ['stats', 'h2h'] },
@@ -391,6 +426,9 @@ export const ENTRIES = [
     { id: 'page-conditional', kind: 'page', group: 'Commish', title: 'Conditional Trades', blurb: 'The registry of trades with conditions attached to picks.', href: '/conditional', aliases: ['conditional trades', 'conditions', 'conditional picks'], keywords: ['conditional'] },
     { id: 'page-sidebets', kind: 'page', group: 'More', title: 'Side Bets', blurb: 'The league\'s side bet ledger.', href: '/sidebets', aliases: ['side bets', 'bets', 'side bet'], keywords: ['bets'] },
     { id: 'page-managers', kind: 'page', group: 'League', title: 'Managers', blurb: 'The 16 managers and their teams.', href: '/managers', aliases: ['managers', 'owners', 'the managers'], keywords: ['managers'] },
+    { id: 'page-home', kind: 'page', group: 'Start', title: 'Home', blurb: 'The league home page: latest scores, news, and updates.', href: '/', aliases: ['home', 'home page', 'front page'], keywords: ['home'] },
+    { id: 'page-blog', kind: 'page', group: 'More', title: 'Blog', blurb: 'League blog posts and write-ups.', href: '/blog', aliases: ['blog', 'posts', 'league news'], keywords: ['blog'] },
+    { id: 'page-resources', kind: 'page', group: 'More', title: 'Resources', blurb: 'Helpful links and resources for the league.', href: '/resources', aliases: ['resources', 'links', 'help'], keywords: ['resources'] },
 ];
 
 export const entryById = (id) => ENTRIES.find((e) => e.id === id);
