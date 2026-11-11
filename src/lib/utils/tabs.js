@@ -144,6 +144,11 @@ export const tabs = [
                 label: 'Conditional Trades',
                 dest: '/conditional',
             },
+            {
+                icon: 'warning',
+                label: 'Rule Violations',
+                dest: '/rule_violations',
+            },
         ]
     },
     {
