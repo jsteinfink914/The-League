@@ -85,3 +85,23 @@ export async function POST({ request }) {
         return json({ error: e.message }, { status: 500 });
     }
 }
+
+// Retraction path: a record posted in error (e.g. a historical flag that
+// a game-time timing audit later overturned) can be removed by its
+// event_key. Same zero-friction posture as the rest of the site's
+// registries (conditional trades has the same shape).
+export async function DELETE({ request }) {
+    try {
+        const body = await request.json();
+        const eventKey = String(body?.eventKey || '').slice(0, 120);
+        if (!eventKey) return json({ error: 'eventKey is required' }, { status: 400 });
+        await ensureTable();
+        const { rowCount } = await pool.query(
+            'DELETE FROM rule_violations WHERE event_key = $1', [eventKey]
+        );
+        if (!rowCount) return json({ error: 'Record not found' }, { status: 404 });
+        return json({ success: true });
+    } catch (e) {
+        return json({ error: e.message }, { status: 500 });
+    }
+}
