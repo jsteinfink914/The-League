@@ -108,9 +108,9 @@
         line-height: 1.2em;
     }
 
+    /* Size comes from the shared type scale in the theme (h1 = 2rem),
+       matching the analysis pages; only the spacing is local. */
     h1 {
-        font-size: 2.2em;
-        line-height: 1.3em;
         margin: 1.5em 0 2em;
     }
 

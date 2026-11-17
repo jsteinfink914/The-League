@@ -203,3 +203,79 @@ a:visited {
 .mdc-button--outlined:not(:disabled) {
   background-color: #f9f9f9 !important;
 }
+
+// ── Shared design system (UI cleanup, Nov 2026) ──────────────────────
+// Plain CSS at the end of the compiled theme, so it reaches every page.
+// All colors go through the theme variables above, keeping light and
+// dark in step. This block is identical in the dark theme.
+
+// One type scale for bare headings. The MDC defaults are billboard-sized
+// (headline1 96px, headline2 60px, headline3 48px) and pages compensated
+// ad hoc; the analysis pages had already converged on h1 = 2rem, which
+// this scale adopts. Pages that set explicit local sizes keep them —
+// scoped component styles outrank these element rules.
+h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+h2 {
+  font-size: 1.625rem;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+h3 {
+  font-size: 1.375rem;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+h4 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+h5 {
+  font-size: 1rem;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+h6 {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+// One card surface. SMUI Paper is the template's card component; every
+// Paper gets the same radius, border and background (padding is Paper's
+// own default) instead of page-by-page improvisation.
+.smui-paper {
+  background-color: var(--fff);
+  border: 1px solid var(--ddd);
+  border-radius: 8px;
+}
+
+// One data-table treatment for every SMUI DataTable: tinted header row,
+// theme border, card-matching radius, denser rows (MDC default 52px).
+.mdc-data-table {
+  background-color: var(--fff);
+  border-color: var(--ddd);
+  border-radius: 8px;
+}
+
+.mdc-data-table__header-cell {
+  background-color: var(--headerPrimary);
+  color: var(--g111);
+  font-weight: 600;
+}
+
+.mdc-data-table__row {
+  height: 44px;
+}

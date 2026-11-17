@@ -65,15 +65,18 @@
     .transactions {
         display: block;
         width: 95%;
-        margin: 10px auto;
+        margin: 16px auto;
     }
 
     .center {
         text-align: center;
     }
 
-    h6 {
+    /* Page title and section headers take their sizes from the shared
+       type scale in the theme; only alignment/spacing lives here. */
+    h1 {
         text-align: center;
+        margin: 0 0 0.5em;
     }
 
     .homeBanner {
@@ -120,9 +123,8 @@
         top: 50%;
     }
 
-    h4 {
+    h2.champTitle {
         text-align: center;
-        font-size: 1.8em;
         margin: 10px;
         font-style: italic;
     }
@@ -156,7 +158,7 @@
 <div id="home">
     <div id="main">
         <div class="text">
-            <h6>{leagueName}</h6>
+            <h1>{leagueName}</h1>
             <PushSubscribe />
             <!-- homepageText contains the intro text for your league, this gets edited in /src/lib/utils/leagueInfo.js -->
             {@html homepageText }
@@ -188,7 +190,7 @@
         <div id="currentChamp">
             {#if data.podiumsData && data.leagueTeamManagersData}
                 {#if data.podiumsData[0]}
-                    <h4>{data.podiumsData[0].year} Fantasy Champ</h4>
+                    <h2 class="champTitle">{data.podiumsData[0].year} Fantasy Champ</h2>
                     <div id="champ" on:click={() => {if(managers.length) gotoManager({year: data.podiumsData[0].year, leagueTeamManagers: data.leagueTeamManagersData, rosterID: parseInt(data.podiumsData[0].champion)})}} >
                         <img src="{getAvatarFromTeamManagers(data.leagueTeamManagersData, data.podiumsData[0].champion, data.podiumsData[0].year)}" class="first" alt="champion" />
                         <img src="/laurel.png" class="laurel" alt="laurel" />

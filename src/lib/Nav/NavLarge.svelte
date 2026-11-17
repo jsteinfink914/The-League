@@ -81,6 +81,30 @@
 		width: 22px;
 	}
 
+	/* Presentation mirrors the mobile drawer (NavSmall), the source of
+	   truth: direct destinations in the title case tabs.js gives them,
+	   group headers uppercase. MDC's tab typography uppercases every
+	   label, so undo it for direct tabs and re-apply it only to groups,
+	   with the drawer's group-header weight and letter spacing. */
+	:global(.navBar .mdc-tab__text-label) {
+		text-transform: none;
+		letter-spacing: 0.01em;
+	}
+
+	:global(.navBar .navGroup .mdc-tab__text-label) {
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		font-weight: 600;
+	}
+
+	/* Active page: the drawer's highlighted row, translated to the tab
+	   bar — a primary-tinted fill behind the active tab, on top of
+	   MDC's primary label/icon and indicator. The dropdown items below
+	   already use the same SMUI activated treatment as the drawer. */
+	:global(.navBar .mdc-tab--active) {
+		background-color: color-mix(in srgb, var(--blueOne) 12%, transparent);
+	}
+
 	.parent {
 		position: relative;
 		z-index: 6; /* above the overlay, so other tabs stay clickable while a submenu is open */
@@ -134,6 +158,7 @@
 			<div bind:this={anchors[tab.label]}>
 				<Tab
 					{tab}
+					class="navGroup"
 					aria-expanded={openLabel === tab.label}
 					aria-controls="submenu-{tab.label}"
 					on:click={() => toggleGroup(tab)}
@@ -158,7 +183,7 @@
 		{/if}
 	</TabBar>
 	{#if openTab}
-	<div id="submenu-{openTab.label}" class="subMenu" style="max-height: {49 * openChildren.length - 1}px; min-width: {Math.max(width || 0, 200)}px; top: {height}px; left: {left}px; box-shadow: 0 0 3px 0 #00316b; border: 1px solid #00316b; border-top: none;">
+	<div id="submenu-{openTab.label}" class="subMenu" style="max-height: {49 * openChildren.length - 1}px; min-width: {Math.max(width || 0, 200)}px; top: {height}px; left: {left}px; box-shadow: 0 0 3px 0 var(--blueOne); border: 1px solid var(--blueOne); border-top: none;">
 		<List>
 			{#each openChildren as subTab, ix}
 				<Item activated={currentPath === subTab.dest} on:SMUI:action={() => subGoto(subTab.dest)} on:touchstart={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}} on:mouseover={() => {if(subTab.label != 'Go to Sleeper') preloadData(subTab.dest)}}>
