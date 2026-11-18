@@ -4,7 +4,7 @@
   import { page } from '$app/stores';
   import { createSetParams } from '$lib/utils/urlParams';
 
-  // Filters live in the URL query string so views are shareable.
+  // Filters and sort live in the URL query string so views are shareable.
   const setParams = createSetParams(page);
   const initParams = $page.url.searchParams;
 
@@ -12,17 +12,13 @@
   let selectedYear = initParams.get('year') || "2026";
   let searchQuery = initParams.get('q') || "";
   let data = [];
-  let previousYearData = [];
-  let differenceData = [];
-  let sortedData = [];
-  let valuesSortOrder = 'desc'; // 'asc' for ascending, 'desc' for descending
-  let differenceSortOrder = 'desc'; // 'asc' for ascending, 'desc' for descending
-  let filteredNames = [];
-  let showDropdown = false;
+  let rows = [];
+  let sortKey = ['value', 'ly', 'diff', 'name'].includes(initParams.get('sort')) ? initParams.get('sort') : 'value';
+  let sortDir = initParams.get('dir') === 'asc' ? 'asc' : 'desc';
 
-  // Sample CSV data
   const filePath = '/Player_Values.txt'
 
+  const fmtDiff = (d) => d > 0 ? `+$${d}` : d < 0 ? `-$${Math.abs(d)}` : '$0';
 
   const loadData = async () => {
     const response = await fetch(filePath);
@@ -33,92 +29,71 @@
       complete: (result) => {
         data = result.data;
         years = [...new Set(data.map(row => row.Year))].sort();
-        updateData();
+        buildRows();
       }
     });
   };
 
- 
-
- const updateData = () => {
-    calculateDifferenceData();
-    sortValuesData(); // Ensure values table is sorted on data update
-    sortDifferenceData(); // Ensure differences table is sorted on data update
-  };
-
-
-  function calculateDifferenceData() {
-    previousYearData = data.filter(item => item.Year === String(Number(selectedYear) - 1));
-    const currentYearData = data.filter(item => item.Year === selectedYear);
-    
-    differenceData = currentYearData.map(current => {
-      const previous = previousYearData.find(p => p.Name === current.Name);
+  // One merged row per player: this year's value, last year's value, and the
+  // change — the two old side-by-side tables joined on the player.
+  function buildRows() {
+    const prev = new Map(
+      data.filter(item => item.Year === String(Number(selectedYear) - 1))
+        .map(item => [item.Name, parseFloat(item.Value)])
+    );
+    rows = data.filter(item => item.Year === selectedYear).map(item => {
+      const value = parseFloat(item.Value);
+      const ly = prev.has(item.Name) ? prev.get(item.Name) : 0;
       return {
-        Name: current.Name,
-        Prior_Value: previous ? parseFloat(previous.Value) : 0,
-        Difference: previous ? parseFloat(current.Value) - parseFloat(previous.Value) : parseFloat(current.Value)
+        Name: item.Name,
+        Value: value,
+        LY: ly,
+        Difference: Math.round((value - ly) * 100) / 100,
+        Rookie: item.Rookie
       };
     });
   }
-  function toggleValuesSortOrder() {
-  valuesSortOrder = valuesSortOrder === 'asc' ? 'desc' : 'asc';
-  sortValuesData();
-}
 
-  function toggleDifferenceSortOrder() {
-    differenceSortOrder = differenceSortOrder === 'asc' ? 'desc' : 'asc';
-    sortDifferenceData();
-  }
+  const comparators = {
+    value: (a, b) => a.Value - b.Value,
+    ly: (a, b) => a.LY - b.LY,
+    diff: (a, b) => a.Difference - b.Difference,
+    name: (a, b) => a.Name.localeCompare(b.Name)
+  };
 
-  function sortValuesData() {
-    sortedData = data.filter(item => item.Year === selectedYear)
-                .sort((a, b) => {
-                  if (valuesSortOrder === 'asc') {
-                    return parseFloat(a.Value) - parseFloat(b.Value);
-                  } else {
-                    return parseFloat(b.Value) - parseFloat(a.Value);
-                  }
-                });
-  }
-
-  function sortDifferenceData() {
-    differenceData = differenceData.sort((a, b) => {
-      if (differenceSortOrder === 'asc') {
-        return a.Difference - b.Difference;
-      } else {
-        return b.Difference - a.Difference;
-      }
+  $: sortedRows = rows
+    .filter(item => item.Name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    .sort((a, b) => {
+      const cmp = comparators[sortKey](a, b);
+      return sortDir === 'asc' ? cmp : -cmp;
     });
+
+  function applySort(key, dir) {
+    sortKey = key;
+    sortDir = dir;
+    setParams({
+      sort: key === 'value' && dir === 'desc' ? null : key,
+      dir: key === 'value' && dir === 'desc' ? null : dir
+    });
+  }
+
+  function headerSort(key) {
+    if (sortKey === key) {
+      applySort(key, sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      applySort(key, key === 'name' ? 'asc' : 'desc');
+    }
   }
 
   function handleYearChange(event) {
     selectedYear = event.target.value;
     setParams({ year: selectedYear === "2026" ? null : selectedYear });
-    updateData();
-  }
-  function filterNames() {
-    filteredNames = data
-      .filter(item => item.Year === selectedYear)
-      .map(item => item.Name)
-      .filter(name => name.toLowerCase().includes(searchQuery.toLowerCase()))
-      .sort();
+    buildRows();
   }
 
   function handleSearchInput(event) {
-    searchQuery = event.target.value.toLowerCase();
-    setParams({ q: searchQuery || null });
-    filterNames();
-    showDropdown = searchQuery.length > 0;
-  }
-
-  function handleNameSelect(name) {
-    searchQuery = name;
-    showDropdown = false;
-    updateData(); // Ensure the data updates based on the selected name
-  }
-  function filterData(item) {
-    const query = searchQuery.trim().toLowerCase();
-    return item.Name.toLowerCase().includes(query);
+    searchQuery = event.target.value;
+    setParams({ q: searchQuery.trim() || null });
   }
 
    // Load data on component mount
@@ -128,193 +103,173 @@
 </script>
 
 <style>
-  .container {
+  .controls {
     display: flex;
-    justify-content: space-between;
-    flex-wrap: warap;
-    gap: 10px;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    align-items: flex-end;
+    margin-bottom: 10px;
   }
-  .table-container {
-    width: 48%;
+  .controls label {
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .controls select,
+  .controls input {
+    padding: 7px 10px;
+    border: 1px solid var(--ddd);
+    border-radius: 6px;
+    background: var(--fff);
+    color: inherit;
+    font: inherit;
+  }
+  #search-input {
+    min-width: 220px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .chip {
+    padding: 6px 12px;
+    border: 1px solid var(--ddd);
+    border-radius: 999px;
+    background: var(--fff);
+    color: inherit;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .chip.active {
+    background: var(--headerPrimary);
+    border-color: var(--blueOne);
+  }
+  .legend {
+    margin: 0 0 12px;
+    font-size: 13px;
+    opacity: 0.75;
+  }
+  .scroll-wrap {
+    max-height: 65vh;
+    overflow: auto;
+    border-radius: 8px;
   }
   table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    table-layout:fixed;
+    table-layout: fixed;
   }
   th, td {
-    padding: 10px;
-    border-bottom: 1px solid var(--ddd);
+    padding: 8px 10px;
     text-align: center;
   }
-  th {
-    cursor: pointer;
-    top: 0; /* Keep header sticky */
-    z-index: 1; /* Ensure header is above other content */
+  th:first-child, td:first-child {
+    text-align: left;
   }
-  
+  th:nth-child(1) { width: 46%; }
+  th:nth-child(2) { width: 18%; }
+  th:nth-child(3) { width: 18%; }
+  th:nth-child(4) { width: 18%; }
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--headerPrimary);
+    cursor: pointer;
+  }
   th.sorted-asc::after {
     content: ' ▲';
   }
   th.sorted-desc::after {
     content: ' ▼';
   }
+  .diff-pos { color: #27ae60; font-weight: 600; }
+  .diff-neg { color: #c1121f; font-weight: 600; }
+  .rookie-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: 2px;
+    background: var(--badgeRookieYearBg);
+    color: var(--badgeRookieYearText);
+  }
+  .empty-row td {
+    text-align: center;
+    opacity: 0.7;
+    padding: 20px 10px;
+  }
 
-  .dropdown {
-  position: relative;
-  max-height: 200px;
-  overflow-y: auto;
-  background-color: black;
-  border: black;
-  width: 40%;
-  z-index: 1000;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.dropdown-item {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.dropdown-item:hover {
-  background-color: lightblue;
-}
   @media (max-width: 768px) {
-  .container {
-    flex-direction: row;
-    gap: 10px;
-  }
-
-  .table-container {
-    width: 90%;
-  }
- table {
-    table-layout:auto;
-  }
-  th, td {
-    font-size: 10px; /* Adjust font size for smaller screens */
-    padding: 2px; /* Reduce padding for smaller screens */
-    flex-direction:column;
-    text-align:left;
-  }
-   th:nth-child(1), td:nth-child(1) {
-      width: 60%;
+    .scroll-wrap {
+      max-height: 60vh;
     }
-
-    th:nth-child(2), td:nth-child(2) {
-      width: 20%;
+    th, td {
+      padding: 7px 6px;
+      font-size: 13px;
     }
-
-    th:nth-child(3), td:nth-child(3) {
-      width: 20%;
+    #search-input {
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
-
-  /* Stack table headers and data vertically on very small screens */
- 
-
-  tbody {
-    overflow-y: auto;
-    overflow-x: auto;
-    max-height: 300px; /* Limit height for scrolling */
+    .search-field {
+      flex: 1 1 200px;
+    }
   }
-
-  tr {
-    flex-wrap: nowrap;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  td {
-    text-align: left;
-    padding-left: 1%;
-    position: relative;
-  }
-
-  td::before {
-    position: absolute;
-    left: 0;
-    width: 90%;
-    padding-left: 10px;
-    font-weight: bold;
-    text-align: left;
-  }
-}
 </style>
 
-<div>
-  <label for="year-select">Select Year:</label>
-  <select id="year-select" on:change={handleYearChange}>
-    {#each years as year}
-      <option value={year} selected={year === selectedYear}>{year}</option>
-    {/each}
-  </select>
-    <div style="position: relative; width: 100%;">
-    <label for="year-select">Search:</label>
+<h1>Player Values</h1>
+
+<div class="controls">
+  <div>
+    <label for="year-select">Select Year:</label>
+    <select id="year-select" on:change={handleYearChange}>
+      {#each years as year}
+        <option value={year} selected={year === selectedYear}>{year}</option>
+      {/each}
+    </select>
+  </div>
+  <div class="search-field">
+    <label for="search-input">Search:</label>
     <input id="search-input" type="text" placeholder="Search players..." value={searchQuery} on:input={handleSearchInput} />
-    {#if showDropdown && filteredNames.length > 0}
-      <div class="dropdown">
-        {#each filteredNames as name}
-          <div class="dropdown-item" on:click={() => handleNameSelect(name)}>
-            {name}
-          </div>
-        {/each}
-      </div>
-    {/if}
   </div>
 </div>
 
-<div class="container">
-  <!-- Values Table -->
-  <div class="table-container">
-    <h5>Values - {selectedYear}</h5>
-    <table class="league-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th on:click={toggleValuesSortOrder} class={valuesSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
-            Value
-          </th>
-          <th>Rookie Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each sortedData.filter(filterData) as item (item.Name)}
-          {#if item.Year === selectedYear}
-            <tr>
-              <td data-label="Name">{item.Name}</td>
-              <td data-label="Value">{item.Value}</td>
-              <td data-label="Rookie Status">{item.Rookie}</td>
-            </tr>
-          {/if}
-        {/each}
-      </tbody>
-    </table>
-  </div>
+<div class="chips">
+  <button class="chip" class:active={sortKey === 'value' && sortDir === 'desc'} on:click={() => applySort('value', 'desc')}>Top values</button>
+  <button class="chip" class:active={sortKey === 'diff' && sortDir === 'desc'} on:click={() => applySort('diff', 'desc')}>Biggest movers</button>
+  <button class="chip" class:active={sortKey === 'diff' && sortDir === 'asc'} on:click={() => applySort('diff', 'asc')}>Biggest fallers</button>
+</div>
 
-  <!-- Differences Table -->
-  <div class="table-container">
-    <h5>{Number(selectedYear) - 1} to {selectedYear}</h5>
-    <table class="league-table">
-      <thead>
+<p class="legend">LY = {Number(selectedYear) - 1} value · Diff = change vs LY · <span class="rookie-badge">R</span> = rookie · {sortedRows.length} players</p>
+
+<div class="scroll-wrap">
+  <table class="league-table">
+    <thead>
+      <tr>
+        <th on:click={() => headerSort('name')} class={sortKey === 'name' ? (sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}>Name</th>
+        <th on:click={() => headerSort('value')} class={sortKey === 'value' ? (sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}>Value</th>
+        <th on:click={() => headerSort('ly')} class={sortKey === 'ly' ? (sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}>LY</th>
+        <th on:click={() => headerSort('diff')} class={sortKey === 'diff' ? (sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}>Diff</th>
+      </tr>
+    </thead>
+    <tbody>
+      {#each sortedRows as item (item.Name)}
         <tr>
-          <th>Name</th>
-          <th>LY Value</th>
-          <th on:click={toggleDifferenceSortOrder} class={differenceSortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc'}>
-            Diff
-          </th>
+          <td data-label="Name">{item.Name}{#if item.Rookie === '1' || item.Rookie === 1}<span class="rookie-badge">R</span>{/if}</td>
+          <td data-label="Value">${item.Value}</td>
+          <td data-label="LY Value">${item.LY}</td>
+          <td data-label="Difference" class={item.Difference > 0 ? 'diff-pos' : item.Difference < 0 ? 'diff-neg' : ''}>{fmtDiff(item.Difference)}</td>
         </tr>
-      </thead>
-      <tbody>
-        {#each differenceData.filter(filterData) as item (item.Name)}
-          <tr>
-            <td data-label="Name">{item.Name}</td>
-            <td data-label="Prior Value">{item.Prior_Value}</td>
-            <td data-label="Difference">{item.Difference}</td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  </div>
+      {:else}
+        <tr class="empty-row"><td colspan="4">No players match "{searchQuery}" in {selectedYear}.</td></tr>
+      {/each}
+    </tbody>
+  </table>
 </div>

@@ -277,18 +277,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 40vh; /* Full viewport height */
     box-sizing: border-box; /* Include padding in width */
   }
   .chart-container {
-    width: 80%;
+    width: 100%;
+    max-width: 900px;
     max-height: 50vh;
+    display: flex;
     justify-content: center;
-    align-items:center;
-    margin-left:15%;
+    align-items: center;
+    margin: 0 auto;
   }
   .dropdown-container {
-    width: 80%;
+    width: 100%;
+    max-width: 900px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -301,7 +303,7 @@
   }
 
   table {
-    width: 90%;
+    width: 100%;
     max-width: 900px;
     border-collapse: collapse;
     overflow-y:auto;
@@ -309,7 +311,7 @@
 
   th, td {
     border: 1px solid var(--ddd);
-    padding: 5px;
+    padding: 8px 10px;
     text-align: center;
 
   }
@@ -340,8 +342,8 @@
   }
 
   .rules-legend {
-    width: 80%;
-    max-width: 720px;
+    width: 100%;
+    max-width: 900px;
     margin: 0 0 1rem;
     padding: 0.75rem 1rem;
     font-size: 13px;
