@@ -153,9 +153,9 @@
 		{#if error}<p class="error">{error}</p>{/if}
 
 		{#if !lotteryStarted}
-			<section class="card">
+			<section class="card league-card">
 				<h2>Lottery Field</h2>
-				<table>
+				<table class="league-table">
 					<thead>
 						<tr><th>Finish</th><th>Team</th><th>Record</th><th>Odds (%)</th></tr>
 					</thead>
@@ -182,7 +182,7 @@
 				<button class="primary" on:click={startLottery}>Start Lottery</button>
 			</section>
 
-			<section class="card">
+			<section class="card league-card">
 				<h2>Odds Simulation</h2>
 				<p class="sub">Monte Carlo simulation of each team's chance at every pick.</p>
 				<div class="sim-controls">
@@ -196,7 +196,7 @@
 					<button class="primary" on:click={runSim}>Run Simulation</button>
 				</div>
 				{#if simulationResults}
-					<table>
+					<table class="league-table">
 						<thead>
 							<tr><th>Team</th><th>Pick 1</th><th>Pick 2</th><th>Pick 3</th><th>Pick 4</th><th>Pick 5</th><th>Pick 6</th></tr>
 						</thead>
@@ -214,7 +214,7 @@
 				{/if}
 			</section>
 		{:else}
-			<section class="card lottery-run">
+			<section class="card lottery-run league-card">
 				<h2>Pick {draftOrder.length + 1} of 6</h2>
 				{#if remainingTeams.length > 0}
 					<Wheel teams={remainingTeams} {rotation} />
@@ -259,12 +259,7 @@
 		margin: 0 auto 24px;
 	}
 	.card {
-		background: var(--fff, #fff);
-		border: 1px solid rgba(0, 49, 107, 0.25);
-		border-radius: 12px;
-		padding: 20px;
 		margin-bottom: 24px;
-		box-shadow: 0 2px 8px rgba(0, 49, 107, 0.08);
 	}
 	.card h2 {
 		margin-top: 0;

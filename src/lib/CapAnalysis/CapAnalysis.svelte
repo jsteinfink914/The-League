@@ -850,19 +850,9 @@
     gap: 1.5rem;
     margin-bottom: 2rem;
   }
-  .chart-box {
-    background: var(--fff);
-    border: 1px solid var(--ddd);
-    border-radius: 8px;
-    padding: 1rem;
-  }
   .chart-box canvas { max-height: 340px; }
 
   .chart-full {
-    background: var(--fff);
-    border: 1px solid var(--ddd);
-    border-radius: 8px;
-    padding: 1rem;
     margin-bottom: 2rem;
   }
   .chart-full canvas { max-height: 420px; }
@@ -885,8 +875,6 @@
   }
 
   thead th {
-    background: var(--g111);
-    color: var(--fff);
     padding: 8px 10px;
     text-align: left;
     white-space: nowrap;
@@ -991,10 +979,10 @@
       </div>
 
       <div class="charts-row">
-        <div class="chart-box">
+        <div class="chart-box league-card">
           <canvas id="alloc-abs-chart"></canvas>
         </div>
-        <div class="chart-box">
+        <div class="chart-box league-card">
           <canvas id="alloc-pct-chart"></canvas>
         </div>
       </div>
@@ -1002,7 +990,7 @@
       <div class="table-section">
         <h3>Cap Breakdown by Position — {selectedCapYear}</h3>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th on:click={() => setCapBreakdownSort('manager')}>Manager{sortArrow('manager', capBreakdownSortKey, capBreakdownSortDir)}</th>
@@ -1057,7 +1045,7 @@
       <div class="table-section">
         <h3>Team Efficiency — {VALUE_YEAR}</h3>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th on:click={() => setTeamSort('manager')}>Manager{sortArrow('manager', teamSortKey, teamSortDir)}</th>
@@ -1111,7 +1099,7 @@
           </label>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th on:click={() => setPlayerSort('name')}>Player{sortArrow('name', playerSortKey, playerSortDir)}</th>
@@ -1188,12 +1176,12 @@
         {/if}
       </div>
 
-      <div class="chart-full">
+      <div class="chart-full league-card">
         <canvas id="trend-chart"></canvas>
       </div>
 
       {#if trendView === 'season'}
-      <div class="chart-full">
+      <div class="chart-full league-card">
         <canvas id="scatter-chart"></canvas>
       </div>
       {/if}
@@ -1205,7 +1193,7 @@
             {#if selectedTrendYear !== 'All'} — {selectedTrendYear}{/if}
           </h3>
           <div class="table-wrap">
-            <table>
+            <table class="league-table">
               <thead>
                 <tr>
                   <th on:click={() => setSeasonSort('year')}>Year{sortArrow('year', seasonSortKey, seasonSortDir)}</th>
@@ -1243,7 +1231,7 @@
 
       <!-- ── Position Group Chart + Table ─────────────────────────────── -->
       {#if trendView === 'season'}
-        <div class="chart-full" style="max-width: 560px; margin: 0 auto 1.5rem;">
+        <div class="chart-full league-card" style="max-width: 560px; margin: 0 auto 1.5rem;">
           <canvas id="pos-group-chart"></canvas>
         </div>
 
@@ -1252,7 +1240,7 @@
             $/pt by Position — {selectedTrendYear === 'All' ? 'All Seasons' : selectedTrendYear}
           </h3>
           <div class="table-wrap">
-            <table>
+            <table class="league-table">
               <thead>
                 <tr>
                   <th on:click={() => setPosGroupSort('position')}>Position{sortArrow('position', posGroupSortKey, posGroupSortDir)}</th>
@@ -1288,7 +1276,7 @@
 
       <!-- ── Cap Share vs Points Share Chart ──────────────────────────── -->
       {#if trendView === 'season'}
-        <div class="chart-full" style="max-width: 640px; margin: 0 auto 2rem;">
+        <div class="chart-full league-card" style="max-width: 640px; margin: 0 auto 2rem;">
           <canvas id="cap-share-chart"></canvas>
         </div>
       {/if}
@@ -1317,7 +1305,7 @@
             </label>
           </div>
           <div class="table-wrap">
-            <table>
+            <table class="league-table">
               <thead>
                 <tr>
                   <th on:click={() => setHistPlayerSort('year')}>Year{sortArrow('year', histPlayerSortKey, histPlayerSortDir)}</th>

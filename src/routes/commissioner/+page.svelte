@@ -210,10 +210,6 @@
   }
 
   .card {
-    background: var(--fff);
-    border: 1px solid var(--ddd);
-    border-radius: 6px;
-    padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
   }
 
@@ -321,10 +317,7 @@
     text-align: left;
     padding: .4rem .6rem;
     border-bottom: 2px solid var(--ddd);
-    color: var(--g555);
-    font-weight: 600;
     white-space: nowrap;
-    background: var(--fff);
   }
   table.review td {
     padding: .35rem .6rem;
@@ -462,7 +455,7 @@
   {:else}
 
   <!-- ─── STEP 1: FETCH ──────────────────────────────────────────────────── -->
-  <div class="card">
+  <div class="card league-card">
     <div class="card-header">
       <div class="step-badge">1</div>
       <h2>Refresh from FantasyPros</h2>
@@ -495,7 +488,7 @@
   </div>
 
   <!-- ─── STEP 2: ROOKIE REVIEW ──────────────────────────────────────────── -->
-  <div class="card">
+  <div class="card league-card">
     <div class="card-header">
       <div class="step-badge">2</div>
       <h2>Rookie Review</h2>
@@ -509,7 +502,7 @@
       <p class="status-info">No rookies found yet — run <strong>Generate</strong> (step 3) to populate this list.</p>
     {:else}
       <div class="table-wrap">
-      <table class="review">
+      <table class="review league-table">
         <thead>
           <tr>
             <th>FantasyPros Name</th>
@@ -560,7 +553,7 @@
           {state.unmatchedRookies.rows.length} unmatched rookie candidates (add to fp_sleeper_mapping.txt if needed)
         </summary>
         <div class="table-wrap">
-        <table class="review issue-table" style="margin-top:.5rem">
+        <table class="review issue-table league-table" style="margin-top:.5rem">
           <thead><tr><th>Sleeper</th><th>Suggested FP Name</th><th>Suggested Value</th><th>Confidence</th></tr></thead>
           <tbody>
             {#each state.unmatchedRookies.rows as r}
@@ -579,7 +572,7 @@
   </div>
 
   <!-- ─── STEP 3: GENERATE ───────────────────────────────────────────────── -->
-  <div class="card">
+  <div class="card league-card">
     <div class="card-header">
       <div class="step-badge">3</div>
       <h2>Generate Player Values</h2>
@@ -613,7 +606,7 @@
   </div>
 
   <!-- ─── STEP 4: AUDIT ──────────────────────────────────────────────────── -->
-  <div class="card">
+  <div class="card league-card">
     <div class="card-header">
       <div class="step-badge">4</div>
       <h2>Roster Audit</h2>
@@ -642,7 +635,7 @@
         — add missing rows to <code>static/fp_sleeper_mapping.txt</code> then re-generate.
       </p>
       <div class="table-wrap">
-      <table class="review issue-table" style="margin-top:.5rem">
+      <table class="review issue-table league-table" style="margin-top:.5rem">
         <thead>
           <tr>
             <th>Sleeper Name</th>
@@ -668,7 +661,7 @@
     {/if}
   </div>
 
-  <div class="card">
+  <div class="card league-card">
     <div class="card-header">
       <div class="step-badge" style="background:{state.publishReadiness.ready ? '#2d7a2d' : '#c0392b'}">✓</div>
       <h2>Ready to Publish</h2>
@@ -689,7 +682,7 @@
   </div>
 
   <!-- ─── PENDING CHANGES ────────────────────────────────────────────────── -->
-  <div class="card">
+  <div class="card league-card">
     <div class="card-header">
       <div class="step-badge" style="background:var(--g555)">↕</div>
       <h2>Review Pending Changes</h2>
@@ -723,7 +716,7 @@
             {#if diffData.values.changed.length > 0}
               <p class="diff-group-label">Changed ({diffData.values.changed.length})</p>
               <div class="table-wrap">
-              <table class="review issue-table">
+              <table class="review issue-table league-table">
                 <thead><tr><th>Player</th><th>Was</th><th>Now</th><th>Δ</th></tr></thead>
                 <tbody>
                   {#each diffData.values.changed as r}
@@ -744,7 +737,7 @@
             {#if diffData.values.added.length > 0}
               <p class="diff-group-label">Added ({diffData.values.added.length})</p>
               <div class="table-wrap">
-              <table class="review issue-table">
+              <table class="review issue-table league-table">
                 <thead><tr><th>Player</th><th>Value</th></tr></thead>
                 <tbody>
                   {#each diffData.values.added as r}
@@ -761,7 +754,7 @@
             {#if diffData.values.removed.length > 0}
               <p class="diff-group-label">Removed ({diffData.values.removed.length})</p>
               <div class="table-wrap">
-              <table class="review issue-table">
+              <table class="review issue-table league-table">
                 <thead><tr><th>Player</th><th>Was</th></tr></thead>
                 <tbody>
                   {#each diffData.values.removed as r}
@@ -786,7 +779,7 @@
             {#if diffData.rookies.changed.length > 0}
               <p class="diff-group-label">Changed ({diffData.rookies.changed.length})</p>
               <div class="table-wrap">
-              <table class="review issue-table">
+              <table class="review issue-table league-table">
                 <thead><tr><th>Rookie</th><th>Was</th><th>Now</th><th>Δ</th></tr></thead>
                 <tbody>
                   {#each diffData.rookies.changed as r}
@@ -807,7 +800,7 @@
             {#if diffData.rookies.added.length > 0}
               <p class="diff-group-label">Added ({diffData.rookies.added.length})</p>
               <div class="table-wrap">
-              <table class="review issue-table">
+              <table class="review issue-table league-table">
                 <thead><tr><th>Rookie</th><th>Value</th></tr></thead>
                 <tbody>
                   {#each diffData.rookies.added as r}
@@ -821,7 +814,7 @@
             {#if diffData.rookies.removed.length > 0}
               <p class="diff-group-label">Removed ({diffData.rookies.removed.length})</p>
               <div class="table-wrap">
-              <table class="review issue-table">
+              <table class="review issue-table league-table">
                 <thead><tr><th>Rookie</th><th>Was</th></tr></thead>
                 <tbody>
                   {#each diffData.rookies.removed as r}

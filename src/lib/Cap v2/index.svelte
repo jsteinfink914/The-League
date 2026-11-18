@@ -21,7 +21,7 @@
   <input id="search-input" type="text" bind:value={searchQuery} placeholder="Type player name (optional)" />
 
   <h2>Cap Values for {year}</h2>
-  <table>
+  <table class="league-table">
     <thead>
       <tr>
         <th>Player Name</th>
@@ -41,7 +41,7 @@
   </table>
 
   <h2>Differences from Previous Year</h2>
-  <table>
+  <table class="league-table">
     <thead>
       <tr>
         <th>Name</th>
@@ -66,12 +66,8 @@
   }
 
   th, td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--ddd);
     padding: 8px;
-  }
-
-  th {
-    background-color: #f2f2f2;
   }
 
   tr:hover {

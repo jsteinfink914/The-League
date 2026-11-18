@@ -263,11 +263,11 @@
       <div class="section">
         <h2>Team Trade Summary</h2>
         <div class="chart-row">
-          <div class="chart-box"><h3>Points Received vs Given Away</h3><canvas id="trade-bar-chart"></canvas></div>
-          <div class="chart-box"><h3>Net Point Surplus by Manager</h3><canvas id="trade-surplus-chart"></canvas></div>
+          <div class="chart-box league-card"><h3>Points Received vs Given Away</h3><canvas id="trade-bar-chart"></canvas></div>
+          <div class="chart-box league-card"><h3>Net Point Surplus by Manager</h3><canvas id="trade-surplus-chart"></canvas></div>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th on:click={() => setTeamSort('manager')}>Manager{sortArrow('manager', teamSortKey, teamSortDir)}</th>
@@ -300,9 +300,9 @@
       <div class="section">
         <h2>Position Group Breakdown</h2>
         <p class="section-note">Points produced by assets acquired in trades, split by position. Click any column header to sort.</p>
-        <div class="chart-box wide"><canvas id="trade-pos-chart"></canvas></div>
+        <div class="chart-box wide league-card"><canvas id="trade-pos-chart"></canvas></div>
         <div class="table-wrap">
-          <table class="pos-matrix">
+          <table class="pos-matrix league-table">
             <thead>
               <tr>
                 <th class="sticky-col" on:click={() => setPosMgrSort('manager')}>Manager{posMgrSortKey === 'manager' ? (posMgrSortDir === 1 ? ' ▲' : ' ▼') : ''}</th>
@@ -356,7 +356,7 @@
           <span class="result-count">{sortedMostTraded.length} players</span>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th class="rank-col">#</th>
@@ -409,7 +409,7 @@
 
         {#if tradeHighlights}
           <div class="highlights-row">
-            <div class="highlights-box best-box">
+            <div class="highlights-box best-box league-card">
               <h3>🏆 Best Trades ({logFilterManager})</h3>
               {#each tradeHighlights.best as { trade, side }}
                 <div class="highlight-item">
@@ -419,7 +419,7 @@
                 </div>
               {/each}
             </div>
-            <div class="highlights-box worst-box">
+            <div class="highlights-box worst-box league-card">
               <h3>📉 Worst Trades ({logFilterManager})</h3>
               {#each tradeHighlights.worst as { trade, side }}
                 <div class="highlight-item">
@@ -434,7 +434,7 @@
 
         <div class="trade-log">
           {#each filteredTrades as trade}
-            <div class="trade-card">
+            <div class="trade-card league-card">
               <div class="trade-header">
                 <span class="trade-date">{trade.date}</span>
                 <span class="trade-year-badge">{trade.year}</span>
@@ -510,7 +510,6 @@
   h2 { font-size: 1.4rem; margin-bottom: 1rem; }
   h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--g444, #444); }
   .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-  .chart-box { background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 12px; padding: 1.25rem; }
   .chart-box.wide { margin-bottom: 1.5rem; }
   .filter-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
   .filter-row label { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; color: var(--g555, #555); }
@@ -518,8 +517,7 @@
   .result-count { color: var(--g666, #666); font-size: 0.85rem; margin-bottom: 0.75rem; }
   .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--ddd, #ddd); margin-bottom: 1.5rem; }
   table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--eee, #eee); }
-  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; color: var(--g555, #555); cursor: pointer; white-space: nowrap; user-select: none; }
+  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; cursor: pointer; white-space: nowrap; user-select: none; }
   th:hover { color: var(--color-primary, #3498db); }
   td { padding: 0.65rem 1rem; border-top: 1px solid var(--eee, #eee); font-size: 0.9rem; }
   tr:hover td { background: var(--eee, #f9f9f9); }
@@ -532,12 +530,12 @@
   .pos-matrix th { cursor: pointer; user-select: none; }
   .pos-matrix th:hover { color: var(--color-primary, #3498db); }
   .sticky-col { position: sticky; left: 0; background: var(--fff, #fff); z-index: 1; }
-  thead .sticky-col { background: var(--eee, #eee); }
+  thead .sticky-col { background: var(--headerPrimary); }
   .heat-cell { font-weight: 500; white-space: nowrap; }
   .total-col { border-left: 2px solid var(--ddd, #ddd); }
   tfoot .totals-row td { border-top: 2px solid var(--ddd, #ddd); background: var(--eee, #eee); font-size: 0.88rem; }
   .trade-log { display: flex; flex-direction: column; gap: 1rem; }
-  .trade-card { background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 12px; overflow: hidden; }
+  .trade-card { overflow: hidden; padding: 0; }
   .trade-header { display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem 1rem; background: var(--eee, #eee); border-bottom: 1px solid var(--ddd, #ddd); }
   .trade-date { color: var(--g555, #555); font-size: 0.85rem; }
   .trade-year-badge { background: var(--color-primary, #3498db); color: #fff; border-radius: 10px; padding: 0.1rem 0.5rem; font-size: 0.75rem; font-weight: 700; }
@@ -562,7 +560,6 @@
   .pending-tag { background: rgba(241, 196, 15, 0.18); color: #9a7000; border-radius: 8px; padding: 0.1rem 0.4rem; font-size: 0.72rem; font-weight: 700; }
   .pick-via { color: var(--g888, #888); font-size: 0.78rem; }
   .highlights-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
-  .highlights-box { border-radius: 10px; border: 1px solid var(--ddd, #ddd); padding: 1rem; }
   .best-box { border-left: 3px solid #27ae60; }
   .worst-box { border-left: 3px solid #e74c3c; }
   .highlights-box h3 { font-size: 0.95rem; margin: 0 0 0.75rem; }

@@ -60,10 +60,7 @@
     }
 
     .card {
-        border: 1px solid var(--ccc);
         border-left: 5px solid #c62828;
-        border-radius: 5px;
-        padding: 12px 16px;
         margin-bottom: 10px;
     }
 
@@ -167,7 +164,7 @@
         {#if active().length}
             <h3 class="section-title">Active now</h3>
             {#each active() as r}
-                <div class="card">
+                <div class="card league-card">
                     <div class="card-top">
                         <span class="manager">{r.manager}</span>
                         <span class="badge">{statusLabel(r)}</span>
@@ -183,7 +180,7 @@
         {#if history().length}
             <h3 class="section-title">The record</h3>
             {#each history() as r}
-                <div class="card {r.status}">
+                <div class="card {r.status} league-card">
                     <div class="card-top">
                         <span class="manager">{r.manager}</span>
                         <span class="badge {r.status}">{statusLabel(r)}</span>

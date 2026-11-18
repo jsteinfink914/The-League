@@ -150,9 +150,6 @@
     text-align: center;
   }
   th {
-    background-color: black;
-    color: white;
-    font-weight: bold;
     cursor: pointer;
     top: 0; /* Keep header sticky */
     z-index: 1; /* Ensure header is above other content */
@@ -272,7 +269,7 @@
   <!-- Values Table -->
   <div class="table-container">
     <h5>Values - {selectedYear}</h5>
-    <table>
+    <table class="league-table">
       <thead>
         <tr>
           <th>Name</th>
@@ -299,7 +296,7 @@
   <!-- Differences Table -->
   <div class="table-container">
     <h5>{Number(selectedYear) - 1} to {selectedYear}</h5>
-    <table>
+    <table class="league-table">
       <thead>
         <tr>
           <th>Name</th>

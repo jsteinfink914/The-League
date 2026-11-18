@@ -462,7 +462,7 @@
     <h4>Luxury Tax Owed</h4>
     {#if totalValues.length}
       {#if overCapTeams.length}
-        <table>
+        <table class="league-table">
           <thead>
             <tr><th>Manager</th><th>Total Value</th><th>Over Cap</th><th>Owes</th></tr>
           </thead>
@@ -492,7 +492,7 @@
     </select>
 
     {#if selectedManager && managerRosters[selectedManager]}
-      <table>
+      <table class="league-table">
         <thead>
           <tr>
             <th>Player Name</th>

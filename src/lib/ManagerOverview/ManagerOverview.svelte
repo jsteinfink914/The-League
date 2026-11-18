@@ -137,7 +137,7 @@
           Avg rank is the mean of the three.
         </p>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th on:click={() => setSort('manager', 1)}>Manager{sortArrow('manager')}</th>
@@ -207,11 +207,11 @@
       <div class="section">
         <h2>Multi-Dimension Radar</h2>
         <p class="note">Each axis = relative rank among managers (higher = better). A manager dominant in all three dimensions will have a large triangle.</p>
-        <div class="radar-wrap">
+        <div class="radar-wrap league-card">
           <canvas id="radar-chart"></canvas>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th>Manager</th>
@@ -243,7 +243,7 @@
         <div class="cards-grid">
           {#each [...combined].sort((a,b) => (a.avgRank ?? 999) - (b.avgRank ?? 999)) as row}
             {@const n = combined.length}
-            <div class="manager-card">
+            <div class="manager-card league-card">
               <div class="card-header">
                 <h3>{row.manager}</h3>
                 {#if row.avgRank != null}<span class="avg-rank-badge">Avg #{row.avgRank}</span>{/if}
@@ -300,8 +300,7 @@
   .hint { color: var(--g888, #888); font-size: 0.8rem; margin-top: 0.5rem; }
   .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--ddd, #ddd); margin-bottom: 1.5rem; }
   table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--eee, #eee); }
-  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; color: var(--g555, #555); cursor: pointer; white-space: nowrap; user-select: none; }
+  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; cursor: pointer; white-space: nowrap; user-select: none; }
   th:hover { color: var(--color-primary, #3498db); }
   td { padding: 0.65rem 1rem; border-top: 1px solid var(--eee, #eee); font-size: 0.9rem; vertical-align: middle; }
   tr { cursor: pointer; }
@@ -322,9 +321,9 @@
   .positive { color: #27ae60; font-weight: 600; }
   .negative { color: #e74c3c; font-weight: 600; }
   .pending-badge { background: rgba(241, 196, 15, 0.18); color: #9a7000; border-radius: 10px; padding: 0.15rem 0.5rem; font-size: 0.78rem; font-weight: 700; }
-  .radar-wrap { max-width: 700px; margin: 0 auto 2rem; background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 12px; padding: 1.5rem; }
+  .radar-wrap { max-width: 700px; margin: 0 auto 2rem; }
   .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
-  .manager-card { background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 14px; overflow: hidden; }
+  .manager-card { overflow: hidden; padding: 0; }
   .card-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; background: var(--eee, #eee); border-bottom: 1px solid var(--ddd, #ddd); }
   .avg-rank-badge { background: var(--color-primary, #3498db); color: #fff; border-radius: 10px; padding: 0.15rem 0.55rem; font-size: 0.78rem; font-weight: 700; }
   .card-dims { display: grid; grid-template-columns: repeat(3, 1fr); padding: 1rem; gap: 0.5rem; }

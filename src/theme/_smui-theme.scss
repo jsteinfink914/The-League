@@ -279,3 +279,35 @@ h6 {
 .mdc-data-table__row {
   height: 44px;
 }
+
+// One card surface for standalone divs (Batch 2, Nov 2026). Same recipe
+// as .smui-paper above, with Paper's own padding (24px 16px) made
+// explicit, so plain divs land on the shared surface instead of each
+// component improvising its own background, border, radius and padding.
+.league-card {
+  background-color: var(--fff);
+  border: 1px solid var(--ddd);
+  border-radius: 8px;
+  padding: 24px 16px;
+}
+
+// One data-table treatment for native <table> elements (Batch 2),
+// mirroring the SMUI DataTable rules above: theme background and
+// border, tinted header row at weight 600, 44px rows. Components add
+// the class and drop their local copies of these surface properties;
+// alignment, column widths and status tints stay local.
+.league-table {
+  background-color: var(--fff);
+  border-color: var(--ddd);
+  border-radius: 8px;
+}
+
+.league-table th {
+  background-color: var(--headerPrimary);
+  color: var(--g111);
+  font-weight: 600;
+}
+
+.league-table tbody tr {
+  height: 44px;
+}

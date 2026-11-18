@@ -219,11 +219,11 @@
       <div class="section">
         <h2>Team Draft Summary</h2>
         <div class="chart-row">
-          <div class="chart-box"><h3>Total Draft Points by Manager</h3><canvas id="draft-bar-chart"></canvas></div>
-          <div class="chart-box"><h3>Year-over-Year Draft Points</h3><canvas id="draft-trend-chart"></canvas></div>
+          <div class="chart-box league-card"><h3>Total Draft Points by Manager</h3><canvas id="draft-bar-chart"></canvas></div>
+          <div class="chart-box league-card"><h3>Year-over-Year Draft Points</h3><canvas id="draft-trend-chart"></canvas></div>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th on:click={() => setTeamSort('manager')}>Manager{sortArrow('manager', teamSortKey, teamSortDir)}</th>
@@ -255,7 +255,7 @@
 
         <h3>Year-by-Year Breakdown</h3>
         <div class="table-wrap">
-          <table>
+          <table class="league-table">
             <thead>
               <tr>
                 <th>Manager</th>
@@ -280,9 +280,9 @@
       <div class="section">
         <h2>Position Group Breakdown</h2>
         <p class="section-note">Points produced by draft picks, split by position. Click any column header to sort.</p>
-        <div class="chart-box wide"><canvas id="draft-pos-chart"></canvas></div>
+        <div class="chart-box wide league-card"><canvas id="draft-pos-chart"></canvas></div>
         <div class="table-wrap">
-          <table class="pos-matrix">
+          <table class="pos-matrix league-table">
             <thead>
               <tr>
                 <th class="sticky-col" on:click={() => setPosMgrSort('manager')}>Manager{posMgrSortKey === 'manager' ? (posMgrSortDir === 1 ? ' ▲' : ' ▼') : ''}</th>
@@ -348,7 +348,7 @@
           <div class="draft-block">
             <h3 class="draft-year">{draft.year} Draft <span class="draft-type">({draft.draftType}, {draft.rounds} rounds)</span></h3>
             <div class="table-wrap">
-              <table>
+              <table class="league-table">
                 <thead>
                   <tr>
                     <th>Rd</th>
@@ -401,15 +401,13 @@
   h2 { font-size: 1.4rem; margin-bottom: 1rem; }
   h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--g444, #444); }
   .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-  .chart-box { background: var(--fff, #fff); border: 1px solid var(--ddd, #ddd); border-radius: 12px; padding: 1.25rem; }
   .chart-box.wide { margin-bottom: 1.5rem; }
   .filter-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
   .filter-row label { display: flex; gap: 0.5rem; align-items: center; font-size: 0.9rem; color: var(--g555, #555); }
   .filter-row select, .filter-row input { border: 1px solid var(--ddd, #ddd); border-radius: 6px; padding: 0.35rem 0.6rem; background: var(--fff, #fff); color: var(--g333, #333); font-size: 0.9rem; }
   .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--ddd, #ddd); margin-bottom: 1.5rem; }
   table { width: 100%; border-collapse: collapse; }
-  thead { background: var(--eee, #eee); }
-  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; color: var(--g555, #555); cursor: pointer; white-space: nowrap; user-select: none; }
+  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; cursor: pointer; white-space: nowrap; user-select: none; }
   th:hover { color: var(--color-primary, #3498db); }
   td { padding: 0.65rem 1rem; border-top: 1px solid var(--eee, #eee); font-size: 0.9rem; }
   tr:hover td { background: var(--eee, #f9f9f9); }
@@ -421,7 +419,7 @@
   .pos-matrix th { cursor: pointer; user-select: none; }
   .pos-matrix th:hover { color: var(--color-primary, #3498db); }
   .sticky-col { position: sticky; left: 0; background: var(--fff, #fff); z-index: 1; }
-  thead .sticky-col { background: var(--eee, #eee); }
+  thead .sticky-col { background: var(--headerPrimary); }
   .heat-cell { font-weight: 500; white-space: nowrap; }
   .total-col { border-left: 2px solid var(--ddd, #ddd); }
   tfoot .totals-row td { border-top: 2px solid var(--ddd, #ddd); background: var(--eee, #eee); font-size: 0.88rem; }

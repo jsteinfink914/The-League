@@ -183,7 +183,7 @@
     <section>
         <h3>Point Correlation</h3>
         <p class="note">Across {data.laws.teamGames} team-games ({data.seasons[data.seasons.length - 1]}–{data.seasons[0]}): what actually tracks with winning — and how much it changes year to year.</p>
-        <table class="dataTable">
+        <table class="dataTable league-table">
             <thead>
                 <tr><th>Season</th><th>Points For ↔ Record</th><th>Points Against ↔ Record</th><th>Verdict</th></tr>
             </thead>
@@ -204,7 +204,7 @@
         <p class="note">Drag a slider to move that group's line — the cards and the season table below update together.</p>
         <div class="splitGrid">
             {#each splits as s}
-                <div class="splitCard">
+                <div class="splitCard league-card">
                     <div class="splitTitle">Your {s.pos}s score <strong class="splitThreshold">{s.threshold}+</strong></div>
                     <div class="splitBig">{s.hiWinPct}% <span class="splitLabel">win rate</span></div>
                     <div class="splitSub">vs {s.loWinPct}% when they don't · {s.hiN} games</div>
@@ -212,7 +212,7 @@
                 </div>
             {/each}
         </div>
-        <table class="dataTable">
+        <table class="dataTable league-table">
             <thead>
                 <tr><th>Season</th>{#each splits as s}<th>Your {s.pos} <strong>{s.threshold}+</strong></th>{/each}</tr>
             </thead>
@@ -228,7 +228,7 @@
 
         <h3>The 20-point ladder</h3>
         <p class="note">Winners average {data.laws.avgTwentyInWins} starters over 20 points; losers average {data.laws.avgTwentyInLosses}. Your win rate by how many of your starters clear 20:</p>
-        <table class="dataTable">
+        <table class="dataTable league-table">
             <thead>
                 <tr><th>Starters over 20</th><th>Win rate</th><th>Games</th></tr>
             </thead>
@@ -253,7 +253,7 @@
             </label>
         </div>
         <p class="note">Actual wins minus all-play expected wins — positive means the schedule handed them wins, negative means their scoring deserved better. Click a column header to sort.</p>
-        <table class="dataTable">
+        <table class="dataTable league-table">
             <thead>
                 <tr><th>Team</th><th class="sortable" on:click={() => sortLuckBy('wins')}>Wins{luckArrow('wins', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('expectedWins')}>Exp. Wins{luckArrow('expectedWins', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('luck')}>Luck{luckArrow('luck', luckSortKey, luckSortDir)}</th><th class="sortable" on:click={() => sortLuckBy('schedLuck')}>Sched. Luck{luckArrow('schedLuck', luckSortKey, luckSortDir)}</th></tr>
             </thead>
@@ -291,13 +291,13 @@
             <p class="verdict">{verdict(team)}</p>
 
             <div class="tileGrid">
-                <div class="tile"><div class="tileVal">{fmt1(team.pfPerGame)} <span class="tileRank">(#{team.pfRank})</span></div><div class="tileLabel">Points For / game</div></div>
-                <div class="tile"><div class="tileVal">{fmt1(team.paPerGame)} <span class="tileRank">(#{team.paRank})</span></div><div class="tileLabel">Points Against / game</div></div>
-                <div class="tile"><div class="tileVal">{fmt2(team.sosPts)} <span class="tileRank">(#{team.sosPtsRank})</span></div><div class="tileLabel">SOS (Pts)</div></div>
-                <div class="tile"><div class="tileVal">{team.sosRec.toFixed(3)} <span class="tileRank">(#{team.sosRecRank})</span></div><div class="tileLabel">SOS (Rec)</div></div>
-                <div class="tile"><div class="tileVal">{fmtLuck(team.scheduleLuck)} <span class="tileRank">(#{team.scheduleLuckRank})</span></div><div class="tileLabel">Schedule Luck (opp vs their avg)</div></div>
-                <div class="tile"><div class="tileVal">{fmt1(team.expectedWins)}</div><div class="tileLabel">Expected wins (all-play)</div></div>
-                <div class="tile"><div class="tileVal" class:hot={team.luck >= 1} class:cold={team.luck <= -1}>{team.luck > 0 ? '+' : ''}{fmt1(team.luck)}</div><div class="tileLabel">Luck (wins vs expected)</div></div>
+                <div class="tile league-card"><div class="tileVal">{fmt1(team.pfPerGame)} <span class="tileRank">(#{team.pfRank})</span></div><div class="tileLabel">Points For / game</div></div>
+                <div class="tile league-card"><div class="tileVal">{fmt1(team.paPerGame)} <span class="tileRank">(#{team.paRank})</span></div><div class="tileLabel">Points Against / game</div></div>
+                <div class="tile league-card"><div class="tileVal">{fmt2(team.sosPts)} <span class="tileRank">(#{team.sosPtsRank})</span></div><div class="tileLabel">SOS (Pts)</div></div>
+                <div class="tile league-card"><div class="tileVal">{team.sosRec.toFixed(3)} <span class="tileRank">(#{team.sosRecRank})</span></div><div class="tileLabel">SOS (Rec)</div></div>
+                <div class="tile league-card"><div class="tileVal">{fmtLuck(team.scheduleLuck)} <span class="tileRank">(#{team.scheduleLuckRank})</span></div><div class="tileLabel">Schedule Luck (opp vs their avg)</div></div>
+                <div class="tile league-card"><div class="tileVal">{fmt1(team.expectedWins)}</div><div class="tileLabel">Expected wins (all-play)</div></div>
+                <div class="tile league-card"><div class="tileVal" class:hot={team.luck >= 1} class:cold={team.luck <= -1}>{team.luck > 0 ? '+' : ''}{fmt1(team.luck)}</div><div class="tileLabel">Luck (wins vs expected)</div></div>
             </div>
 
             <h3>Positional edge <span class="note inline">— your scoring by position vs the league average, per game</span></h3>
@@ -334,11 +334,10 @@
     .tabBtn.active { color: var(--g111); border-bottom-color: #2e86c1; }
     .dataTable { border-collapse: collapse; width: 100%; max-width: 720px; margin: 0.4em 0 0.8em; }
     .dataTable th, .dataTable td { border: 1px solid var(--ddd); padding: 0.35em 0.55em; text-align: left; font-size: 0.95em; }
-    .dataTable th { background: var(--f3f3f3); }
     .dataTable th.sortable { cursor: pointer; user-select: none; }
     .dataTable tr.pooled { font-weight: bold; background: var(--f3f3f3); }
     .splitGrid { display: flex; flex-wrap: wrap; gap: 0.6em; margin: 0.4em 0 0.8em; }
-    .splitCard { border: 1px solid var(--ddd); border-radius: 8px; padding: 0.6em 0.85em; min-width: 150px; flex: 1; max-width: 220px; }
+    .splitCard { min-width: 150px; flex: 1; max-width: 220px; }
     .splitTitle { font-size: 0.85em; color: var(--g555); }
     .splitThreshold { font-size: 1.35em; color: var(--g111); }
     .splitBig { font-size: 1.6em; font-weight: normal; margin: 0.15em 0; }
@@ -354,7 +353,7 @@
     .teamRecord { font-size: 1.3em; color: var(--g555); }
     .verdict { max-width: 720px; font-size: 1.05em; }
     .tileGrid { display: flex; flex-wrap: wrap; gap: 0.6em; margin: 0.8em 0; }
-    .tile { border: 1px solid var(--ddd); border-radius: 8px; padding: 0.6em 0.9em; min-width: 140px; flex: 1; max-width: 200px; }
+    .tile { min-width: 140px; flex: 1; max-width: 200px; }
     .tileVal { font-size: 1.4em; font-weight: bold; }
     .tileVal.hot { color: #c0392b; }
     .tileVal.cold { color: #2471a3; }

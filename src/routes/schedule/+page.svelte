@@ -92,7 +92,7 @@
     .sub { text-align: center; color: var(--g555); margin-top: 0; }
     .explainer { background: var(--headerPrimary); border: 1px solid var(--blueOne); border-radius: 10px; padding: 14px 18px; margin: 1em 0; line-height: 1.55; color: var(--g111); }
     .divGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 1em 0; }
-    .divCard { background: var(--fff); border: 1px solid var(--ddd); border-top: 4px solid var(--blueOne); border-radius: 10px; padding: 10px 14px; }
+    .divCard { border-top: 4px solid var(--blueOne); }
     .divCard h3 { margin: 0.2em 0 0.5em; color: var(--blueOne); font-size: 1em; }
     .divCard div { padding: 2px 0; color: var(--g111); }
     .blocks { display: flex; flex-wrap: wrap; gap: 8px; margin: 0.6em 0 1em; }
@@ -106,9 +106,8 @@
     .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1em; }
     .chip { border: 1px solid var(--ddd); background: var(--fff); color: var(--g111); border-radius: 999px; padding: 5px 12px; font-size: 0.85em; cursor: pointer; }
     .chip.active { background: var(--blueOne); border-color: var(--blueOne); color: #fff; }
-    .teamSummary { background: var(--fff); border: 1px solid var(--ddd); border-left: 4px solid var(--blueOne); border-radius: 8px; padding: 10px 14px; margin-bottom: 1em; color: var(--g111); line-height: 1.5; }
+    .teamSummary { border-left: 4px solid var(--blueOne); margin-bottom: 1em; color: var(--g111); line-height: 1.5; }
     .weekGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
-    .week { background: var(--fff); border: 1px solid var(--ddd); border-radius: 10px; padding: 10px 14px; }
     .week h3 { margin: 0.2em 0 0.6em; color: var(--blueOne); border-bottom: 2px solid var(--blueOne); padding-bottom: 4px; }
     .game { padding: 6px 0; border-bottom: 1px solid var(--eee); color: var(--g111); }
     .game:last-child { border-bottom: none; }
@@ -118,7 +117,6 @@
     .tag.counter { background: var(--waiverAdd); color: var(--g111); }
     .tag.rotate { background: var(--badgeRookieY3Bg); color: var(--badgeRookieY3Text); }
     .tag.other { background: var(--waiverDrop); color: var(--g111); }
-    .entryList { background: var(--fff); border: 1px solid var(--ddd); border-radius: 10px; padding: 6px 14px; }
     .entryRow { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--eee); color: var(--g111); }
     .entryRow:last-child { border-bottom: none; }
     .entryWeek { color: var(--g555); font-size: 0.85em; min-width: 58px; }
@@ -138,7 +136,7 @@
 
     <div class="divGrid">
         {#each [1, 2, 3, 4] as d}
-            <div class="divCard">
+            <div class="divCard league-card">
                 <h3>{dn(d)}</h3>
                 {#each divisions[d] as rosterId}
                     <div>{teamName(rosterId)}</div>
@@ -174,11 +172,11 @@
     </div>
 
     {#if selected != null && selectedGames}
-        <div class="teamSummary">
+        <div class="teamSummary league-card">
             <b>{teamName(selected)}</b> ({dn(divisionOf(selected))}) — {selectedGames.length} games:
             {selectedCounts.div || 0} division · {selectedCounts.counter || 0} counterpart · {selectedCounts.rotate || 0} rotation{(selectedCounts.other || 0) ? ` · ${selectedCounts.other} other` : ''}
         </div>
-        <div class="entryList">
+        <div class="entryList league-card">
             {#each selectedGames as g}
                 <div class="entryRow">
                     <span class="entryWeek">Week {g.week}</span>
@@ -190,7 +188,7 @@
     {:else}
         <div class="weekGrid">
             {#each weeks as { week, games }}
-                <div class="week">
+                <div class="week league-card">
                     <h3>Week {week}</h3>
                     {#each games as g}
                         <div class="game">
