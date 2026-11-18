@@ -163,7 +163,6 @@
     table-layout: fixed;
   }
   th, td {
-    padding: 8px 10px;
     text-align: center;
   }
   th:first-child, td:first-child {

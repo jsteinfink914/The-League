@@ -293,21 +293,39 @@ h6 {
 
 // One data-table treatment for native <table> elements (Batch 2),
 // mirroring the SMUI DataTable rules above: theme background and
-// border, tinted header row at weight 600, 44px rows. Components add
-// the class and drop their local copies of these surface properties;
-// alignment, column widths and status tints stay local.
+// border, tinted header row at weight 600, 44px rows. Batch 3
+// (Nov 2026): the cell treatment now follows the Trade Analysis
+// tables — the look Jake picked as the site standard: roomy
+// left-aligned cells, 0.85rem headers, hairline row dividers only
+// (no cell grid), row hover. Column widths, deliberate alignment
+// overrides and status tints stay local.
 .league-table {
   background-color: var(--fff);
   border-color: var(--ddd);
   border-radius: 8px;
+  border-collapse: collapse;
 }
 
 .league-table th {
   background-color: var(--headerPrimary);
   color: var(--g111);
   font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.league-table td {
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  border-top: 1px solid var(--eee);
 }
 
 .league-table tbody tr {
   height: 44px;
+}
+
+.league-table tbody tr:hover td {
+  background-color: var(--eee);
 }

@@ -35,6 +35,48 @@
   let logFilterYear = initParams.get('year') || 'All';
   let logSearch = initParams.get('q') || '';
 
+  // Head-to-head (manager vs manager): every trade where both managers
+  // appear on some side. Pair lives in the URL (?a=Jake&b=Oscar).
+  let versusA = initParams.get('a') || '';
+  let versusB = initParams.get('b') || '';
+  $: versusTrades = (data && versusA && versusB && versusA !== versusB)
+    ? data.trades.filter(t => {
+        const mgrs = t.sides.map(s => s.manager);
+        return mgrs.includes(versusA) && mgrs.includes(versusB);
+      })
+    : [];
+  $: versusSummary = (() => {
+    if (!versusTrades.length) return null;
+    const netFor = (mgr) => versusTrades.reduce((acc, t) => {
+      const side = t.sides.find(s => s.manager === mgr);
+      return acc + (side ? (side[netKey] ?? 0) : 0);
+    }, 0);
+    return {
+      count: versusTrades.length,
+      aNet: Math.round(netFor(versusA) * 10) / 10,
+      bNet: Math.round(netFor(versusB) * 10) / 10
+    };
+  })();
+  $: partnerCounts = (data && versusA)
+    ? [...data.trades.reduce((m, t) => {
+        const mgrs = t.sides.map(s => s.manager);
+        if (!mgrs.includes(versusA)) return m;
+        for (const mgr of mgrs) if (mgr !== versusA) m.set(mgr, (m.get(mgr) || 0) + 1);
+        return m;
+      }, new Map()).entries()].sort((x, y) => y[1] - x[1])
+    : [];
+  function setVersus(which, value) {
+    if (which === 'a') versusA = value;
+    else versusB = value;
+    setParams({ a: versusA || null, b: versusB || null });
+  }
+  function swapVersus() {
+    const tmp = versusA;
+    versusA = versusB;
+    versusB = tmp;
+    setParams({ a: versusA || null, b: versusB || null });
+  }
+
   // Top 3 best / worst per manager
   $: tradeHighlights = (() => {
     if (!data || logFilterManager === 'All') return null;
@@ -255,6 +297,7 @@
         <a class:active={section === 'team'} href="/trade_analysis/team">Team View</a>
         <a class:active={section === 'position'} href="/trade_analysis/position">Position Groups</a>
         <a class:active={section === 'players'} href="/trade_analysis/players">Most Traded</a>
+        <a class:active={section === 'versus'} href="/trade_analysis/versus">Head-to-Head</a>
         <a class:active={section === 'log'} href="/trade_analysis/log">Trade Log</a>
       </div>
     </div>
@@ -488,6 +531,97 @@
           {/if}
         </div>
       </div>
+    {:else if section === 'versus'}
+      <div class="section">
+        <h2>Head-to-Head Trades</h2>
+        <div class="filter-row">
+          <label>Manager:
+            <select value={versusA} on:change={(e) => setVersus('a', e.target.value)}>
+              <option value="">Choose…</option>
+              {#each data.managers as m}<option value={m} disabled={m === versusB}>{m}</option>{/each}
+            </select>
+          </label>
+          <button class="swap-btn" on:click={swapVersus} disabled={!versusA || !versusB}>⇄ Swap</button>
+          <label>vs:
+            <select value={versusB} on:change={(e) => setVersus('b', e.target.value)}>
+              <option value="">Choose…</option>
+              {#each data.managers as m}<option value={m} disabled={m === versusA}>{m}</option>{/each}
+            </select>
+          </label>
+        </div>
+
+        {#if !versusA || !versusB}
+          <p class="section-note">Pick two managers to see every trade between them.</p>
+          {#if versusA && partnerCounts.length}
+            <p class="section-note">{versusA}'s trade partners — tap one to compare:</p>
+            <div class="partner-chips">
+              {#each partnerCounts as [mgr, count]}
+                <button class="partner-chip" on:click={() => setVersus('b', mgr)}>{mgr} · {count} trade{count === 1 ? '' : 's'}</button>
+              {/each}
+            </div>
+          {/if}
+        {:else if versusSummary}
+          <div class="versus-summary league-card">
+            <span><strong>{versusSummary.count}</strong> trade{versusSummary.count === 1 ? '' : 's'} between <strong>{versusA}</strong> and <strong>{versusB}</strong></span>
+            <span>{versusA} net: <span class={versusSummary.aNet > 0 ? 'positive' : versusSummary.aNet < 0 ? 'negative' : ''}>{versusSummary.aNet > 0 ? '+' : ''}{versusSummary.aNet}</span></span>
+            <span>{versusB} net: <span class={versusSummary.bNet > 0 ? 'positive' : versusSummary.bNet < 0 ? 'negative' : ''}>{versusSummary.bNet > 0 ? '+' : ''}{versusSummary.bNet}</span></span>
+          </div>
+          <div class="trade-log">
+            {#each versusTrades as trade}
+              <div class="trade-card league-card">
+                <div class="trade-header">
+                  <span class="trade-date">{trade.date}</span>
+                  <span class="trade-year-badge">{trade.year}</span>
+                  {#if trade.sides.some(s => s.pendingPickCount > 0)}
+                    <span class="pending-indicator">⏳ Pending picks</span>
+                  {/if}
+                </div>
+                <div class="trade-sides" style="grid-template-columns: repeat({trade.sides.length}, 1fr)">
+                  {#each trade.sides as side}
+                    <div class="trade-side">
+                      <div class="side-header">
+                        <strong>{side.manager}</strong>
+                        <div class="side-pts">
+                          <span class="pts-received">{side[ptsKey]} pts</span>
+                          <span class="pts-net" class:pos={side[pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus'] > 0} class:neg={side[pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus'] < 0}>
+                            {side[pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus'] > 0 ? '+' : ''}{side[pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus']} net
+                          </span>
+                        </div>
+                      </div>
+                      <div class="assets">
+                        {#each side.playerDetails as pd}
+                          <div class="asset-row">
+                            <span class="pos-dot" style="background:{POS_COLORS[pd.position] || '#95a5a6'}">{pd.position}</span>
+                            <span class="asset-name">{pd.name}</span>
+                            <span class="asset-pts">{pd[ptsKey]} pts</span>
+                          </div>
+                        {/each}
+                        {#each side.pickDetails as pd}
+                          <div class="asset-row pick-row" class:pending={pd.isPending}>
+                            <span class="pos-dot pick-dot">{roundLabel(pd.round)}</span>
+                            {#if pd.isPending}
+                              <span class="asset-name pending-name">{pd.season} {roundLabel(pd.round)} pick <span class="pending-tag">PENDING</span></span>
+                              <span class="asset-pts">—</span>
+                            {:else if pd.resolvedName}
+                              <span class="asset-name">{pd.resolvedName} <span class="pick-via">(via pick)</span></span>
+                              <span class="asset-pts">{pd[ptsKey]} pts</span>
+                            {:else}
+                              <span class="asset-name">{pd.season} {roundLabel(pd.round)} pick</span>
+                              <span class="asset-pts">—</span>
+                            {/if}
+                          </div>
+                        {/each}
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/each}
+          </div>
+        {:else}
+          <p class="empty">{versusA} and {versusB} have never traded with each other.</p>
+        {/if}
+      </div>
     {/if}
   {/if}
 </div>
@@ -516,11 +650,9 @@
   .filter-row select, .filter-row input { border: 1px solid var(--ddd, #ddd); border-radius: 6px; padding: 0.35rem 0.6rem; background: var(--fff, #fff); color: var(--g333, #333); font-size: 0.9rem; }
   .result-count { color: var(--g666, #666); font-size: 0.85rem; margin-bottom: 0.75rem; }
   .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--ddd, #ddd); margin-bottom: 1.5rem; }
-  table { width: 100%; border-collapse: collapse; }
-  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.85rem; cursor: pointer; white-space: nowrap; user-select: none; }
+  table { width: 100%; }
+  th { cursor: pointer; user-select: none; }
   th:hover { color: var(--color-primary, #3498db); }
-  td { padding: 0.65rem 1rem; border-top: 1px solid var(--eee, #eee); font-size: 0.9rem; }
-  tr:hover td { background: var(--eee, #f9f9f9); }
   .manager-name { font-weight: 600; }
   .positive { color: #27ae60; font-weight: 600; }
   .negative { color: #e74c3c; font-weight: 600; }
@@ -571,7 +703,14 @@
   .rank-col { width: 2.5rem; text-align: center; color: var(--g555, #555); }
   .managers-cell { font-size: 0.82rem; color: var(--g555, #555); max-width: 260px; }
   .empty { text-align: center; padding: 2rem; color: var(--g888, #888); }
+  .swap-btn { padding: 0.5rem 0.9rem; border: 1px solid var(--ddd, #ddd); border-radius: 8px; background: var(--fff, #fff); color: inherit; font: inherit; font-size: 0.9rem; cursor: pointer; }
+  .swap-btn:disabled { opacity: 0.45; cursor: default; }
+  .versus-summary { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; align-items: center; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .partner-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .partner-chip { padding: 0.45rem 0.85rem; border: 1px solid var(--ddd, #ddd); border-radius: 999px; background: var(--fff, #fff); color: inherit; font: inherit; font-size: 0.88rem; cursor: pointer; }
+  .partner-chip:hover { background: var(--eee, #f9f9f9); }
   @media (max-width: 768px) {
+    .section-tabs { flex-wrap: wrap; }
     .highlights-row { grid-template-columns: 1fr; }
     .chart-row { grid-template-columns: 1fr; }
     .trade-sides { grid-template-columns: 1fr !important; }

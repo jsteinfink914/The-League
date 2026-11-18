@@ -310,10 +310,11 @@
   }
 
   th, td {
-    border: 1px solid var(--ddd);
-    padding: 8px 10px;
     text-align: center;
+  }
 
+  th {
+    white-space: normal;
   }
 
 
