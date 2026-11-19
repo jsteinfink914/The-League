@@ -65,6 +65,30 @@
         return m;
       }, new Map()).entries()].sort((x, y) => y[1] - x[1])
     : [];
+  // All-pairs matrix: cell (a, b) = trades involving both managers.
+  $: tradeMatrix = (() => {
+    if (!data) return { counts: new Map(), max: 0 };
+    const counts = new Map();
+    let max = 0;
+    for (const t of data.trades) {
+      const mgrs = [...new Set(t.sides.map(s => s.manager))];
+      for (const a of mgrs) for (const b of mgrs) {
+        if (a === b) continue;
+        const key = `${a}|${b}`;
+        const v = (counts.get(key) || 0) + 1;
+        counts.set(key, v);
+        if (v > max) max = v;
+      }
+    }
+    return { counts, max };
+  })();
+  const matrixCount = (a, b) => tradeMatrix.counts.get(`${a}|${b}`) || 0;
+  function pickPair(a, b) {
+    versusA = a;
+    versusB = b;
+    setParams({ a, b });
+    setTimeout(() => document.getElementById('pair-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
   function setVersus(which, value) {
     if (which === 'a') versusA = value;
     else versusB = value;
@@ -534,6 +558,34 @@
     {:else if section === 'versus'}
       <div class="section">
         <h2>Head-to-Head Trades</h2>
+        <h3>Trades between managers</h3>
+        <p class="section-note">Every manager against every other — the cell is how many trades involved both, all seasons. Tap a cell to load that pair below.</p>
+        <div class="table-wrap">
+          <table class="league-table trade-matrix">
+            <thead>
+              <tr>
+                <th class="sticky-col"></th>
+                {#each data.managers as col}<th>{col}</th>{/each}
+              </tr>
+            </thead>
+            <tbody>
+              {#each data.managers as row}
+                <tr>
+                  <td class="sticky-col row-head">{row}</td>
+                  {#each data.managers as col}
+                    {#if row === col}
+                      <td class="matrix-diag">—</td>
+                    {:else}
+                      {@const c = matrixCount(row, col)}
+                      <td class="matrix-cell" class:matrix-active={(versusA === row && versusB === col) || (versusA === col && versusB === row)} style={c ? `background: rgba(52, 152, 219, ${0.10 + 0.35 * (c / (tradeMatrix.max || 1))})` : ''} title={c ? `${row} × ${col}: ${c} trade${c === 1 ? '' : 's'}` : ''} on:click={() => c && pickPair(row, col)}>{c || ''}</td>
+                    {/if}
+                  {/each}
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+        <h3 id="pair-detail">Pair detail</h3>
         <div class="filter-row">
           <label>Manager:
             <select value={versusA} on:change={(e) => setVersus('a', e.target.value)}>
@@ -709,6 +761,11 @@
   .partner-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
   .partner-chip { padding: 0.45rem 0.85rem; border: 1px solid var(--ddd, #ddd); border-radius: 999px; background: var(--fff, #fff); color: inherit; font: inherit; font-size: 0.88rem; cursor: pointer; }
   .partner-chip:hover { background: var(--eee, #f9f9f9); }
+  .trade-matrix th, .trade-matrix td { padding: 0.5rem 0.55rem; text-align: center; }
+  .trade-matrix .row-head { text-align: left; font-weight: 600; }
+  .trade-matrix td.matrix-cell { cursor: pointer; font-weight: 600; }
+  .trade-matrix td.matrix-diag { opacity: 0.4; }
+  .trade-matrix td.matrix-active { outline: 2px solid var(--color-primary, #3498db); outline-offset: -2px; }
   @media (max-width: 768px) {
     .section-tabs { flex-wrap: wrap; }
     .highlights-row { grid-template-columns: 1fr; }
