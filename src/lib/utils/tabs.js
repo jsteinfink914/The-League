@@ -117,6 +117,11 @@ export const tabs = [
                 label: 'Trophy Room',
                 dest: '/awards',
             },
+            {
+                icon: 'leaderboard',
+                label: 'Playoff History',
+                dest: '/playoff_history',
+            },
         ]
     },
     {

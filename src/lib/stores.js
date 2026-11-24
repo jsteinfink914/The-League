@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 
 export const awards = writable({});
+export const playoffHistory = writable({});
 export const leagueData = writable({});
 export const upcomingDraft = writable({});
 export const previousDrafts = writable([]);
