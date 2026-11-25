@@ -56,7 +56,12 @@ export async function GET() {
     // all come from other endpoints.
     return json(computePlayers(playerData, weeklyData, scoringSettings), {
         headers: {
-            'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
+            'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+            // Vercel rewrites Cache-Control on function responses (the
+            // s-maxage part never reached the edge — verified live: MISS
+            // at ~7s on repeat calls). This header is Vercel's dedicated
+            // control for CDN caching of function responses.
+            'Vercel-CDN-Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400'
         }
     });
 }
