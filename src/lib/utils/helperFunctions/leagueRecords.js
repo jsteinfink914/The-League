@@ -8,6 +8,7 @@ import { records } from '$lib/stores';
 import { getManagers, round, sortHighAndLow } from './universalFunctions';
 import { Records } from '$lib/utils/dataClasses';
 import { getBrackets } from './leagueBrackets';
+import { fetchJsonCached, allSettledWithConcurrency } from './request';
 import { browser } from '$app/environment';
 
 /**
@@ -62,6 +63,44 @@ export const getLeagueRecords = async (refresh = false) => {
 	// necessary to display playoff records
 	let playoffRecords = new Records();
 
+	// Prefetch: walk the chain once (league data is store-cached) and pull
+	// every season's regular-season matchup weeks through one pooled
+	// queue, instead of draining season by season in the loop below. The
+	// week clamp simulated here is the same one the loop and
+	// processRegularSeason apply; processing still runs in the original
+	// order on identical data, highest week first per season.
+	const prefetchedMatchupsBySeason = new Map();
+	{
+		const seasonContexts = [];
+		let walkID = leagueID;
+		let walkWeek = week;
+		while(walkID && walkID != 0) {
+			const ld = await getLeagueData(walkID).catch((err) => { console.error(err); });
+			if(!ld) break;
+			const pws = ld.settings.playoff_week_start;
+			const fetchWeek = (ld.status == 'complete' || walkWeek > pws - 1) ? pws - 1 : walkWeek;
+			seasonContexts.push({ seasonID: walkID, fetchWeek });
+			if(ld.status == 'complete' || walkWeek > pws - 1) walkWeek = 99;
+			walkID = ld.previous_league_id;
+		}
+		const tasks = [];
+		const meta = [];
+		for(const ctx of seasonContexts) {
+			for(let w = ctx.fetchWeek; w >= 1; w--) {
+				tasks.push(() => fetchJsonCached(`https://api.sleeper.app/v1/league/${ctx.seasonID}/matchups/${w}`));
+				meta.push(ctx.seasonID);
+			}
+		}
+		const results = await allSettledWithConcurrency(tasks, 10);
+		results.forEach((result, idx) => {
+			const sid = meta[idx];
+			if(!prefetchedMatchupsBySeason.has(sid)) prefetchedMatchupsBySeason.set(sid, []);
+			// A failed week degrades to an empty week rather than failing
+			// the whole records build.
+			prefetchedMatchupsBySeason.get(sid).push(result.status === 'fulfilled' && Array.isArray(result.value) ? result.value : []);
+		});
+	}
+
 	// loop through each season until the previous_league_id becomes null (or in some cases 0)
 	while(curSeason && curSeason != 0) {
 		const [rosterRes, leagueData] = await waitForAll(
@@ -81,7 +120,7 @@ export const getLeagueRecords = async (refresh = false) => {
 		const {
 			season,
 			year,
-		} = await processRegularSeason({leagueData, rosters, curSeason, week, regularSeason})
+		} = await processRegularSeason({leagueData, rosters, curSeason, week, regularSeason, prefetchedMatchups: prefetchedMatchupsBySeason.get(curSeason) || []})
 
 		// post season data
 		const pS = await processPlayoffs({year, curSeason, week, playoffRecords, rosters})
@@ -131,7 +170,7 @@ export const getLeagueRecords = async (refresh = false) => {
  * @param {Records} regularSeasonInfo.regularSeason the global regularSeason record object
  * @returns {Object} { season: (curSeason), year}
  */
-const processRegularSeason = async ({rosters, leagueData, curSeason, week, regularSeason}) => {
+const processRegularSeason = async ({rosters, leagueData, curSeason, week, regularSeason, prefetchedMatchups}) => {
 	let year = parseInt(leagueData.season);
 
 	// on first run, week is provided above from nflState,
@@ -145,25 +184,33 @@ const processRegularSeason = async ({rosters, leagueData, curSeason, week, regul
 	}
 
 	// loop through each week of the season
-	const matchupsPromises = [];
 	let startWeek = parseInt(week);
-	while(week > 0) {
-		matchupsPromises.push(fetch(`https://api.sleeper.app/v1/league/${curSeason}/matchups/${week}`, {compress: true}))
-		week--;
-	}
-
-	const matchupsRes = await waitForAll(...matchupsPromises).catch((err) => { console.error(err); });
-
-	// convert the json matchup responses
-	const matchupsJsonPromises = [];
-	for(const matchupRes of matchupsRes) {
-		const data = matchupRes.json();
-		matchupsJsonPromises.push(data)
-		if (!matchupRes.ok) {
-			console.error(data);
+	let matchupsData;
+	if(prefetchedMatchups) {
+		// Weeks arrive prefetched by the caller (pooled across all
+		// seasons), highest week first — the same order the direct
+		// fetch below produced.
+		matchupsData = prefetchedMatchups;
+	} else {
+		const matchupsPromises = [];
+		while(week > 0) {
+			matchupsPromises.push(fetch(`https://api.sleeper.app/v1/league/${curSeason}/matchups/${week}`, {compress: true}))
+			week--;
 		}
+
+		const matchupsRes = await waitForAll(...matchupsPromises).catch((err) => { console.error(err); });
+
+		// convert the json matchup responses
+		const matchupsJsonPromises = [];
+		for(const matchupRes of matchupsRes) {
+			const data = matchupRes.json();
+			matchupsJsonPromises.push(data)
+			if (!matchupRes.ok) {
+				console.error(data);
+			}
+		}
+		matchupsData = await waitForAll(...matchupsJsonPromises).catch((err) => { console.error(err); });
 	}
-	const matchupsData = await waitForAll(...matchupsJsonPromises).catch((err) => { console.error(err); });
 
 	// now that we've used the current season ID for everything we need, set it to the previous season
 	curSeason = leagueData.previous_league_id;

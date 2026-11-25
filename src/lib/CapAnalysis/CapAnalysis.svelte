@@ -16,6 +16,7 @@
   import { get } from 'svelte/store';
   import { capAnalysisData } from '$lib/stores';
   import { loadPlayers } from '$lib/utils/helperFunctions/players';
+  import { getTransactionFingerprint } from '$lib/utils/helperFunctions/transactionFingerprint';
 
   Chart.register(...registerables);
 
@@ -665,9 +666,16 @@
       buildAllocationCharts();
     };
     // Session cache: the full build otherwise re-runs on every mount.
+    // Gated on the transaction fingerprint — a processed trade changes
+    // rosters and cap totals, so a changed fingerprint forces a rebuild
+    // and new trades show on the next visit.
     const cached = get(capAnalysisData);
-    if (cached) { data = cached; await finishLoad(); return; }
+    if (cached?.data) {
+      const fp = await getTransactionFingerprint();
+      if (fp === cached.fingerprint) { data = cached.data; await finishLoad(); return; }
+    }
     try {
+      const fp = await getTransactionFingerprint();
       const [playerMapRes, managerMapRes, playerValuesRes, playersResult] = await Promise.all([
         fetch('/fp_sleeper_mapping.txt'),
         fetch('/Manager_map.txt'),
@@ -738,7 +746,7 @@
         valueIndexes, players: nflPlayers, managerMapRaw, valueYear: VALUE_YEAR,
         preloadedHistory
       });
-      capAnalysisData.set(data);
+      capAnalysisData.set({ data, fingerprint: fp });
 
       await finishLoad();
     } catch (err) {

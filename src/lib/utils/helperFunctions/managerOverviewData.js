@@ -8,6 +8,7 @@ import { buildCapAnalysisData } from './capAnalysis';
 import { buildTradeAnalysisData } from './tradeAnalysis';
 import { buildDraftAnalysisData } from './draftAnalysis';
 import { buildCombined } from './managerOverview';
+import { getTransactionFingerprint } from './transactionFingerprint';
 import {
     buildRookieContracts,
     buildValueIndexes,
@@ -81,11 +82,16 @@ const loadManagerOverviewDataImpl = async (onStep = () => {}) => {
 
 // Session-level memo: this loader runs the cap, trade, and draft builders
 // back to back (the heaviest load on the site). Build once per session and
-// share the result; cleared on failure so a retry can succeed.
+// share the result; cleared on failure so a retry can succeed. The memo is
+// gated on the transaction fingerprint — if a trade has processed since
+// the build, the next call rebuilds so the new trade shows.
 let overviewPromise = null;
-export const loadManagerOverviewData = (onStep = () => {}) => {
-  if (!overviewPromise) {
-    overviewPromise = loadManagerOverviewDataImpl(onStep).catch((e) => { overviewPromise = null; throw e; });
-  }
+let overviewFingerprint = null;
+export const loadManagerOverviewData = async (onStep = () => {}) => {
+  const fp = await getTransactionFingerprint();
+  if (overviewPromise && fp === overviewFingerprint) return overviewPromise;
+  overviewPromise = loadManagerOverviewDataImpl(onStep)
+    .then((result) => { overviewFingerprint = fp; return result; })
+    .catch((e) => { overviewPromise = null; throw e; });
   return overviewPromise;
 };

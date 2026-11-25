@@ -6,6 +6,7 @@
   import { createSetParams } from '$lib/utils/urlParams';
   import { Chart, registerables } from 'chart.js';
   import { buildTradeAnalysisData, aggregateMostTradedPlayers } from '$lib/utils/helperFunctions/tradeAnalysis';
+  import { getTransactionFingerprint } from '$lib/utils/helperFunctions/transactionFingerprint';
   import { tradeAnalysisData } from '$lib/stores';
 
   Chart.register(...registerables);
@@ -377,15 +378,24 @@
   onMount(async () => {
     // The build pulls ~160 Sleeper requests plus the full player file;
     // cache the result in a store so moving between the five Trade
-    // Analysis sections (and coming back) doesn't pay it again.
+    // Analysis sections (and coming back) doesn't pay it again. The cache
+    // is gated on the transaction fingerprint: if a trade (or any other
+    // transaction) has processed since the build, the fingerprint check
+    // misses and the page rebuilds, so new trades show on the next visit.
     const cached = get(tradeAnalysisData);
-    if (cached) { data = cached; loading = false; return; }
+    if (cached?.data) {
+      const fp = await getTransactionFingerprint();
+      if (fp === cached.fingerprint) { data = cached.data; loading = false; return; }
+    }
     try {
-      const playersRes = await fetch('https://api.sleeper.app/v1/players/nfl');
+      const [playersRes, fp] = await Promise.all([
+        fetch('https://api.sleeper.app/v1/players/nfl'),
+        getTransactionFingerprint()
+      ]);
       if (!playersRes.ok) throw new Error(`Player data request failed (${playersRes.status}).`);
       const players = await playersRes.json();
       data = await buildTradeAnalysisData({ players });
-      tradeAnalysisData.set(data);
+      tradeAnalysisData.set({ data, fingerprint: fp });
     } catch (e) {
       console.error(e);
       error = e.message;

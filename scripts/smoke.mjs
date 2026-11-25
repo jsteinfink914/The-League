@@ -2,7 +2,8 @@
 // routes, sorting, or styles:  npm run smoke
 //
 // Steps: unit tests -> manager-name check -> hardcoded-hex guard ->
-// production build -> preview sweep of every route plus the deep links
+// raw-players-fetch guard -> production build -> preview sweep of every
+// route plus the deep links
 // that carry filters in the URL (the class of page that broke on direct
 // load when a param was read before its data existed).
 // A passing production build alone is NOT verification — it never executes
@@ -57,6 +58,41 @@ const hexGuard = () => {
     if (offenders.length) throw new Error('raw hex colors in styles (use theme vars):\n' + offenders.join('\n'));
 };
 
+// --- raw players fetch guard ----------------------------------------------
+// The ~5MB Sleeper player file must come through the shared cached loader
+// (loadPlayers, backed by /api/fetch_players_info) — pages that fetched it
+// raw on every mount were the site's worst latency offenders. Only the
+// allowlisted files may call the raw endpoint: the API route itself (it
+// IS the loader's source), Manager Overview's shared loader (it also runs
+// server-side for Ask, where the browser loader can't), and Trade
+// Analysis (its builder needs the raw record shape, not the computed
+// map). A line counts only if it actually fetches — comments that merely
+// mention the URL are fine.
+const PLAYERS_ALLOWLIST = new Set([
+    'src/routes/api/fetch_players_info/+server.js',
+    'src/lib/utils/helperFunctions/managerOverviewData.js',
+    'src/lib/TradeAnalysis/TradeAnalysis.svelte',
+]);
+const playersGuard = () => {
+    const offenders = [];
+    const walk = (dir) => {
+        for (const e of readdirSync(dir, { withFileTypes: true })) {
+            const p = join(dir, e.name);
+            if (e.isDirectory()) walk(p);
+            else if (/\.(js|svelte)$/.test(e.name) && !PLAYERS_ALLOWLIST.has(p)) {
+                const lines = readFileSync(p, 'utf8').split('\n');
+                lines.forEach((line, i) => {
+                    if (line.includes('api.sleeper.app/v1/players/nfl') && /fetch/.test(line)) {
+                        offenders.push(`${p}:${i + 1}`);
+                    }
+                });
+            }
+        }
+    };
+    walk('src');
+    if (offenders.length) throw new Error('raw players/nfl fetch outside the shared loader (use loadPlayers):\n' + offenders.join('\n'));
+};
+
 // --- route sweep -----------------------------------------------------------
 const discoverRoutes = (dir, base = '') => {
     const out = [];
@@ -106,6 +142,7 @@ const sweep = async () => {
 step('unit tests', () => run('npm', ['test', '--silent']));
 step('manager name check', () => run('npm', ['run', 'check:managers', '--silent']));
 step('hex guard', hexGuard);
+step('players fetch guard', playersGuard);
 step('production build', () => {
     // Locally the Vercel adapter refuses this Node version AFTER both
     // bundles compile — that failure is environmental, not a code error

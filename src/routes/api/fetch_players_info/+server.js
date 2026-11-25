@@ -48,7 +48,17 @@ export async function GET() {
 
     const scoringSettings = leagueData.scoring_settings;
 
-    return json(computePlayers(playerData, weeklyData, scoringSettings));
+    // This response is player info + weekly projections: slow-moving data
+    // behind a ~25-request upstream fan-out that took ~7s uncached. Let
+    // Vercel's edge serve it for an hour (background-revalidated for a
+    // day) so first loads stop paying the fan-out per visitor. Nothing
+    // time-critical flows through here — scores, standings, and trades
+    // all come from other endpoints.
+    return json(computePlayers(playerData, weeklyData, scoringSettings), {
+        headers: {
+            'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
+        }
+    });
 }
 
 const computePlayers = (playerData, weeklyData, scoringSettings) => {
