@@ -49,7 +49,7 @@ const groupPoints = (entry, posMap) => {
     return groups;
 };
 
-export const getRecordAnatomy = async () => {
+const getRecordAnatomyImpl = async () => {
     const [chain, nflState, playersRes] = await Promise.all([
         collectSeasonChain(),
         getNflState().catch(() => null),
@@ -70,11 +70,15 @@ export const getRecordAnatomy = async () => {
     const games = [];
     const weekScores = {};
 
-    for (const season of chain) {
+    // Fetch every season's weeks in parallel (was one season at a time);
+    // the processing below still runs in chain order.
+    const weeksPerSeason = await Promise.all(chain.map((season) => {
         const regularWeeks = season.playoffWeekStart - 1;
-        const isCurrent = season.year === currentYear;
-        const completedThrough = isCurrent ? Math.min(lastCompletedWeek, regularWeeks) : regularWeeks;
-        const weeks = await fetchSeasonWeeks(season.seasonID, completedThrough);
+        const completedThrough = season.year === currentYear ? Math.min(lastCompletedWeek, regularWeeks) : regularWeeks;
+        return fetchSeasonWeeks(season.seasonID, completedThrough).then((weeks) => ({ season, weeks, completedThrough }));
+    }));
+
+    for (const { season, weeks, completedThrough } of weeksPerSeason) {
         weekScores[season.year] = {};
 
         for (const { week, entries } of weeks) {
@@ -114,4 +118,15 @@ export const getRecordAnatomy = async () => {
         currentYear,
         groups: GROUPS,
     };
+};
+
+// Session-level memo: the H2H page and the Ask bot both consume this, and
+// the underlying matchup data only changes when games complete. Build
+// once per session; cleared on failure so a retry can succeed.
+let anatomyPromise = null;
+export const getRecordAnatomy = () => {
+    if (!anatomyPromise) {
+        anatomyPromise = getRecordAnatomyImpl().catch((e) => { anatomyPromise = null; throw e; });
+    }
+    return anatomyPromise;
 };

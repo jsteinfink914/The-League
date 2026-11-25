@@ -5,6 +5,7 @@
   import { createSetParams } from '$lib/utils/urlParams';
   import { leagueID } from '$lib/utils/leagueInfo';
   import { fetchWithRetry } from '$lib/utils/helperFunctions/request';
+  import { loadPlayers } from '$lib/utils/helperFunctions/players';
   import { normalizeName } from '$lib/utils/playerNameLookup';
 
   // Selections live in the URL query string so a built comparison is a
@@ -150,13 +151,13 @@
   const loadRosters = async () => {
     rostersLoading = true;
     try {
-      const [rosterResponse, playersResponse, managerMapResponse] = await Promise.all([
+      const [rosterResponse, playersResult, managerMapResponse] = await Promise.all([
         fetchWithRetry(`https://api.sleeper.app/v1/league/${leagueID}/rosters`),
-        fetchWithRetry('https://api.sleeper.app/v1/players/nfl'),
+        loadPlayers(null),
         fetchWithRetry('/Manager_map.txt')
       ]);
       const rosters = await rosterResponse.json();
-      const players = await playersResponse.json();
+      const players = playersResult.players;
       const managerMappings = Papa.parse(await managerMapResponse.text(), { header: true }).data;
       const managerMap = new Map(managerMappings.map(entry => [String(entry.Index), entry.Name]));
       managerRosters = rosters

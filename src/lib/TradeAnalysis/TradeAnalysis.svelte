@@ -53,18 +53,18 @@
       return;
     }
     traceParam = param;
+    expandedTraceTradeID = null;
     setParams({ trace: param });
     setTimeout(() => document.getElementById('trace-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }
-  function clearTrace() { traceParam = ''; setParams({ trace: null }); }
+  function clearTrace() { traceParam = ''; expandedTraceTradeID = null; setParams({ trace: null }); }
   function tracePlayer(playerID) { startTrace(`p:${playerID}`); }
   function tracePick(pickKey) { startTrace(`k:${pickKey}`); }
-  function viewTrade(id) {
-    clearTrace();
-    logFilterManager = 'All'; logFilterYear = 'All'; logSearch = '';
-    setParams({ manager: null, year: null, q: null });
-    setTimeout(() => document.getElementById(`trade-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
-  }
+  // Inline trade expansion: the full card opens under the trace event
+  // instead of jumping to the log, where the trace was lost.
+  let expandedTraceTradeID = null;
+  function toggleTraceTrade(id) { expandedTraceTradeID = expandedTraceTradeID === id ? null : id; }
+  $: expandedTraceTrade = (data && expandedTraceTradeID) ? data.trades.find(t => t.id === expandedTraceTradeID) || null : null;
   const poss = (n) => n ? (n.endsWith('s') ? `${n}'` : `${n}'s`) : '';
 
   $: traceView = (() => {
@@ -559,17 +559,67 @@
             {#if traceView.subtitle}<p class="section-note">{traceView.subtitle}</p>{/if}
             <div class="trace-events">
               {#each traceView.events as ev}
-                <div class="trace-event">
-                  <span class="trace-icon">{ev.kind === 'draft' ? '🎓' : '🔁'}</span>
-                  <div class="trace-text">
-                    {#if ev.kind === 'draft'}
-                      <span>{ev.text}</span>
-                      {#if ev.pickKey}<button class="trace-link" on:click={() => tracePick(ev.pickKey)}>Trace that pick →</button>{/if}
-                    {:else}
-                      <span><strong>{ev.date}</strong> — {ev.from ? `${ev.from} → ` : ''}<strong>{ev.to}</strong></span>
-                      <button class="trace-link" on:click={() => viewTrade(ev.tradeId)}>View trade</button>
-                    {/if}
+                <div class="trace-item">
+                  <div class="trace-event">
+                    <span class="trace-icon">{ev.kind === 'draft' ? '🎓' : '🔁'}</span>
+                    <div class="trace-text">
+                      {#if ev.kind === 'draft'}
+                        <span>{ev.text}</span>
+                        {#if ev.pickKey}<button class="trace-link" on:click={() => tracePick(ev.pickKey)}>Trace that pick →</button>{/if}
+                      {:else}
+                        <span><strong>{ev.date}</strong> — {ev.from ? `${ev.from} → ` : ''}<strong>{ev.to}</strong></span>
+                        <button class="trace-link" on:click={() => toggleTraceTrade(ev.tradeId)}>{expandedTraceTradeID === ev.tradeId ? 'Hide trade' : 'View trade'}</button>
+                      {/if}
+                    </div>
                   </div>
+                  {#if ev.kind === 'trade' && expandedTraceTrade && expandedTraceTrade.id === ev.tradeId}
+                    <div class="trade-card league-card trace-card">
+                      <div class="trade-header">
+                        <span class="trade-date">{expandedTraceTrade.date}</span>
+                        <span class="trade-year-badge">{expandedTraceTrade.year}</span>
+                        {#if expandedTraceTrade.sides.some(s => s.pendingPickCount > 0)}
+                          <span class="pending-indicator">⏳ Pending picks</span>
+                        {/if}
+                      </div>
+                      <div class="trade-sides" style="grid-template-columns: repeat({expandedTraceTrade.sides.length}, 1fr)">
+                        {#each expandedTraceTrade.sides as side}
+                          <div class="trade-side">
+                            <div class="side-header">
+                              <strong>{side.manager}</strong>
+                              <div class="side-pts">
+                                <span class="pts-received">{side[ptsKey]} pts</span>
+                                <span class="pts-net" class:pos={side[netKey] > 0} class:neg={side[netKey] < 0}>{side[netKey] > 0 ? '+' : ''}{side[netKey]} net</span>
+                              </div>
+                            </div>
+                            <div class="assets">
+                              {#each side.playerDetails as pd}
+                                <div class="asset-row">
+                                  <span class="pos-dot" style="background:{POS_COLORS[pd.position] || '#95a5a6'}">{pd.position}</span>
+                                  <button class="asset-name asset-link" title="Trace {pd.name}" on:click={() => tracePlayer(pd.playerID)}>{pd.name}</button>
+                                  <span class="asset-pts">{pd[ptsKey]} pts</span>
+                                </div>
+                              {/each}
+                              {#each side.pickDetails as pd}
+                                <div class="asset-row pick-row" class:pending={pd.isPending}>
+                                  <span class="pos-dot pick-dot">{roundLabel(pd.round)}</span>
+                                  {#if pd.isPending}
+                                    <button class="asset-name asset-link pending-name" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.season} {roundLabel(pd.round)} pick ({poss(pd.originalOwnerManager)}) <span class="pending-tag">PENDING</span></button>
+                                    <span class="asset-pts">—</span>
+                                  {:else if pd.resolvedName}
+                                    <button class="asset-name asset-link" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.resolvedName} <span class="pick-via">(via {poss(pd.originalOwnerManager)} {pd.season} {roundLabel(pd.round)})</span></button>
+                                    <span class="asset-pts">{pd[ptsKey]} pts</span>
+                                  {:else}
+                                    <button class="asset-name asset-link" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.season} {roundLabel(pd.round)} pick ({poss(pd.originalOwnerManager)})</button>
+                                    <span class="asset-pts">—</span>
+                                  {/if}
+                                </div>
+                              {/each}
+                            </div>
+                          </div>
+                        {/each}
+                      </div>
+                    </div>
+                  {/if}
                 </div>
               {/each}
               {#if traceAsset.kind === 'pick'}
@@ -894,6 +944,8 @@
   .trace-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
   .trace-head h3 { margin: 0; }
   .trace-events { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.75rem; }
+  .trace-item { display: flex; flex-direction: column; gap: 0.55rem; }
+  .trace-card { margin: 0.25rem 0 0.5rem; }
   .trace-event { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.88rem; }
   .trace-icon { flex-shrink: 0; }
   .trace-text { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; }

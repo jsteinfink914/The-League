@@ -4,6 +4,7 @@
   import { createSetParams } from '$lib/utils/urlParams';
   import { Chart, registerables } from 'chart.js';
   import { buildDraftAnalysisData } from '$lib/utils/helperFunctions/draftAnalysis';
+  import { loadPlayers } from '$lib/utils/helperFunctions/players';
 
   Chart.register(...registerables);
 
@@ -179,8 +180,7 @@
 
   onMount(async () => {
     try {
-      const playersRes = await fetch('https://api.sleeper.app/v1/players/nfl');
-      const players = await playersRes.json();
+      const { players } = await loadPlayers(null);
       data = await buildDraftAnalysisData({ players });
     } catch (e) {
       console.error(e);

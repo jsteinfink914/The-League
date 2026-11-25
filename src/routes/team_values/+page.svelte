@@ -13,6 +13,7 @@
     resolvePlayerValue
   } from '$lib/utils/playerNameLookup';
   import { fetchWithRetry } from '$lib/utils/helperFunctions/request';
+  import { loadPlayers } from '$lib/utils/helperFunctions/players';
   Chart.register(...registerables);
 
   const valueYear = '2026';
@@ -62,9 +63,8 @@
       const rosterResponse = await fetchWithRetry(`https://api.sleeper.app/v1/league/${leagueID}/rosters`);
       const rosters = await rosterResponse.json();
 
-      // Fetch players
-      const playersResponse = await fetchWithRetry('https://api.sleeper.app/v1/players/nfl');
-      const players = await playersResponse.json();
+      // Fetch players (shared loader, 24h localStorage cache)
+      const { players } = await loadPlayers(null);
 
       // Fetch player mappings
       const playerMapResponse = await fetchWithRetry('/fp_sleeper_mapping.txt');

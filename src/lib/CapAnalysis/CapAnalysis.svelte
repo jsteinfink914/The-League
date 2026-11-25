@@ -13,6 +13,9 @@
     getContractBreakdown
   } from '$lib/utils/playerNameLookup';
   import { buildCapAnalysisData } from '$lib/utils/helperFunctions/capAnalysis';
+  import { get } from 'svelte/store';
+  import { capAnalysisData } from '$lib/stores';
+  import { loadPlayers } from '$lib/utils/helperFunctions/players';
 
   Chart.register(...registerables);
 
@@ -649,20 +652,35 @@
 
   // ── Load ───────────────────────────────────────────────────────────────────
   onMount(async () => {
+    const finishLoad = async () => {
+      allManagers = [...new Set([
+        ...data.teamEfficiency.map((t) => t.manager),
+        ...Object.keys(data.weeklyTrends)
+      ])].sort();
+      availableYears = data.years.slice().reverse();
+      selectedCapYear = Number(VALUE_YEAR);
+      trendYears = [...new Set(data.seasonTrends.map((r) => r.year))].sort((a, b) => b - a);
+      loading = false;
+      await new Promise((r) => setTimeout(r, 50));
+      buildAllocationCharts();
+    };
+    // Session cache: the full build otherwise re-runs on every mount.
+    const cached = get(capAnalysisData);
+    if (cached) { data = cached; await finishLoad(); return; }
     try {
-      const [playerMapRes, managerMapRes, playerValuesRes, nflPlayersRes] = await Promise.all([
+      const [playerMapRes, managerMapRes, playerValuesRes, playersResult] = await Promise.all([
         fetch('/fp_sleeper_mapping.txt'),
         fetch('/Manager_map.txt'),
         fetch('/Player_Values.txt'),
-        fetch('https://api.sleeper.app/v1/players/nfl')
+        loadPlayers(null)
       ]);
 
-      const [playerMapText, managerMapText, playerValuesText, nflPlayers] = await Promise.all([
+      const [playerMapText, managerMapText, playerValuesText] = await Promise.all([
         playerMapRes.text(),
         managerMapRes.text(),
-        playerValuesRes.text(),
-        nflPlayersRes.json()
+        playerValuesRes.text()
       ]);
+      const nflPlayers = playersResult.players;
 
       const playerMappings = Papa.parse(playerMapText, { header: true }).data;
       const sleeperToFantasyPros = new Map(
@@ -720,21 +738,9 @@
         valueIndexes, players: nflPlayers, managerMapRaw, valueYear: VALUE_YEAR,
         preloadedHistory
       });
+      capAnalysisData.set(data);
 
-      allManagers = [...new Set([
-        ...data.teamEfficiency.map((t) => t.manager),
-        ...Object.keys(data.weeklyTrends)
-      ])].sort();
-
-      availableYears = data.years.slice().reverse();
-      selectedCapYear = Number(VALUE_YEAR);
-
-      trendYears = [...new Set(data.seasonTrends.map((r) => r.year))].sort((a, b) => b - a);
-
-      loading = false;
-
-      await new Promise((r) => setTimeout(r, 50));
-      buildAllocationCharts();
+      await finishLoad();
     } catch (err) {
       console.error(err);
       error = err.message || 'Failed to load cap analysis data.';

@@ -16,7 +16,7 @@ import {
 
 export const MANAGER_OVERVIEW_VALUE_YEAR = '2026';
 
-export const loadManagerOverviewData = async (onStep = () => {}) => {
+const loadManagerOverviewDataImpl = async (onStep = () => {}) => {
     onStep('Loading player data…');
     const [playerMapRes, managerMapRes, playerValuesRes, nflPlayersRes] = await Promise.all([
       fetch('/fp_sleeper_mapping.txt'),
@@ -77,4 +77,15 @@ export const loadManagerOverviewData = async (onStep = () => {}) => {
 
     const combined = buildCombined(capData, tradeData, draftData);
     return { capData, tradeData, draftData, combined };
+};
+
+// Session-level memo: this loader runs the cap, trade, and draft builders
+// back to back (the heaviest load on the site). Build once per session and
+// share the result; cleared on failure so a retry can succeed.
+let overviewPromise = null;
+export const loadManagerOverviewData = (onStep = () => {}) => {
+  if (!overviewPromise) {
+    overviewPromise = loadManagerOverviewDataImpl(onStep).catch((e) => { overviewPromise = null; throw e; });
+  }
+  return overviewPromise;
 };
