@@ -1,9 +1,12 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
+  import { get } from 'svelte/store';
   import { createSetParams } from '$lib/utils/urlParams';
   import { Chart, registerables } from 'chart.js';
   import { buildTradeAnalysisData, aggregateMostTradedPlayers } from '$lib/utils/helperFunctions/tradeAnalysis';
+  import { tradeAnalysisData } from '$lib/stores';
 
   Chart.register(...registerables);
 
@@ -34,6 +37,73 @@
   let logFilterManager = initParams.get('manager') || 'All';
   let logFilterYear = initParams.get('year') || 'All';
   let logSearch = initParams.get('q') || '';
+
+  // Asset tracing: ?trace=p:<playerID> (a player) or ?trace=k:<pickKey>
+  // (a draft pick, key = season|round|originalOwnerRosterID). Clicking any
+  // asset in any trade card opens its timeline in the log section.
+  let traceParam = initParams.get('trace') || '';
+  $: traceAsset = traceParam.startsWith('p:')
+    ? { kind: 'player', id: traceParam.slice(2) }
+    : traceParam.startsWith('k:')
+      ? { kind: 'pick', key: traceParam.slice(2) }
+      : null;
+  function startTrace(param) {
+    if (section !== 'log') {
+      goto(`/trade_analysis/log?trace=${encodeURIComponent(param)}`);
+      return;
+    }
+    traceParam = param;
+    setParams({ trace: param });
+    setTimeout(() => document.getElementById('trace-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
+  function clearTrace() { traceParam = ''; setParams({ trace: null }); }
+  function tracePlayer(playerID) { startTrace(`p:${playerID}`); }
+  function tracePick(pickKey) { startTrace(`k:${pickKey}`); }
+  function viewTrade(id) {
+    clearTrace();
+    logFilterManager = 'All'; logFilterYear = 'All'; logSearch = '';
+    setParams({ manager: null, year: null, q: null });
+    setTimeout(() => document.getElementById(`trade-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+  }
+  const poss = (n) => n ? (n.endsWith('s') ? `${n}'` : `${n}'s`) : '';
+
+  $: traceView = (() => {
+    if (!data || !traceAsset) return null;
+    const asc = [...data.trades].sort((a, b) => a.timestamp - b.timestamp);
+    if (traceAsset.kind === 'player') {
+      const pid = traceAsset.id;
+      let name = null, position = null;
+      for (const t of data.trades) for (const s of t.sides) {
+        const pd = (s.playerDetails || []).find(p => p.playerID === pid);
+        if (pd) { name = pd.name; position = pd.position; }
+        const pk = (s.pickDetails || []).find(p => p.resolvedPlayerID === pid);
+        if (pk && !name) name = pk.resolvedName;
+      }
+      const events = [];
+      const origin = data.draftInfo?.playerOrigin?.[pid];
+      if (origin) events.push({ kind: 'draft', text: `Drafted by ${origin.manager} in the ${origin.year} draft (${roundLabel(origin.round)} round)`, pickKey: origin.pickKey });
+      for (const t of asc) for (const s of t.sides) {
+        const pd = (s.playerDetails || []).find(p => p.playerID === pid);
+        if (pd) events.push({ kind: 'trade', date: t.date, tradeId: t.id, from: pd.fromManager, to: s.manager });
+      }
+      return { title: name || `Player ${pid}`, subtitle: position ? `${position} · ${events.filter(e => e.kind === 'trade').length} trade(s)` : '', events, drafted: null, currentHolder: events.filter(e => e.kind === 'trade').slice(-1)[0]?.to || origin?.manager || null };
+    }
+    const key = traceAsset.key;
+    const [season, round] = key.split('|');
+    let ownerName = null;
+    const events = [];
+    for (const t of asc) for (const s of t.sides) {
+      const pd = (s.pickDetails || []).find(p => p.pickKey === key);
+      if (pd) { ownerName = pd.originalOwnerManager || ownerName; events.push({ kind: 'trade', date: t.date, tradeId: t.id, from: pd.fromManager, to: s.manager }); }
+    }
+    const drafted = data.draftInfo?.pickDraftedBy?.[key] || null;
+    return {
+      title: `${season} ${roundLabel(Number(round))} pick`,
+      subtitle: ownerName ? `Originally ${poss(ownerName)} pick` : '',
+      events, drafted,
+      currentHolder: drafted ? drafted.manager : (events.slice(-1)[0]?.to || ownerName)
+    };
+  })();
 
   // Head-to-head (manager vs manager): every trade where both managers
   // appear on some side. Pair lives in the URL (?a=Jake&b=Oscar).
@@ -101,12 +171,16 @@
     setParams({ a: versusA || null, b: versusB || null });
   }
 
-  // Top 3 best / worst per manager
+  // Top 3 best / worst per manager. These are a manager-profile feature:
+  // they follow the manager + year filters, and get out of the way entirely
+  // while a search or an asset trace is active.
   $: tradeHighlights = (() => {
-    if (!data || logFilterManager === 'All') return null;
+    if (!data || logFilterManager === 'All' || logSearch || traceAsset) return null;
     const mgr = logFilterManager;
     const sides = data.trades
+      .filter(t => logFilterYear === 'All' || t.year === Number(logFilterYear))
       .flatMap(t => t.sides.filter(s => s.manager === mgr).map(s => ({ trade: t, side: s })));
+    if (!sides.length) return null;
     const netKey2 = pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus';
     const sorted = [...sides].sort((a, b) => b.side[netKey2] - a.side[netKey2]);
     return {
@@ -153,14 +227,29 @@
     ? [...new Set(data.trades.map(t => t.year))].sort((a, b) => b - a)
     : [];
 
+  // Search haystack per trade: managers, players received, and picks —
+  // by drafted player, by "2024 2nd"-style label, and by original owner.
+  // Every word of the query must match somewhere in the haystack, so
+  // "bucky", "2024 2nd", and "sween 2nd" all find the same trade.
+  const tradeHaystack = (t) => {
+    const parts = [];
+    for (const s of t.sides) {
+      parts.push(s.manager);
+      for (const p of s.playerDetails || []) { parts.push(p.name); if (p.fromManager) parts.push(p.fromManager); }
+      for (const p of s.pickDetails || []) {
+        if (p.resolvedName) parts.push(p.resolvedName);
+        parts.push(`${p.season} ${roundLabel(p.round)}`, `${p.season} round ${p.round}`, `${roundLabel(p.round)} pick`, p.originalOwnerManager || '', p.fromManager || '');
+      }
+    }
+    return parts.join(' ').toLowerCase();
+  };
+
   $: filteredTrades = data
     ? data.trades.filter(t => {
         const mgrMatch = logFilterManager === 'All' || t.sides.some(s => s.manager === logFilterManager);
         const yrMatch = logFilterYear === 'All' || t.year === Number(logFilterYear);
-        const srchMatch = !logSearch || t.sides.some(s =>
-          s.playerDetails?.some(p => p.name.toLowerCase().includes(logSearch.toLowerCase())) ||
-          s.manager.toLowerCase().includes(logSearch.toLowerCase())
-        );
+        const tokens = logSearch.toLowerCase().split(/\s+/).filter(Boolean);
+        const srchMatch = !tokens.length || tokens.every(tok => tradeHaystack(t).includes(tok));
         return mgrMatch && yrMatch && srchMatch;
       })
     : [];
@@ -286,11 +375,17 @@
   function roundLabel(r) { const labels = ['1st','2nd','3rd','4th','5th','6th','7th','8th']; return labels[r - 1] || `${r}th`; }
 
   onMount(async () => {
+    // The build pulls ~160 Sleeper requests plus the full player file;
+    // cache the result in a store so moving between the five Trade
+    // Analysis sections (and coming back) doesn't pay it again.
+    const cached = get(tradeAnalysisData);
+    if (cached) { data = cached; loading = false; return; }
     try {
       const playersRes = await fetch('https://api.sleeper.app/v1/players/nfl');
       if (!playersRes.ok) throw new Error(`Player data request failed (${playersRes.status}).`);
       const players = await playersRes.json();
       data = await buildTradeAnalysisData({ players });
+      tradeAnalysisData.set(data);
     } catch (e) {
       console.error(e);
       error = e.message;
@@ -455,6 +550,56 @@
     {:else if section === 'log'}
       <div class="section">
         <h2>Trade Log</h2>
+        {#if traceView}
+          <div class="trace-panel league-card" id="trace-panel">
+            <div class="trace-head">
+              <h3>🔎 Tracing: {traceView.title}</h3>
+              <button class="swap-btn" on:click={clearTrace}>✕ Close</button>
+            </div>
+            {#if traceView.subtitle}<p class="section-note">{traceView.subtitle}</p>{/if}
+            <div class="trace-events">
+              {#each traceView.events as ev}
+                <div class="trace-event">
+                  <span class="trace-icon">{ev.kind === 'draft' ? '🎓' : '🔁'}</span>
+                  <div class="trace-text">
+                    {#if ev.kind === 'draft'}
+                      <span>{ev.text}</span>
+                      {#if ev.pickKey}<button class="trace-link" on:click={() => tracePick(ev.pickKey)}>Trace that pick →</button>{/if}
+                    {:else}
+                      <span><strong>{ev.date}</strong> — {ev.from ? `${ev.from} → ` : ''}<strong>{ev.to}</strong></span>
+                      <button class="trace-link" on:click={() => viewTrade(ev.tradeId)}>View trade</button>
+                    {/if}
+                  </div>
+                </div>
+              {/each}
+              {#if traceAsset.kind === 'pick'}
+                {#if traceView.drafted}
+                  <div class="trace-event">
+                    <span class="trace-icon">🎓</span>
+                    <div class="trace-text">
+                      <span>Used by <strong>{traceView.drafted.manager}</strong> to draft <strong>{traceView.drafted.playerName}</strong></span>
+                      <button class="trace-link" on:click={() => tracePlayer(traceView.drafted.playerID)}>Trace {traceView.drafted.playerName} →</button>
+                    </div>
+                  </div>
+                {:else}
+                  <div class="trace-event">
+                    <span class="trace-icon">⏳</span>
+                    <div class="trace-text"><span>Not drafted yet — currently held by <strong>{traceView.currentHolder}</strong></span></div>
+                  </div>
+                {/if}
+              {/if}
+              {#if traceAsset.kind === 'player' && traceView.events.some(e => e.kind === 'trade')}
+                <div class="trace-event">
+                  <span class="trace-icon">📍</span>
+                  <div class="trace-text"><span>Most recently traded to <strong>{traceView.currentHolder}</strong> (waivers and drops aren't tracked here)</span></div>
+                </div>
+              {/if}
+              {#if !traceView.events.length && !traceView.drafted}
+                <p class="section-note">No trades found for this asset.</p>
+              {/if}
+            </div>
+          </div>
+        {/if}
         <div class="filter-row">
           <label>Manager:
             <select value={logFilterManager} on:change={(e) => { logFilterManager = e.target.value; setParams({ manager: logFilterManager === 'All' ? null : logFilterManager }); }}>
@@ -469,7 +614,7 @@
             </select>
           </label>
           <label>Search:
-            <input type="text" placeholder="player or manager…" bind:value={logSearch} on:input={() => setParams({ q: logSearch || null })} />
+            <input type="text" placeholder="player, pick, or manager…" bind:value={logSearch} on:input={() => setParams({ q: logSearch || null })} />
           </label>
         </div>
         <p class="result-count">{filteredTrades.length} trades shown</p>
@@ -501,7 +646,7 @@
 
         <div class="trade-log">
           {#each filteredTrades as trade}
-            <div class="trade-card league-card">
+            <div class="trade-card league-card" id="trade-{trade.id}">
               <div class="trade-header">
                 <span class="trade-date">{trade.date}</span>
                 <span class="trade-year-badge">{trade.year}</span>
@@ -525,7 +670,7 @@
                       {#each side.playerDetails as pd}
                         <div class="asset-row">
                           <span class="pos-dot" style="background:{POS_COLORS[pd.position] || '#95a5a6'}">{pd.position}</span>
-                          <span class="asset-name">{pd.name}</span>
+                          <button class="asset-name asset-link" title="Trace {pd.name}" on:click={() => tracePlayer(pd.playerID)}>{pd.name}</button>
                           <span class="asset-pts">{pd[ptsKey]} pts</span>
                         </div>
                       {/each}
@@ -533,13 +678,13 @@
                         <div class="asset-row pick-row" class:pending={pd.isPending}>
                           <span class="pos-dot pick-dot">{roundLabel(pd.round)}</span>
                           {#if pd.isPending}
-                            <span class="asset-name pending-name">{pd.season} {roundLabel(pd.round)} pick <span class="pending-tag">PENDING</span></span>
+                            <button class="asset-name asset-link pending-name" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.season} {roundLabel(pd.round)} pick ({poss(pd.originalOwnerManager)}) <span class="pending-tag">PENDING</span></button>
                             <span class="asset-pts">—</span>
                           {:else if pd.resolvedName}
-                            <span class="asset-name">{pd.resolvedName} <span class="pick-via">(via pick)</span></span>
+                            <button class="asset-name asset-link" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.resolvedName} <span class="pick-via">(via {poss(pd.originalOwnerManager)} {pd.season} {roundLabel(pd.round)})</span></button>
                             <span class="asset-pts">{pd[ptsKey]} pts</span>
                           {:else}
-                            <span class="asset-name">{pd.season} {roundLabel(pd.round)} pick</span>
+                            <button class="asset-name asset-link" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.season} {roundLabel(pd.round)} pick ({poss(pd.originalOwnerManager)})</button>
                             <span class="asset-pts">—</span>
                           {/if}
                         </div>
@@ -644,7 +789,7 @@
                         {#each side.playerDetails as pd}
                           <div class="asset-row">
                             <span class="pos-dot" style="background:{POS_COLORS[pd.position] || '#95a5a6'}">{pd.position}</span>
-                            <span class="asset-name">{pd.name}</span>
+                            <button class="asset-name asset-link" title="Trace {pd.name}" on:click={() => tracePlayer(pd.playerID)}>{pd.name}</button>
                             <span class="asset-pts">{pd[ptsKey]} pts</span>
                           </div>
                         {/each}
@@ -652,13 +797,13 @@
                           <div class="asset-row pick-row" class:pending={pd.isPending}>
                             <span class="pos-dot pick-dot">{roundLabel(pd.round)}</span>
                             {#if pd.isPending}
-                              <span class="asset-name pending-name">{pd.season} {roundLabel(pd.round)} pick <span class="pending-tag">PENDING</span></span>
+                              <button class="asset-name asset-link pending-name" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.season} {roundLabel(pd.round)} pick ({poss(pd.originalOwnerManager)}) <span class="pending-tag">PENDING</span></button>
                               <span class="asset-pts">—</span>
                             {:else if pd.resolvedName}
-                              <span class="asset-name">{pd.resolvedName} <span class="pick-via">(via pick)</span></span>
+                              <button class="asset-name asset-link" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.resolvedName} <span class="pick-via">(via {poss(pd.originalOwnerManager)} {pd.season} {roundLabel(pd.round)})</span></button>
                               <span class="asset-pts">{pd[ptsKey]} pts</span>
                             {:else}
-                              <span class="asset-name">{pd.season} {roundLabel(pd.round)} pick</span>
+                              <button class="asset-name asset-link" title="Trace this pick" on:click={() => tracePick(pd.pickKey)}>{pd.season} {roundLabel(pd.round)} pick ({poss(pd.originalOwnerManager)})</button>
                               <span class="asset-pts">—</span>
                             {/if}
                           </div>
@@ -743,6 +888,17 @@
   .pending-name { display: flex; align-items: center; gap: 0.35rem; }
   .pending-tag { background: rgba(241, 196, 15, 0.18); color: #9a7000; border-radius: 8px; padding: 0.1rem 0.4rem; font-size: 0.72rem; font-weight: 700; }
   .pick-via { color: var(--g888, #888); font-size: 0.78rem; }
+  .asset-link { background: none; border: none; padding: 0; font: inherit; text-align: left; cursor: pointer; }
+  .asset-link:hover { color: var(--color-primary, #3498db); text-decoration: underline; }
+  .trace-panel { padding: 1rem 1.25rem; margin-bottom: 1.25rem; border-left: 3px solid var(--color-primary, #3498db); }
+  .trace-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .trace-head h3 { margin: 0; }
+  .trace-events { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.75rem; }
+  .trace-event { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.88rem; }
+  .trace-icon { flex-shrink: 0; }
+  .trace-text { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: baseline; }
+  .trace-link { background: none; border: none; padding: 0; font: inherit; font-size: 0.82rem; color: var(--color-primary, #3498db); cursor: pointer; white-space: nowrap; }
+  .trace-link:hover { text-decoration: underline; }
   .highlights-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
   .best-box { border-left: 3px solid #27ae60; }
   .worst-box { border-left: 3px solid #e74c3c; }
