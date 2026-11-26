@@ -304,10 +304,14 @@ export async function buildTradeAnalysisData({ players }) {
       const fromWeek = trade.week ?? 1;
       for (const side of trade.sides) {
         let starterPts = 0, rosterPts = 0;
+        // Player/pick split of the same totals, so the overview can show
+        // how much of a manager's net came from players vs draft picks.
+        let recvPlayerS = 0, recvPlayerR = 0, recvPickS = 0, recvPickR = 0;
         side.playerDetails = side.players.map(pid => {
           const info = getPlayerInfo(pid);
           const pts = playerPointsSince(weeklyPoints, pid, year, fromWeek);
           starterPts += pts.starterPts; rosterPts += pts.rosterPts;
+          recvPlayerS += pts.starterPts; recvPlayerR += pts.rosterPts;
           const giverRID = trade.giverByPlayer?.[pid];
           const fromManager = giverRID
             ? getCanonicalName(giverRID, year)
@@ -317,7 +321,7 @@ export async function buildTradeAnalysisData({ players }) {
         side.pickDetails = side.picks.map(pick => {
           const info = pick.resolvedPlayerID ? getPlayerInfo(pick.resolvedPlayerID) : null;
           const pts = pick.resolvedPlayerID ? playerPointsSince(weeklyPoints, pick.resolvedPlayerID, year, fromWeek) : { starterPts: 0, rosterPts: 0 };
-          if (pick.resolvedPlayerID) { starterPts += pts.starterPts; rosterPts += pts.rosterPts; }
+          if (pick.resolvedPlayerID) { starterPts += pts.starterPts; rosterPts += pts.rosterPts; recvPickS += pts.starterPts; recvPickR += pts.rosterPts; }
           const fromManager = pick.fromRosterID
             ? getCanonicalName(pick.fromRosterID, year)
             : (trade.sides.length === 2 ? trade.sides.find(s => s !== side)?.manager || null : null);
@@ -332,21 +336,32 @@ export async function buildTradeAnalysisData({ players }) {
         });
         side.starterPts = Math.round(starterPts * 10) / 10;
         side.rosterPts = Math.round(rosterPts * 10) / 10;
+        side.receivedPlayerStarterPts = Math.round(recvPlayerS * 10) / 10;
+        side.receivedPlayerRosterPts = Math.round(recvPlayerR * 10) / 10;
+        side.receivedPickStarterPts = Math.round(recvPickS * 10) / 10;
+        side.receivedPickRosterPts = Math.round(recvPickR * 10) / 10;
         // What this side GAVE: the same production function applied to the
         // assets that left its roster (identical values to what receivers
         // were credited, so nets are zero-sum for any trade size).
         let givenStarter = 0, givenRoster = 0;
+        let givPlayerS = 0, givPlayerR = 0, givPickS = 0, givPickR = 0;
         for (const pid of side.givenPlayers || []) {
           const pts = playerPointsSince(weeklyPoints, pid, year, fromWeek);
           givenStarter += pts.starterPts; givenRoster += pts.rosterPts;
+          givPlayerS += pts.starterPts; givPlayerR += pts.rosterPts;
         }
         for (const gp of side.givenPicks || []) {
           if (!gp.resolvedPlayerID) continue;
           const pts = playerPointsSince(weeklyPoints, gp.resolvedPlayerID, year, fromWeek);
           givenStarter += pts.starterPts; givenRoster += pts.rosterPts;
+          givPickS += pts.starterPts; givPickR += pts.rosterPts;
         }
         side.givenStarterPts = Math.round(givenStarter * 10) / 10;
         side.givenRosterPts = Math.round(givenRoster * 10) / 10;
+        side.givenPlayerStarterPts = Math.round(givPlayerS * 10) / 10;
+        side.givenPlayerRosterPts = Math.round(givPlayerR * 10) / 10;
+        side.givenPickStarterPts = Math.round(givPickS * 10) / 10;
+        side.givenPickRosterPts = Math.round(givPickR * 10) / 10;
       }
       for (let i = 0; i < trade.sides.length; i++) {
         const mySide = trade.sides[i];
@@ -369,7 +384,7 @@ export async function buildTradeAnalysisData({ players }) {
     if (!teamStats.has(name)) {
       const posBreakdown = {};
       for (const pos of posKeys) posBreakdown[pos] = { starterPts: 0, rosterPts: 0, count: 0 };
-      teamStats.set(name, { manager: name, tradeCount: 0, totalReceivedStarter: 0, totalReceivedRoster: 0, totalGivenStarter: 0, totalGivenRoster: 0, pendingPickCount: 0, posBreakdown });
+      teamStats.set(name, { manager: name, tradeCount: 0, totalReceivedStarter: 0, totalReceivedRoster: 0, totalGivenStarter: 0, totalGivenRoster: 0, totalReceivedPlayerStarter: 0, totalReceivedPlayerRoster: 0, totalGivenPlayerStarter: 0, totalGivenPlayerRoster: 0, totalReceivedPickStarter: 0, totalReceivedPickRoster: 0, totalGivenPickStarter: 0, totalGivenPickRoster: 0, pendingPickCount: 0, posBreakdown });
     }
     return teamStats.get(name);
   };
@@ -379,10 +394,14 @@ export async function buildTradeAnalysisData({ players }) {
       const mySide = trade.sides[i];
       const ts = ensureTeam(mySide.manager);
       ts.tradeCount++; ts.totalReceivedStarter += mySide.starterPts || 0; ts.totalReceivedRoster += mySide.rosterPts || 0; ts.pendingPickCount += mySide.pendingPickCount || 0;
+      ts.totalReceivedPlayerStarter += mySide.receivedPlayerStarterPts || 0; ts.totalReceivedPlayerRoster += mySide.receivedPlayerRosterPts || 0;
+      ts.totalReceivedPickStarter += mySide.receivedPickStarterPts || 0; ts.totalReceivedPickRoster += mySide.receivedPickRosterPts || 0;
       if (trade.hasProvenance) {
         ts.totalGivenStarter += mySide.givenStarterPts || 0; ts.totalGivenRoster += mySide.givenRosterPts || 0;
+        ts.totalGivenPlayerStarter += mySide.givenPlayerStarterPts || 0; ts.totalGivenPlayerRoster += mySide.givenPlayerRosterPts || 0;
+        ts.totalGivenPickStarter += mySide.givenPickStarterPts || 0; ts.totalGivenPickRoster += mySide.givenPickRosterPts || 0;
       } else {
-        for (let j = 0; j < trade.sides.length; j++) { if (j === i) continue; ts.totalGivenStarter += trade.sides[j].starterPts || 0; ts.totalGivenRoster += trade.sides[j].rosterPts || 0; }
+        for (let j = 0; j < trade.sides.length; j++) { if (j === i) continue; ts.totalGivenStarter += trade.sides[j].starterPts || 0; ts.totalGivenRoster += trade.sides[j].rosterPts || 0; ts.totalGivenPlayerStarter += trade.sides[j].receivedPlayerStarterPts || 0; ts.totalGivenPlayerRoster += trade.sides[j].receivedPlayerRosterPts || 0; ts.totalGivenPickStarter += trade.sides[j].receivedPickStarterPts || 0; ts.totalGivenPickRoster += trade.sides[j].receivedPickRosterPts || 0; }
       }
       for (const pd of (mySide.playerDetails || [])) { const pos = POSITIONS.includes(pd.position) ? pd.position : 'Other'; ts.posBreakdown[pos].starterPts += pd.starterPts; ts.posBreakdown[pos].rosterPts += pd.rosterPts; ts.posBreakdown[pos].count++; }
       for (const pd of (mySide.pickDetails || [])) { if (!pd.resolvedPlayerID) continue; const pos = POSITIONS.includes(pd.resolvedPosition) ? pd.resolvedPosition : 'Other'; ts.posBreakdown[pos].starterPts += pd.starterPts; ts.posBreakdown[pos].rosterPts += pd.rosterPts; ts.posBreakdown[pos].count++; }
@@ -393,6 +412,10 @@ export async function buildTradeAnalysisData({ players }) {
     ...t,
     netStarterSurplus: Math.round((t.totalReceivedStarter - t.totalGivenStarter) * 10) / 10,
     netRosterSurplus: Math.round((t.totalReceivedRoster - t.totalGivenRoster) * 10) / 10,
+    playerNetStarterSurplus: Math.round((t.totalReceivedPlayerStarter - t.totalGivenPlayerStarter) * 10) / 10,
+    playerNetRosterSurplus: Math.round((t.totalReceivedPlayerRoster - t.totalGivenPlayerRoster) * 10) / 10,
+    pickNetStarterSurplus: Math.round((t.totalReceivedPickStarter - t.totalGivenPickStarter) * 10) / 10,
+    pickNetRosterSurplus: Math.round((t.totalReceivedPickRoster - t.totalGivenPickRoster) * 10) / 10,
     avgStarterPtsPerTrade: t.tradeCount > 0 ? Math.round((t.totalReceivedStarter / t.tradeCount) * 10) / 10 : 0,
     avgRosterPtsPerTrade: t.tradeCount > 0 ? Math.round((t.totalReceivedRoster / t.tradeCount) * 10) / 10 : 0,
   }));

@@ -216,6 +216,8 @@
   $: givenKey = pointsMode === 'starter' ? 'totalGivenStarter' : 'totalGivenRoster';
   $: netKey = pointsMode === 'starter' ? 'netStarterSurplus' : 'netRosterSurplus';
   $: avgKey = pointsMode === 'starter' ? 'avgStarterPtsPerTrade' : 'avgRosterPtsPerTrade';
+  $: playerNetKey = pointsMode === 'starter' ? 'playerNetStarterSurplus' : 'playerNetRosterSurplus';
+  $: pickNetKey = pointsMode === 'starter' ? 'pickNetStarterSurplus' : 'pickNetRosterSurplus';
 
   $: sortedTeams = data
     ? [...data.teamSummary].sort((a, b) => {
@@ -447,6 +449,8 @@
                 <th on:click={() => setTeamSort(receivedKey)}>Pts Received{sortArrow(receivedKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(givenKey)}>Pts Given{sortArrow(givenKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(netKey)}>Net Surplus{sortArrow(netKey, teamSortKey, teamSortDir)}</th>
+                <th on:click={() => setTeamSort(playerNetKey)}>Player Net{sortArrow(playerNetKey, teamSortKey, teamSortDir)}</th>
+                <th on:click={() => setTeamSort(pickNetKey)}>Pick Net{sortArrow(pickNetKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(avgKey)}>Avg/Trade{sortArrow(avgKey, teamSortKey, teamSortDir)}</th>
                 <th>Pending Picks</th>
               </tr>
@@ -459,6 +463,8 @@
                   <td>{Math.round(t[receivedKey])}</td>
                   <td>{Math.round(t[givenKey])}</td>
                   <td class:positive={t[netKey] > 0} class:negative={t[netKey] < 0}>{t[netKey] > 0 ? '+' : ''}{t[netKey]}</td>
+                  <td class:positive={t[playerNetKey] > 0} class:negative={t[playerNetKey] < 0}>{t[playerNetKey] > 0 ? '+' : ''}{t[playerNetKey]}</td>
+                  <td class:positive={t[pickNetKey] > 0} class:negative={t[pickNetKey] < 0}>{t[pickNetKey] > 0 ? '+' : ''}{t[pickNetKey]}</td>
                   <td>{t[avgKey]}</td>
                   <td>{#if t.pendingPickCount > 0}<span class="pending-badge">{t.pendingPickCount} pending</span>{:else}—{/if}</td>
                 </tr>
