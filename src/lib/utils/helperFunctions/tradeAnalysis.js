@@ -345,16 +345,23 @@ export async function buildTradeAnalysisData({ players }) {
         // were credited, so nets are zero-sum for any trade size).
         let givenStarter = 0, givenRoster = 0;
         let givPlayerS = 0, givPlayerR = 0, givPickS = 0, givPickR = 0;
-        for (const pid of side.givenPlayers || []) {
+        // Given assets get full details too (not just totals) so the
+        // position breakdown can net received vs given per position.
+        side.givenPlayerDetails = (side.givenPlayers || []).map(pid => {
+          const info = getPlayerInfo(pid);
           const pts = playerPointsSince(weeklyPoints, pid, year, fromWeek);
           givenStarter += pts.starterPts; givenRoster += pts.rosterPts;
           givPlayerS += pts.starterPts; givPlayerR += pts.rosterPts;
-        }
+          return { playerID: pid, name: info.name, position: info.position, starterPts: Math.round(pts.starterPts * 10) / 10, rosterPts: Math.round(pts.rosterPts * 10) / 10 };
+        });
+        side.givenPickDetails = [];
         for (const gp of side.givenPicks || []) {
           if (!gp.resolvedPlayerID) continue;
+          const info = getPlayerInfo(gp.resolvedPlayerID);
           const pts = playerPointsSince(weeklyPoints, gp.resolvedPlayerID, year, fromWeek);
           givenStarter += pts.starterPts; givenRoster += pts.rosterPts;
           givPickS += pts.starterPts; givPickR += pts.rosterPts;
+          side.givenPickDetails.push({ resolvedPlayerID: gp.resolvedPlayerID, resolvedName: info.name, resolvedPosition: info.position, starterPts: Math.round(pts.starterPts * 10) / 10, rosterPts: Math.round(pts.rosterPts * 10) / 10 });
         }
         side.givenStarterPts = Math.round(givenStarter * 10) / 10;
         side.givenRosterPts = Math.round(givenRoster * 10) / 10;
@@ -383,7 +390,7 @@ export async function buildTradeAnalysisData({ players }) {
   const ensureTeam = name => {
     if (!teamStats.has(name)) {
       const posBreakdown = {};
-      for (const pos of posKeys) posBreakdown[pos] = { starterPts: 0, rosterPts: 0, count: 0 };
+      for (const pos of posKeys) posBreakdown[pos] = { starterPts: 0, rosterPts: 0, count: 0, givenStarterPts: 0, givenRosterPts: 0, givenCount: 0 };
       teamStats.set(name, { manager: name, tradeCount: 0, totalReceivedStarter: 0, totalReceivedRoster: 0, totalGivenStarter: 0, totalGivenRoster: 0, totalReceivedPlayerStarter: 0, totalReceivedPlayerRoster: 0, totalGivenPlayerStarter: 0, totalGivenPlayerRoster: 0, totalReceivedPickStarter: 0, totalReceivedPickRoster: 0, totalGivenPickStarter: 0, totalGivenPickRoster: 0, playersIn: 0, playersOut: 0, picksIn: 0, picksOut: 0, pendingPickCount: 0, posBreakdown });
     }
     return teamStats.get(name);
@@ -409,6 +416,15 @@ export async function buildTradeAnalysisData({ players }) {
       }
       for (const pd of (mySide.playerDetails || [])) { const pos = POSITIONS.includes(pd.position) ? pd.position : 'Other'; ts.posBreakdown[pos].starterPts += pd.starterPts; ts.posBreakdown[pos].rosterPts += pd.rosterPts; ts.posBreakdown[pos].count++; }
       for (const pd of (mySide.pickDetails || [])) { if (!pd.resolvedPlayerID) continue; const pos = POSITIONS.includes(pd.resolvedPosition) ? pd.resolvedPosition : 'Other'; ts.posBreakdown[pos].starterPts += pd.starterPts; ts.posBreakdown[pos].rosterPts += pd.rosterPts; ts.posBreakdown[pos].count++; }
+      if (trade.hasProvenance) {
+        for (const gd of (mySide.givenPlayerDetails || [])) { const pos = POSITIONS.includes(gd.position) ? gd.position : 'Other'; ts.posBreakdown[pos].givenStarterPts += gd.starterPts; ts.posBreakdown[pos].givenRosterPts += gd.rosterPts; ts.posBreakdown[pos].givenCount++; }
+        for (const gd of (mySide.givenPickDetails || [])) { const pos = POSITIONS.includes(gd.resolvedPosition) ? gd.resolvedPosition : 'Other'; ts.posBreakdown[pos].givenStarterPts += gd.starterPts; ts.posBreakdown[pos].givenRosterPts += gd.rosterPts; ts.posBreakdown[pos].givenCount++; }
+      } else {
+        for (let j = 0; j < trade.sides.length; j++) { if (j === i) continue; const other = trade.sides[j];
+          for (const pd of (other.playerDetails || [])) { const pos = POSITIONS.includes(pd.position) ? pd.position : 'Other'; ts.posBreakdown[pos].givenStarterPts += pd.starterPts; ts.posBreakdown[pos].givenRosterPts += pd.rosterPts; ts.posBreakdown[pos].givenCount++; }
+          for (const pd of (other.pickDetails || [])) { if (!pd.resolvedPlayerID) continue; const pos = POSITIONS.includes(pd.resolvedPosition) ? pd.resolvedPosition : 'Other'; ts.posBreakdown[pos].givenStarterPts += pd.starterPts; ts.posBreakdown[pos].givenRosterPts += pd.rosterPts; ts.posBreakdown[pos].givenCount++; }
+        }
+      }
     }
   }
 

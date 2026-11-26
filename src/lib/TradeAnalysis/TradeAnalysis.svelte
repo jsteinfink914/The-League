@@ -272,7 +272,9 @@
       const row = { manager: t.manager };
       let total = 0;
       for (const pos of POSITIONS) {
-        const v = t.posBreakdown?.[pos]?.[ptsKey] || 0;
+        const pb = t.posBreakdown?.[pos] || {};
+        const given = ptsKey === 'starterPts' ? (pb.givenStarterPts || 0) : (pb.givenRosterPts || 0);
+        const v = (pb[ptsKey] || 0) - given;
         row[pos] = Math.round(v * 10) / 10;
         total += v;
       }
@@ -280,6 +282,11 @@
       return row;
     });
   })();
+  const posNet = (t, pos) => {
+    const pb = t.posBreakdown?.[pos] || {};
+    const given = ptsKey === 'starterPts' ? (pb.givenStarterPts || 0) : (pb.givenRosterPts || 0);
+    return Math.round(((pb[ptsKey] || 0) - given) * 10) / 10;
+  };
 
   $: sortedPosMgr = [...posMgrRows].sort((a, b) => {
     if (posMgrSortKey === 'manager') return posMgrSortDir * a.manager.localeCompare(b.manager);
@@ -339,7 +346,7 @@
     const sorted = [...data.teamSummary].sort((a, b) => b[receivedKey] - a[receivedKey]);
     const datasets = POSITIONS.map(pos => ({
       label: pos,
-      data: sorted.map(t => Math.round((t.posBreakdown?.[pos]?.[ptsKey] || 0) * 10) / 10),
+      data: sorted.map(t => posNet(t, pos)),
       backgroundColor: POS_COLORS[pos] + '99',
       borderColor: POS_COLORS[pos],
       borderWidth: 1
@@ -347,7 +354,7 @@
     posChart = new Chart(el, {
       type: 'bar',
       data: { labels: sorted.map(t => t.manager), datasets },
-      options: { responsive: true, plugins: { legend: { labels: { color: textColor } } }, scales: { x: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } }, y: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } } } }
+      options: { responsive: true, plugins: { legend: { labels: { color: textColor } } }, scales: { x: { ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor }, grid: { color: gridColor } } } }
     });
   }
 
@@ -485,7 +492,7 @@
     {:else if section === 'position'}
       <div class="section">
         <h2>Position Group Breakdown</h2>
-        <p class="section-note">Points produced by assets acquired in trades, split by position. Click any column header to sort.</p>
+        <p class="section-note">Net points by position — production from assets acquired minus production given away, per position. The Total column is each manager's overall net, and every column nets to zero across the league. Click any column header to sort.</p>
         <div class="chart-box wide league-card"><canvas id="trade-pos-chart"></canvas></div>
         <div class="table-wrap">
           <table class="pos-matrix league-table">
@@ -505,12 +512,12 @@
                 <tr>
                   <td class="sticky-col manager-name">{row.manager}</td>
                   {#each POSITIONS as pos}
-                    {@const pct = posMgrMaxes[pos] > 0 ? (row[pos] / posMgrMaxes[pos]) : 0}
-                    <td class="heat-cell" style="background: linear-gradient(to right, {POS_COLORS[pos]}26 0%, {POS_COLORS[pos]}26 {pct * 100}%, transparent {pct * 100}%)">
+                    {@const pct = posMgrMaxes[pos] > 0 ? Math.max(0, row[pos] / posMgrMaxes[pos]) : 0}
+                    <td class="heat-cell" class:negative={row[pos] < 0} style="background: linear-gradient(to right, {POS_COLORS[pos]}26 0%, {POS_COLORS[pos]}26 {pct * 100}%, transparent {pct * 100}%)">
                       {row[pos] || '—'}
                     </td>
                   {/each}
-                  <td class="heat-cell total-col" style="background: linear-gradient(to right, rgba(52,152,219,0.15) 0%, rgba(52,152,219,0.15) {posMgrMaxes.total > 0 ? (row.total / posMgrMaxes.total) * 100 : 0}%, transparent {posMgrMaxes.total > 0 ? (row.total / posMgrMaxes.total) * 100 : 0}%)">
+                  <td class="heat-cell total-col" class:negative={row.total < 0} style="background: linear-gradient(to right, rgba(52,152,219,0.15) 0%, rgba(52,152,219,0.15) {posMgrMaxes.total > 0 ? Math.max(0, row.total / posMgrMaxes.total) * 100 : 0}%, transparent {posMgrMaxes.total > 0 ? Math.max(0, row.total / posMgrMaxes.total) * 100 : 0}%)">
                     <strong>{row.total}</strong>
                   </td>
                 </tr>
