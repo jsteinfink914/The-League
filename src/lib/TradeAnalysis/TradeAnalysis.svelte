@@ -446,6 +446,10 @@
               <tr>
                 <th on:click={() => setTeamSort('manager')}>Manager{sortArrow('manager', teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort('tradeCount')}>Trades{sortArrow('tradeCount', teamSortKey, teamSortDir)}</th>
+                <th on:click={() => setTeamSort('playersIn')}>Players In{sortArrow('playersIn', teamSortKey, teamSortDir)}</th>
+                <th on:click={() => setTeamSort('playersOut')}>Players Out{sortArrow('playersOut', teamSortKey, teamSortDir)}</th>
+                <th on:click={() => setTeamSort('picksIn')}>Picks In{sortArrow('picksIn', teamSortKey, teamSortDir)}</th>
+                <th on:click={() => setTeamSort('picksOut')}>Picks Out{sortArrow('picksOut', teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(receivedKey)}>Pts Received{sortArrow(receivedKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(givenKey)}>Pts Given{sortArrow(givenKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(netKey)}>Net Surplus{sortArrow(netKey, teamSortKey, teamSortDir)}</th>
@@ -460,6 +464,10 @@
                 <tr>
                   <td class="manager-name">{t.manager}</td>
                   <td>{t.tradeCount}</td>
+                  <td>{t.playersIn}</td>
+                  <td>{t.playersOut}</td>
+                  <td>{t.picksIn}</td>
+                  <td>{t.picksOut}</td>
                   <td>{Math.round(t[receivedKey])}</td>
                   <td>{Math.round(t[givenKey])}</td>
                   <td class:positive={t[netKey] > 0} class:negative={t[netKey] < 0}>{t[netKey] > 0 ? '+' : ''}{t[netKey]}</td>

@@ -384,7 +384,7 @@ export async function buildTradeAnalysisData({ players }) {
     if (!teamStats.has(name)) {
       const posBreakdown = {};
       for (const pos of posKeys) posBreakdown[pos] = { starterPts: 0, rosterPts: 0, count: 0 };
-      teamStats.set(name, { manager: name, tradeCount: 0, totalReceivedStarter: 0, totalReceivedRoster: 0, totalGivenStarter: 0, totalGivenRoster: 0, totalReceivedPlayerStarter: 0, totalReceivedPlayerRoster: 0, totalGivenPlayerStarter: 0, totalGivenPlayerRoster: 0, totalReceivedPickStarter: 0, totalReceivedPickRoster: 0, totalGivenPickStarter: 0, totalGivenPickRoster: 0, pendingPickCount: 0, posBreakdown });
+      teamStats.set(name, { manager: name, tradeCount: 0, totalReceivedStarter: 0, totalReceivedRoster: 0, totalGivenStarter: 0, totalGivenRoster: 0, totalReceivedPlayerStarter: 0, totalReceivedPlayerRoster: 0, totalGivenPlayerStarter: 0, totalGivenPlayerRoster: 0, totalReceivedPickStarter: 0, totalReceivedPickRoster: 0, totalGivenPickStarter: 0, totalGivenPickRoster: 0, playersIn: 0, playersOut: 0, picksIn: 0, picksOut: 0, pendingPickCount: 0, posBreakdown });
     }
     return teamStats.get(name);
   };
@@ -396,12 +396,16 @@ export async function buildTradeAnalysisData({ players }) {
       ts.tradeCount++; ts.totalReceivedStarter += mySide.starterPts || 0; ts.totalReceivedRoster += mySide.rosterPts || 0; ts.pendingPickCount += mySide.pendingPickCount || 0;
       ts.totalReceivedPlayerStarter += mySide.receivedPlayerStarterPts || 0; ts.totalReceivedPlayerRoster += mySide.receivedPlayerRosterPts || 0;
       ts.totalReceivedPickStarter += mySide.receivedPickStarterPts || 0; ts.totalReceivedPickRoster += mySide.receivedPickRosterPts || 0;
+      ts.playersIn += (mySide.playerDetails || []).length;
+      ts.picksIn += (mySide.pickDetails || []).length;
       if (trade.hasProvenance) {
         ts.totalGivenStarter += mySide.givenStarterPts || 0; ts.totalGivenRoster += mySide.givenRosterPts || 0;
         ts.totalGivenPlayerStarter += mySide.givenPlayerStarterPts || 0; ts.totalGivenPlayerRoster += mySide.givenPlayerRosterPts || 0;
         ts.totalGivenPickStarter += mySide.givenPickStarterPts || 0; ts.totalGivenPickRoster += mySide.givenPickRosterPts || 0;
+        ts.playersOut += (mySide.givenPlayers || []).length;
+        ts.picksOut += (mySide.givenPicks || []).length;
       } else {
-        for (let j = 0; j < trade.sides.length; j++) { if (j === i) continue; ts.totalGivenStarter += trade.sides[j].starterPts || 0; ts.totalGivenRoster += trade.sides[j].rosterPts || 0; ts.totalGivenPlayerStarter += trade.sides[j].receivedPlayerStarterPts || 0; ts.totalGivenPlayerRoster += trade.sides[j].receivedPlayerRosterPts || 0; ts.totalGivenPickStarter += trade.sides[j].receivedPickStarterPts || 0; ts.totalGivenPickRoster += trade.sides[j].receivedPickRosterPts || 0; }
+        for (let j = 0; j < trade.sides.length; j++) { if (j === i) continue; ts.totalGivenStarter += trade.sides[j].starterPts || 0; ts.totalGivenRoster += trade.sides[j].rosterPts || 0; ts.totalGivenPlayerStarter += trade.sides[j].receivedPlayerStarterPts || 0; ts.totalGivenPlayerRoster += trade.sides[j].receivedPlayerRosterPts || 0; ts.totalGivenPickStarter += trade.sides[j].receivedPickStarterPts || 0; ts.totalGivenPickRoster += trade.sides[j].receivedPickRosterPts || 0; ts.playersOut += (trade.sides[j].playerDetails || []).length; ts.picksOut += (trade.sides[j].pickDetails || []).length; }
       }
       for (const pd of (mySide.playerDetails || [])) { const pos = POSITIONS.includes(pd.position) ? pd.position : 'Other'; ts.posBreakdown[pos].starterPts += pd.starterPts; ts.posBreakdown[pos].rosterPts += pd.rosterPts; ts.posBreakdown[pos].count++; }
       for (const pd of (mySide.pickDetails || [])) { if (!pd.resolvedPlayerID) continue; const pos = POSITIONS.includes(pd.resolvedPosition) ? pd.resolvedPosition : 'Other'; ts.posBreakdown[pos].starterPts += pd.starterPts; ts.posBreakdown[pos].rosterPts += pd.rosterPts; ts.posBreakdown[pos].count++; }
