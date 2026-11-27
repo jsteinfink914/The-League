@@ -452,36 +452,36 @@
             <thead>
               <tr>
                 <th on:click={() => setTeamSort('manager')}>Manager{sortArrow('manager', teamSortKey, teamSortDir)}</th>
-                <th on:click={() => setTeamSort('tradeCount')}>Trades{sortArrow('tradeCount', teamSortKey, teamSortDir)}</th>
-                <th on:click={() => setTeamSort('playersIn')}>Players In{sortArrow('playersIn', teamSortKey, teamSortDir)}</th>
-                <th on:click={() => setTeamSort('playersOut')}>Players Out{sortArrow('playersOut', teamSortKey, teamSortDir)}</th>
-                <th on:click={() => setTeamSort('picksIn')}>Picks In{sortArrow('picksIn', teamSortKey, teamSortDir)}</th>
-                <th on:click={() => setTeamSort('picksOut')}>Picks Out{sortArrow('picksOut', teamSortKey, teamSortDir)}</th>
-                <th on:click={() => setTeamSort(receivedKey)}>Pts Received{sortArrow(receivedKey, teamSortKey, teamSortDir)}</th>
-                <th on:click={() => setTeamSort(givenKey)}>Pts Given{sortArrow(givenKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(netKey)}>Net Surplus{sortArrow(netKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(playerNetKey)}>Player Net{sortArrow(playerNetKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(pickNetKey)}>Pick Net{sortArrow(pickNetKey, teamSortKey, teamSortDir)}</th>
+                <th on:click={() => setTeamSort(receivedKey)}>Pts Received{sortArrow(receivedKey, teamSortKey, teamSortDir)}</th>
+                <th on:click={() => setTeamSort(givenKey)}>Pts Given{sortArrow(givenKey, teamSortKey, teamSortDir)}</th>
                 <th on:click={() => setTeamSort(avgKey)}>Avg/Trade{sortArrow(avgKey, teamSortKey, teamSortDir)}</th>
-                <th>Pending Picks</th>
+                <th class="tertiary" on:click={() => setTeamSort('tradeCount')}>Trades{sortArrow('tradeCount', teamSortKey, teamSortDir)}</th>
+                <th class="tertiary" on:click={() => setTeamSort('playersIn')}>Players In{sortArrow('playersIn', teamSortKey, teamSortDir)}</th>
+                <th class="tertiary" on:click={() => setTeamSort('playersOut')}>Players Out{sortArrow('playersOut', teamSortKey, teamSortDir)}</th>
+                <th class="tertiary" on:click={() => setTeamSort('picksIn')}>Picks In{sortArrow('picksIn', teamSortKey, teamSortDir)}</th>
+                <th class="tertiary" on:click={() => setTeamSort('picksOut')}>Picks Out{sortArrow('picksOut', teamSortKey, teamSortDir)}</th>
+                <th class="tertiary">Pending Picks</th>
               </tr>
             </thead>
             <tbody>
               {#each sortedTeams as t}
                 <tr>
                   <td class="manager-name">{t.manager}</td>
-                  <td>{t.tradeCount}</td>
-                  <td>{t.playersIn}</td>
-                  <td>{t.playersOut}</td>
-                  <td>{t.picksIn}</td>
-                  <td>{t.picksOut}</td>
-                  <td>{Math.round(t[receivedKey])}</td>
-                  <td>{Math.round(t[givenKey])}</td>
                   <td class:positive={t[netKey] > 0} class:negative={t[netKey] < 0}>{t[netKey] > 0 ? '+' : ''}{t[netKey]}</td>
                   <td class:positive={t[playerNetKey] > 0} class:negative={t[playerNetKey] < 0}>{t[playerNetKey] > 0 ? '+' : ''}{t[playerNetKey]}</td>
                   <td class:positive={t[pickNetKey] > 0} class:negative={t[pickNetKey] < 0}>{t[pickNetKey] > 0 ? '+' : ''}{t[pickNetKey]}</td>
+                  <td>{Math.round(t[receivedKey])}</td>
+                  <td>{Math.round(t[givenKey])}</td>
                   <td>{t[avgKey]}</td>
-                  <td>{#if t.pendingPickCount > 0}<span class="pending-badge">{t.pendingPickCount} pending</span>{:else}—{/if}</td>
+                  <td class="tertiary">{t.tradeCount}</td>
+                  <td class="tertiary">{t.playersIn}</td>
+                  <td class="tertiary">{t.playersOut}</td>
+                  <td class="tertiary">{t.picksIn}</td>
+                  <td class="tertiary">{t.picksOut}</td>
+                  <td class="tertiary">{#if t.pendingPickCount > 0}<span class="pending-badge">{t.pendingPickCount} pending</span>{:else}—{/if}</td>
                 </tr>
               {/each}
             </tbody>
@@ -934,6 +934,7 @@
   .manager-name { font-weight: 600; }
   .positive { color: #27ae60; font-weight: 600; }
   .negative { color: #e74c3c; font-weight: 600; }
+  th.tertiary, td.tertiary { color: var(--g666, #666); }
   .pending-badge { background: rgba(241, 196, 15, 0.18); color: #9a7000; border-radius: 12px; padding: 0.2rem 0.5rem; font-size: 0.78rem; font-weight: 600; }
   .pos-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; color: #fff; font-size: 0.8rem; font-weight: 700; }
   .section-note { color: var(--g555, #555); font-size: 0.85rem; margin-bottom: 1rem; }
