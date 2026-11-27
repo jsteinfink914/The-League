@@ -4,7 +4,8 @@
 // Steps: unit tests -> manager-name check -> hardcoded-hex guard ->
 // raw-players-fetch guard -> player-shape guard -> production build ->
 // preview sweep of every
-// route plus the deep links
+// route plus the deep links, ending with headless render checks on the
+// money pages (team_values, calculator, cap)
 // that carry filters in the URL (the class of page that broke on direct
 // load when a param was read before its data existed).
 // A passing production build alone is NOT verification — it never executes
@@ -143,13 +144,121 @@ const DEEP_LINKS = [
     '/trade_analysis/log?manager=Oscar',
     '/manager_overview/cards?manager=Oscar',
 ];
+// --- render checks ----------------------------------------------------------
+// The route sweep only proves each page returns HTTP 200 — but the money
+// pages load their data in the browser, and a page can render complete
+// garbage with a 200 (Nov 27, 2026: Team Values showed every team at $0
+// for two days after a data-source swap changed the player record shape;
+// no error was ever thrown). These checks drive the built pages in a
+// headless browser and assert on the RENDERED numbers: no "undefined"
+// anywhere, Team Values totals real money, Calculator roster chips are
+// real player names, and the Cap table carries real values. Fail-closed:
+// if the browser is missing, this step fails with the install command.
+// Transport note: pages fetch Sleeper directly from the browser, and a
+// sandboxed Chromium may be unable to use the host's egress proxy, so
+// api.sleeper.app requests are fulfilled through Node's fetch (same live
+// responses, byte for byte) — the page code, rendering, and math under
+// test are entirely real; only that one API's transport is bridged.
+const renderChecks = async (base) => {
+    let chromium;
+    try {
+        ({ chromium } = await import('playwright'));
+    } catch (e) {
+        throw new Error('render checks: playwright is not installed — ' + e.message);
+    }
+    let browser;
+    try {
+        browser = await chromium.launch();
+    } catch (e) {
+        throw new Error('render checks: headless Chromium unavailable — run `npx playwright install chromium` once. ' + String(e.message).split('\n')[0]);
+    }
+    const failures = [];
+    const check = (label, cond, detail) => { if (!cond) failures.push(`${label}: ${detail}`); };
+    try {
+        const context = await browser.newContext();
+        const page = await context.newPage();
+        page.setDefaultTimeout(60000);
+        await page.route('https://api.sleeper.app/**', async (route) => {
+            try {
+                const res = await fetch(route.request().url());
+                const body = Buffer.from(await res.arrayBuffer());
+                await route.fulfill({ status: res.status, headers: { 'content-type': res.headers.get('content-type') || 'application/json' }, body });
+            } catch {
+                await route.abort();
+            }
+        });
+
+        // Each page runs in its own section so one page's load timeout
+        // records a failure instead of masking the other pages' results.
+        const section = async (label, fn) => {
+            try { await fn(); } catch (e) { failures.push(`${label}: did not finish loading — ${String(e.message).split('\n')[0]}`); }
+        };
+
+        // Team Values (deep link preselects Oscar — the over-cap team).
+        await section('team_values', async () => {
+            await page.goto(base + '/team_values?manager=Oscar', { waitUntil: 'domcontentloaded' });
+            await page.waitForFunction(() => document.querySelectorAll('.dropdown-container table tbody tr').length >= 20, null, { timeout: 60000 });
+            const tv = await page.evaluate(() => {
+                const totalCell = document.querySelector('.dropdown-container tr.total-value td:nth-child(2)');
+                return {
+                    total: totalCell ? totalCell.textContent.trim() : null,
+                    hasUndefined: document.body.innerText.includes('undefined'),
+                    hasError: !!document.querySelector('.status-err'),
+                };
+            });
+            check('team_values', !tv.hasError, 'page shows a load error');
+            check('team_values', !tv.hasUndefined, 'rendered output contains "undefined"');
+            check('team_values', tv.total !== null && parseFloat(tv.total.replace(/[^0-9.]/g, '')) > 0, `team total is ${tv.total} (expected > $0)`);
+        });
+
+        // Calculator roster quick-add chips (the other half of the Nov 27 bug).
+        await section('calculator', async () => {
+            await page.goto(base + '/calculator', { waitUntil: 'domcontentloaded' });
+            await page.waitForFunction(() => document.querySelectorAll('#roster-pick-1 option').length > 1, null, { timeout: 60000 });
+            const pick = await page.evaluate(() => document.querySelector('#roster-pick-1').options[1].value);
+            await page.selectOption('#roster-pick-1', pick);
+            await page.waitForFunction(() => document.querySelectorAll('.p-chip').length >= 1, null, { timeout: 30000 });
+            const chips = await page.evaluate(() => [...document.querySelectorAll('.p-chip')].map((c) => c.textContent.trim()));
+            check('calculator', chips.length >= 10, `only ${chips.length} roster chips rendered (expected a full roster)`);
+            check('calculator', chips.every((c) => c && !c.includes('undefined')), `roster chips contain bad names (first chips: ${chips.slice(0, 3).join(' | ')})`);
+            const calcHasUndefined = await page.evaluate(() => document.body.innerText.includes('undefined'));
+            check('calculator', !calcHasUndefined, 'rendered output contains "undefined"');
+        });
+
+        // Cap / Player Values table.
+        await section('cap', async () => {
+            await page.goto(base + '/cap', { waitUntil: 'domcontentloaded' });
+            await page.waitForFunction(() => document.querySelectorAll('.league-table tbody tr').length >= 50, null, { timeout: 60000 });
+            const cap = await page.evaluate(() => {
+                const vals = [...document.querySelectorAll('.league-table tbody td[data-label="Value"]')].map((td) => parseFloat(td.textContent.replace(/[^0-9.]/g, '')) || 0);
+                return {
+                    rows: vals.length,
+                    positive: vals.filter((v) => v > 0).length,
+                    hasUndefined: document.querySelector('.league-table tbody').innerText.includes('undefined'),
+                };
+            });
+            check('cap', !cap.hasUndefined, 'rendered output contains "undefined"');
+            check('cap', cap.positive >= 50, `only ${cap.positive} players carry a value > $0 across ${cap.rows} rows`);
+        });
+    } finally {
+        await browser.close();
+    }
+    if (failures.length) throw new Error('render check failures:\n' + failures.join('\n'));
+    console.log('  render checks passed: team_values, calculator, cap render real values, no "undefined"');
+};
+
 const sweep = async () => {
     const port = 4319;
-    const proc = spawn('npm', ['run', 'preview', '--', '--port', String(port), '--host', '127.0.0.1'], { stdio: 'ignore' });
+    // --strictPort + the exit check below guard a real failure mode: if a
+    // previous run's vite preview child survives (the kill used to reach
+    // only the npm wrapper), a new preview silently moves to port 4320 and
+    // the sweep ends up testing the OLD build. Fail loudly instead.
+    const proc = spawn('npm', ['run', 'preview', '--', '--port', String(port), '--host', '127.0.0.1', '--strictPort'], { stdio: 'ignore', detached: true });
     try {
         const base = `http://127.0.0.1:${port}`;
         let up = false;
         for (let i = 0; i < 40 && !up; i++) {
+            if (proc.exitCode !== null) throw new Error(`preview server exited (code ${proc.exitCode}) — port ${port} is likely held by a stale preview; kill it and re-run`);
             try { await fetch(base + '/'); up = true; } catch { await new Promise((r) => setTimeout(r, 500)); }
         }
         if (!up) throw new Error('preview server did not start');
@@ -162,8 +271,11 @@ const sweep = async () => {
         }
         if (bad.length) throw new Error('route sweep failures:\n' + bad.join('\n'));
         console.log(`  swept ${routes.length} routes + deep links, all 200`);
+        await renderChecks(base);
     } finally {
-        proc.kill('SIGTERM');
+        // Kill the whole process group: killing only the npm wrapper leaves
+        // the vite preview child alive holding the port (see above).
+        try { process.kill(-proc.pid, 'SIGTERM'); } catch { proc.kill('SIGTERM'); }
     }
 };
 
