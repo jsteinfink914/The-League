@@ -309,13 +309,33 @@
     overflow-y:auto;
   }
 
-  th, td {
-    text-align: center;
+  .league-table th, .league-table td {
+    text-align: left;
   }
 
-  th {
+  .league-table th {
+    padding: 0.55rem 0.6rem;
     white-space: normal;
   }
+
+  .league-table td {
+    padding: 0.45rem 0.6rem;
+  }
+
+  h4 {
+    margin: 0.75rem 0 0.5rem;
+  }
+
+  /* Roster table: fixed column shares keep the formula from wrapping
+     into five lines on a phone — that wrap was what made rows so tall. */
+  .dropdown-container .league-table {
+    table-layout: fixed;
+  }
+
+  .dropdown-container .league-table th:nth-child(1) { width: 30%; }
+  .dropdown-container .league-table th:nth-child(2) { width: 13%; }
+  .dropdown-container .league-table th:nth-child(3) { width: 25%; }
+  .dropdown-container .league-table th:nth-child(4) { width: 32%; }
 
 
   .total-value {
@@ -393,9 +413,10 @@
   }
 
   .formula-cell {
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--g666, #666);
     text-align: left;
-    max-width: 220px;
   }
 
   tr.row-rookie_year td {
@@ -428,8 +449,9 @@
       font-size: 11px;
     }
 
-    .formula-cell {
-      max-width: 120px;
+    .contract-badge {
+      white-space: normal;
+      line-height: 1.3;
     }
 
     select {
@@ -532,7 +554,5 @@
         </tbody>
       </table>
     {/if}
-    <br>
-    <br>
   </div>
 </div>
