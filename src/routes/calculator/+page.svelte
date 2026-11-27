@@ -164,7 +164,7 @@
         .map(roster => ({
           manager: managerMap.get(String(roster.roster_id)) || `Team ${roster.roster_id}`,
           players: [...new Set((roster.players || [])
-            .map(id => players[id] ? `${players[id].first_name} ${players[id].last_name}` : '')
+            .map(id => players[id] ? `${players[id].fn} ${players[id].ln}` : '')
             .filter(Boolean))].sort()
         }))
         .sort((a, b) => a.manager.localeCompare(b.manager));

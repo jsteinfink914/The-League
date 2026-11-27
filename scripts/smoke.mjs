@@ -2,7 +2,8 @@
 // routes, sorting, or styles:  npm run smoke
 //
 // Steps: unit tests -> manager-name check -> hardcoded-hex guard ->
-// raw-players-fetch guard -> production build -> preview sweep of every
+// raw-players-fetch guard -> player-shape guard -> production build ->
+// preview sweep of every
 // route plus the deep links
 // that carry filters in the URL (the class of page that broke on direct
 // load when a param was read before its data existed).
@@ -93,6 +94,33 @@ const playersGuard = () => {
     if (offenders.length) throw new Error('raw players/nfl fetch outside the shared loader (use loadPlayers):\n' + offenders.join('\n'));
 };
 
+// --- player shape guard -----------------------------------------------------
+// loadPlayers returns the computed /api/fetch_players_info records, whose
+// name fields are fn/ln — NOT the raw Sleeper file's first_name/last_name.
+// When Team Values and the Calculator moved to the shared loader in the
+// Nov 2026 latency pass, they kept reading first_name/last_name and
+// silently built "undefined undefined" for every rostered player (Team
+// Values showed every team at $0; no error anywhere). Any file that uses
+// loadPlayers and references the raw field names fails here.
+const playerShapeGuard = () => {
+    const offenders = [];
+    const walk = (dir) => {
+        for (const e of readdirSync(dir, { withFileTypes: true })) {
+            const p = join(dir, e.name);
+            if (e.isDirectory()) walk(p);
+            else if (/\.(js|svelte)$/.test(e.name)) {
+                const text = readFileSync(p, 'utf8');
+                if (!text.includes('loadPlayers')) continue;
+                text.split('\n').forEach((line, i) => {
+                    if (/\.first_name|\.last_name/.test(line)) offenders.push(`${p}:${i + 1}`);
+                });
+            }
+        }
+    };
+    walk('src');
+    if (offenders.length) throw new Error('loadPlayers consumer reads raw first_name/last_name fields (the loader returns fn/ln):\n' + offenders.join('\n'));
+};
+
 // --- route sweep -----------------------------------------------------------
 const discoverRoutes = (dir, base = '') => {
     const out = [];
@@ -143,6 +171,7 @@ step('unit tests', () => run('npm', ['test', '--silent']));
 step('manager name check', () => run('npm', ['run', 'check:managers', '--silent']));
 step('hex guard', hexGuard);
 step('players fetch guard', playersGuard);
+step('player shape guard', playerShapeGuard);
 step('production build', () => {
     // Locally the Vercel adapter refuses this Node version AFTER both
     // bundles compile — that failure is environmental, not a code error
